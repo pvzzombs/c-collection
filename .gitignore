@@ -1,0 +1,11 @@
+.vscode
+.vscode/
+build
+build/
+bin
+bin/
+obj
+obj/
+*.o
+*.obj
+*.exe
