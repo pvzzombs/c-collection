@@ -35,34 +35,39 @@ int countIslands(int ** mat, int rows, int cols) {
 }
 
 int main() {
-
+  int testcases;
   int ** mat = NULL;
   int rows;
   int cols;
-  scanf("%d %d", & rows, & cols);
-  mat = (int ** ) malloc(rows * sizeof(int * ));
-  for (int i = 0; i < rows; i++) {
-    mat[i] = (int * ) malloc(cols * sizeof(int));
-    for (int j = 0; j < cols; j++) {
-      scanf("%d", & mat[i][j]);
+  int * testcasesResult = NULL;
+
+  scanf("%d", &testcases);
+
+  testcasesResult = malloc(testcases * sizeof(int));
+
+  for (int i = 0; i < testcases; i++) {
+    scanf("%d %d", & rows, & cols);
+    mat = (int ** ) malloc(rows * sizeof(int * ));
+    for (int i = 0; i < rows; i++) {
+      mat[i] = (int * ) malloc(cols * sizeof(int));
+      for (int j = 0; j < cols; j++) {
+        scanf("%d", & mat[i][j]);
+      }
     }
+
+    // printf("Number of islands: %d\n", countIslands(mat, rows, cols));
+    testcasesResult[i] = countIslands(mat, rows, cols);
+
+    for (int i = 0; i < rows; i++) {
+      free(mat[i]);
+    }
+    free(mat);
   }
 
-  // for (int i = 0; i < rows; i++)
-  // {
-  //   for (int j = 0; j < cols; j++)
-  //   {
-  //     printf("%d", mat[i][j]);
-  //   }
-  //   printf("\n");
-  // }
-
-  printf("Number of islands: %d\n", countIslands(mat, rows, cols));
-
-  for (int i = 0; i < rows; i++) {
-    free(mat[i]);
+  for (int i = 0; i < testcases; i++) {
+    printf("%d\n", testcasesResult[i]);
   }
-  free(mat);
 
+  free(testcasesResult);
   return 0;
 }
