@@ -45,7 +45,13 @@ char * shiftToLeft(char * c) {
   return c;
 }
 
-char * add(char * a, char * b) {
+char * add(char * num1, char * num2) {
+  char * a = malloc((strlen(num1) + 1) * sizeof(char));
+  char * b = malloc((strlen(num2) + 1) * sizeof(char));
+
+  strcpy(a, num1);
+  strcpy(b, num2);
+
   int lenA, lenB;
   int len, lenC;
   lenA = strlen(a);
@@ -87,17 +93,21 @@ char * add(char * a, char * b) {
   }
   reverse(c, strlen(c));
   shiftToLeft(c);
+
+  free(a);
+  free(b);
+
   return c;
 }
 
 int main(int argc, char *argv[]) {
   char a[MAXDIGITS];
   char b[MAXDIGITS];
-  char testcasesBuffer[10];
+  char testcasesBuffer[5];
   int testcases;
   char ** testcasesResults = NULL;
 
-  fgets(testcasesBuffer, 10, stdin);
+  fgets(testcasesBuffer, 5, stdin);
 
   testcases = atoi(testcasesBuffer);
 
