@@ -43,6 +43,27 @@ char * shiftToLeftDigits(char * c) {
   return c;
 }
 
+void add_impl(char * addend1, char * addend2, char * sum, int addend1Len, int addend2Len, int sumLen) {
+  int i;
+  int digitSum = 0, carry = 0;
+  for (i = 0; i < addend2Len; i++) {
+    int digitAddend1 = addend1[i] - '0';
+    int digitAddend2 = addend2[i] - '0';
+    digitSum = (digitAddend1 + digitAddend2 + carry) % 10;
+    carry = (digitAddend1 + digitAddend2 + carry) / 10;
+    sum[i] = digitSum + '0';
+  }
+  for(; i < sumLen; i++) {
+    int num = 0;
+    if(i < addend1Len) {
+      num = addend1[i] - '0';
+    }
+    digitSum = (num + carry) % 10;
+    carry = (num + carry) / 10;
+    sum[i] = digitSum + '0';
+  }
+}
+
 char * add(char * num1, char * num2) {
   char * addend1 = malloc((strlen(num1) + 1) * sizeof(char));
   char * addend2 = malloc((strlen(num2) + 1) * sizeof(char));
@@ -51,7 +72,7 @@ char * add(char * num1, char * num2) {
   strcpy(addend2, num2);
 
   int lenA, lenB;
-  int len, lenC;
+  int lenC;
   lenA = strlen(addend1);
   lenB = strlen(addend2);
   reverseDigits(addend1, lenA);
@@ -70,30 +91,15 @@ char * add(char * num1, char * num2) {
     lenB = c;
   }
 
-  len = lenB; // smallest length
+  // len = lenB; // smallest length
   lenC = lenA + 1; // length of the sum
   sum = malloc((lenC + 1) * sizeof(char));
   // lenC + 1 to accomodate the extra zero byte terminator
   sum[lenC - 1] = '0'; // first digit set to 0, no need to actually do this
   sum[lenC] = 0; // the zero byte;
-  int i;
-  int digitSum = 0, carry = 0;
-  for (i = 0; i < len; i++) {
-    int digitAddend1 = addend1[i] - '0';
-    int digitAddend2 = addend2[i] - '0';
-    digitSum = (digitAddend1 + digitAddend2 + carry) % 10;
-    carry = (digitAddend1 + digitAddend2 + carry) / 10;
-    sum[i] = digitSum + '0';
-  }
-  for(; i < lenC; i++) {
-    int num = 0;
-    if(i < lenA) {
-      num = addend1[i] - '0';
-    }
-    digitSum = (num + carry) % 10;
-    carry = (num + carry) / 10;
-    sum[i] = digitSum + '0';
-  }
+  
+  add_impl(addend1, addend2, sum, lenA, lenB, lenC);
+
   reverseDigits(sum, strlen(sum));
   shiftToLeftDigits(sum);
 
@@ -101,6 +107,43 @@ char * add(char * num1, char * num2) {
   free(addend2);
 
   return sum;
+}
+
+void subtract_impl(char * minuend, char * subtrahend, char * difference, int minuendLen, int subtrahendLen, int differenceLen) {
+  int i;
+  int digitDifference = 0, borrow = 0;
+  for (i = 0; i < subtrahendLen; i++) {
+    int minuendDigit = minuend[i] - '0';
+    int subtrahendDigit = subtrahend[i] - '0';
+    int tempBorrow = borrow;
+
+    //printf("Digit is %d\n", minuendDigit);
+
+    if (minuendDigit - tempBorrow < subtrahendDigit) {
+      minuendDigit += 10;
+      borrow = 1;
+    } else {
+      borrow = 0;
+    }
+    digitDifference = minuendDigit - tempBorrow - subtrahendDigit;
+    difference[i] = digitDifference + '0';
+    //printf("d is %d\n", difference[i] - '0');
+  }
+
+  for (; i < minuendLen; i++) {
+    int minuendDigit = minuend[i] - '0';
+    int tempBorrow = borrow;
+    //printf("---Digit is %d\n", minuendDigit);
+    if (minuendDigit - tempBorrow < 0) {
+      minuendDigit += 10;
+      borrow = 1;
+    } else {
+      borrow = 0;
+    }
+    digitDifference = minuendDigit - tempBorrow - 0;
+    difference[i] = digitDifference + '0';
+    //printf("d is %d\n", difference[i] - '0');
+  }
 }
 
 char * subtract(char * num1, char * num2) {
@@ -111,7 +154,7 @@ char * subtract(char * num1, char * num2) {
   strcpy(subtrahend, num2);
 
   int lenA, lenB;
-  int len;
+  // int len;
   lenA = strlen(minuend);
   lenB = strlen(subtrahend);
   reverseDigits(minuend, lenA);
@@ -130,47 +173,14 @@ char * subtract(char * num1, char * num2) {
     lenB = c;
   }
 
-  len = lenB;
+  // len = lenB;
   difference = malloc((lenA + 1) * sizeof(char));
 
   //printf("Size of difference is %d\n", len);
 
   difference[lenA] = 0;
 
-  int i;
-  int digitDifference = 0, borrow = 0;
-  for (i = 0; i < len; i++) {
-    int minuendDigit = minuend[i] - '0';
-    int subtrahendDigit = subtrahend[i] - '0';
-    int tempBorrow = borrow;
-
-    //printf("Digit is %d\n", minuendDigit);
-
-    if (minuendDigit - tempBorrow < subtrahendDigit) {
-      minuendDigit += 10;
-      borrow = 1;
-    } else {
-      borrow = 0;
-    }
-    digitDifference = minuendDigit - tempBorrow - subtrahendDigit;
-    difference[i] = digitDifference + '0';
-    //printf("d is %d\n", difference[i] - '0');
-  }
-
-  for (; i < lenA; i++) {
-    int minuendDigit = minuend[i] - '0';
-    int tempBorrow = borrow;
-    //printf("---Digit is %d\n", minuendDigit);
-    if (minuendDigit - tempBorrow < 0) {
-      minuendDigit += 10;
-      borrow = 1;
-    } else {
-      borrow = 0;
-    }
-    digitDifference = minuendDigit - tempBorrow - 0;
-    difference[i] = digitDifference + '0';
-    //printf("d is %d\n", difference[i] - '0');
-  }
+  subtract_impl(minuend, subtrahend, difference, lenA, lenB, lenA);
 
   reverseDigits(difference, strlen(difference));
 
@@ -183,4 +193,84 @@ char * subtract(char * num1, char * num2) {
   free(subtrahend);
 
   return difference;
+}
+
+void multiply_impl(char * multiplicand, char * multiplier, char * product, int multiplicandLen, int multiplierLen, int productLen) {
+  int carryM;
+  int carryA;
+  int productDigit;
+  int sumDigit;
+  int pIndex = 0, pIndexTemp;
+  int i, j;
+  for (j = 0; j < multiplierLen; j++) {
+    carryA = 0;
+    carryM = 0;
+    pIndexTemp = pIndex;
+    for (i = 0; i < multiplicandLen; i++) {
+      int m = multiplicand[i] - '0';
+      int n = multiplier[j] - '0';
+      int p = product[pIndex] - '0';
+      productDigit = (m * n + carryM) % 10;
+      carryM = (m * n + carryM) / 10;
+      sumDigit = (productDigit + carryA + p) % 10;
+      carryA = (productDigit + carryA + p) / 10;
+      product[pIndex] = sumDigit + '0';
+      pIndex++;
+    }
+
+    // printf("Middle: %d", productDigit);
+    for(; pIndex < productLen; pIndex++) {
+      int p = product[pIndex] - '0';
+      sumDigit = (carryM + carryA + p) % 10;
+      carryA = (carryM + carryA + p) / 10;
+      product[pIndex] = sumDigit + '0';
+      carryM = 0;
+    }
+    pIndex = pIndexTemp + 1;
+  }
+}
+
+char * multiply(char * num1, char * num2) {
+  char * multiplicand = malloc((strlen(num1) + 1) * sizeof(char));
+  char * multiplier = malloc((strlen(num2) + 1) * sizeof(char));
+
+  strcpy(multiplicand, num1);
+  strcpy(multiplier, num2);
+
+  int lenA, lenB;
+  lenA = strlen(multiplicand);
+  lenB = strlen(multiplier);
+
+  reverseDigits(multiplicand, lenA);
+  reverseDigits(multiplier, lenB);
+
+  char * product = NULL;
+
+  if (lenB > lenA) {
+    char * temp = multiplicand;
+    multiplicand = multiplier;
+    multiplier = temp;
+    int c = lenA;
+    lenA = lenB;
+    lenB = c;
+  }
+
+  product = malloc((lenA + lenB + 1) * sizeof(char));
+
+  product[lenA + lenB] = 0;
+
+  for (int i = 0; i < lenA + lenB; i++) {
+    product[i] = '0';
+  }
+
+  multiply_impl(multiplicand, multiplier, product, lenA, lenB, lenA + lenB);
+  // printf("DEBUG: %s", product);
+  reverseDigits(product, strlen(product));
+
+  shiftToLeftDigits(product);
+
+  free(multiplicand);
+  free(multiplier);
+
+  return product;
 }

@@ -12,6 +12,7 @@ int main() {
   char * c = NULL;
   char sum[] = "9876543223333333223222222211";
   char diff[] = "9876543198641975420753086431";
+  char prod[] = "121932631137021795235939643223609205901126352690";
 
   c = add(a, b);
   printf("Sum: %s\n", c);
@@ -24,6 +25,13 @@ int main() {
   printf("Difference: %s\n", c);
   if (strcmp(c, diff) == 0) {
     printf("[INFO] Difference is correct\n");
+  }
+  free(c);
+
+  c = multiply(a, b);
+  printf("Product: %s\n", c);
+  if (strcmp(c, prod) == 0) {
+    printf("[INFO] Product is correct\n");
   }
   free(c);
 
