@@ -56,7 +56,11 @@ char * add(char * num1, char * num2) {
   lenB = strlen(addend2);
   reverseDigits(addend1, lenA);
   reverseDigits(addend2, lenB);
-  char * c = NULL;
+  char * sum = NULL;
+
+  // this condition should be ignored
+  // as long as addend1 is bigger or
+  // equal to addend2
   if (lenB > lenA) {
     char * temp = addend1;
     addend1 = addend2;
@@ -65,12 +69,13 @@ char * add(char * num1, char * num2) {
     lenA = lenB;
     lenB = c;
   }
+
   len = lenB; // smallest length
   lenC = lenA + 1; // length of the sum
-  c = malloc((lenC + 1) * sizeof(char));
+  sum = malloc((lenC + 1) * sizeof(char));
   // lenC + 1 to accomodate the extra zero byte terminator
-  c[lenC - 1] = '0'; // first digit set to 0, no need to actually do this
-  c[lenC] = 0; // the zero byte;
+  sum[lenC - 1] = '0'; // first digit set to 0, no need to actually do this
+  sum[lenC] = 0; // the zero byte;
   int i;
   int digitSum = 0, carry = 0;
   for (i = 0; i < len; i++) {
@@ -78,7 +83,7 @@ char * add(char * num1, char * num2) {
     int digitAddend2 = addend2[i] - '0';
     digitSum = (digitAddend1 + digitAddend2 + carry) % 10;
     carry = (digitAddend1 + digitAddend2 + carry) / 10;
-    c[i] = digitSum + '0';
+    sum[i] = digitSum + '0';
   }
   for(; i < lenC; i++) {
     int num = 0;
@@ -87,13 +92,95 @@ char * add(char * num1, char * num2) {
     }
     digitSum = (num + carry) % 10;
     carry = (num + carry) / 10;
-    c[i] = digitSum + '0';
+    sum[i] = digitSum + '0';
   }
-  reverseDigits(c, strlen(c));
-  shiftToLeftDigits(c);
+  reverseDigits(sum, strlen(sum));
+  shiftToLeftDigits(sum);
 
   free(addend1);
   free(addend2);
 
-  return c;
+  return sum;
+}
+
+char * subtract(char * num1, char * num2) {
+  char * minuend = malloc((strlen(num1) + 1) * sizeof(char));
+  char * subtrahend = malloc((strlen(num2) + 1) * sizeof(char));
+
+  strcpy(minuend, num1);
+  strcpy(subtrahend, num2);
+
+  int lenA, lenB;
+  int len;
+  lenA = strlen(minuend);
+  lenB = strlen(subtrahend);
+  reverseDigits(minuend, lenA);
+  reverseDigits(subtrahend, lenB);
+  char * difference = NULL;
+
+  // this condition should be ignored
+  // as long as minuend is bigger or
+  // equal to subtrahend
+  if (lenB > lenA) {
+    char * temp = minuend;
+    minuend = subtrahend;
+    subtrahend = temp;
+    int c = lenA;
+    lenA = lenB;
+    lenB = c;
+  }
+
+  len = lenB;
+  difference = malloc((lenA + 1) * sizeof(char));
+
+  //printf("Size of difference is %d\n", len);
+
+  difference[lenA] = 0;
+
+  int i;
+  int digitDifference = 0, borrow = 0;
+  for (i = 0; i < len; i++) {
+    int minuendDigit = minuend[i] - '0';
+    int subtrahendDigit = subtrahend[i] - '0';
+    int tempBorrow = borrow;
+
+    //printf("Digit is %d\n", minuendDigit);
+
+    if (minuendDigit - tempBorrow < subtrahendDigit) {
+      minuendDigit += 10;
+      borrow = 1;
+    } else {
+      borrow = 0;
+    }
+    digitDifference = minuendDigit - tempBorrow - subtrahendDigit;
+    difference[i] = digitDifference + '0';
+    //printf("d is %d\n", difference[i] - '0');
+  }
+
+  for (; i < lenA; i++) {
+    int minuendDigit = minuend[i] - '0';
+    int tempBorrow = borrow;
+    //printf("---Digit is %d\n", minuendDigit);
+    if (minuendDigit - tempBorrow < 0) {
+      minuendDigit += 10;
+      borrow = 1;
+    } else {
+      borrow = 0;
+    }
+    digitDifference = minuendDigit - tempBorrow - 0;
+    difference[i] = digitDifference + '0';
+    //printf("d is %d\n", difference[i] - '0');
+  }
+
+  reverseDigits(difference, strlen(difference));
+
+  //printf("===DEBUG: %s\n", difference);
+
+  shiftToLeftDigits(difference);
+  //printf("===DEBUG: %s\n", difference);
+
+  free(minuend);
+  free(subtrahend);
+
+  return difference;
 }
