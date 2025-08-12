@@ -2,6 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+/*
+* Reverse digits
+* @param arr The big integer
+* @param len The length of the big integer
+*/
 void reverseDigits(char * arr, int len) {
   int mid = (len - 1) / 2;
   int l = 0, r = len - 1;
@@ -14,6 +19,12 @@ void reverseDigits(char * arr, int len) {
   }
 }
 
+/*
+* Remove leading zeroes, zeroes located infront of the number
+* Returns string zero if string only contains zero characters
+* @param c The big integer
+* @return The big integer modified
+*/
 char * removeLeadingZeroes(char * c) {
   int target = 0;
   int len = strlen(c);
@@ -43,6 +54,17 @@ char * removeLeadingZeroes(char * c) {
   return c;
 }
 
+/*
+* Core addition logic implementation
+* `sum` can be the `addend1` or `addend2`
+* You can use this technique above to reduce memory allocations
+* @param addend1 The first addend 
+* @param addend2 The second addend
+* @param sum Location of the sum
+* @param addend1Len Number of digits of the first addend
+* @param addend2Len Number of digits of the second addend
+* @param sumLen Number of digits of the sum
+*/
 void add_impl(char * addend1, char * addend2, char * sum, int addend1Len, int addend2Len, int sumLen) {
   int i;
   int digitSum = 0, carry = 0;
@@ -64,6 +86,13 @@ void add_impl(char * addend1, char * addend2, char * sum, int addend1Len, int ad
   }
 }
 
+/*
+* Addition, no assumptions
+* But for better, `num1` should be bigger to `num2`
+* @param num1 The first big integer
+* @param num2 The second big integer
+* @return The newly allocated sum
+*/
 char * add(char * num1, char * num2) {
   char * addend1 = malloc((strlen(num1) + 1) * sizeof(char));
   char * addend2 = malloc((strlen(num2) + 1) * sizeof(char));
@@ -109,6 +138,17 @@ char * add(char * num1, char * num2) {
   return sum;
 }
 
+/*
+* Core subtraction logic implementation
+* `difference` can be `minuend` or `subtrahend`
+* You can use this technique above to reduce memory allocations
+* @param minuend The minuend or the number to start with
+* @param subtrahend The subtrahend or the number used to subtract
+* @param difference The location of the result
+* @param minuendLen The number of digits of minuend
+* @param subtrahendLen The number of digits of subtrahend
+* @param differenceLen The number of digits of difference
+*/
 void subtract_impl(char * minuend, char * subtrahend, char * difference, int minuendLen, int subtrahendLen, int differenceLen) {
   int i;
   int digitDifference = 0, borrow = 0;
@@ -146,6 +186,13 @@ void subtract_impl(char * minuend, char * subtrahend, char * difference, int min
   }
 }
 
+/*
+* Subtraction, assumes that `num1` is always
+* bigger than `num2`
+* @param num1 The minuend
+* @param num2 The subtrahend
+* @return The newly allocated difference
+*/
 char * subtract(char * num1, char * num2) {
   char * minuend = malloc((strlen(num1) + 1) * sizeof(char));
   char * subtrahend = malloc((strlen(num2) + 1) * sizeof(char));
@@ -164,14 +211,14 @@ char * subtract(char * num1, char * num2) {
   // this condition should be ignored
   // as long as minuend is bigger or
   // equal to subtrahend
-  if (lenB > lenA) {
-    char * temp = minuend;
-    minuend = subtrahend;
-    subtrahend = temp;
-    int c = lenA;
-    lenA = lenB;
-    lenB = c;
-  }
+  // if (lenB > lenA) {
+  //   char * temp = minuend;
+  //   minuend = subtrahend;
+  //   subtrahend = temp;
+  //   int c = lenA;
+  //   lenA = lenB;
+  //   lenB = c;
+  // }
 
   // len = lenB;
   difference = malloc((lenA + 1) * sizeof(char));
@@ -195,6 +242,18 @@ char * subtract(char * num1, char * num2) {
   return difference;
 }
 
+/*
+* Core multiplication logic implementation
+* Assumes `product` is zeroed, which means all elements are zero characters
+* If `product` is non zero, product will be added to `product`, which
+* might not be what you want
+* @param multiplicand The number to start with
+* @param multiplier The number that tells how many times to add
+* @param product The location of the product
+* @param multiplicandLen The number of digits of multiplicand
+* @param multiplierLen The number of digits of multiplier
+* @param productLen The number of digits of product
+*/
 void multiply_impl(char * multiplicand, char * multiplier, char * product, int multiplicandLen, int multiplierLen, int productLen) {
   int carryM;
   int carryA;
@@ -230,6 +289,13 @@ void multiply_impl(char * multiplicand, char * multiplier, char * product, int m
   }
 }
 
+/*
+* Multiplication, no assumptions
+* But for better, `num1` should be bigger to `num2`
+* @param num1 The multiplicand
+* @param num2 The multiplier
+* @return The newly allocated product
+*/
 char * multiply(char * num1, char * num2) {
   char * multiplicand = malloc((strlen(num1) + 1) * sizeof(char));
   char * multiplier = malloc((strlen(num2) + 1) * sizeof(char));
@@ -275,7 +341,12 @@ char * multiply(char * num1, char * num2) {
   return product;
 }
 
-
+/*
+* The inverse of removeLeadingZeroes
+* @param arr The big integer
+* @param count The number of zeroes to add
+* @return The newly allocated big int, with zeroes in front
+*/
 char * addLeadingZeroes(char * arr, int count) {
   char * newArr = malloc((strlen(arr) + count + 1) * sizeof(char));
   newArr[strlen(arr) + count] = 0;
@@ -288,10 +359,21 @@ char * addLeadingZeroes(char * arr, int count) {
   return newArr;
 }
 
+/*
+* @param a The first number
+* @param b The second number
+* @return The smallest number
+*/
 int mininumInt(int a, int b) {
   return a < b ? a : b;
 }
 
+/*
+* Compares big integer digit by digit
+* @param num1 The first number
+* @param num2 The second number
+* @return `1` if true, `0` otherwise
+*/
 int lessThanInt(char * num1, char * num2) {
   if (strlen(num1) < strlen(num2)) {
     return 1;
@@ -309,6 +391,12 @@ int lessThanInt(char * num1, char * num2) {
   return 0;
 }
 
+/*
+* Move digits to left by one
+* Done in place, no allocation/s done
+* Disregard the last digit
+* @param arr The big integer
+*/
 void shiftLeftInPlaceByOne(char * arr) {
   int i = 0;
   for (int j = 1; j < strlen(arr); j++) {
@@ -318,6 +406,12 @@ void shiftLeftInPlaceByOne(char * arr) {
   arr[strlen(arr) - 1] = '0';
 }
 
+/*
+* Division, assumes that `num1` is always bigger than `num2`
+* @param num1 The dividend
+* @param num2 The divisor
+* @return The newly allocated quotient
+*/
 char * divide(char * num1, char * num2) {
   char * dividend = malloc((strlen(num1) + 1) * sizeof(char));
   char * divisor = malloc((strlen(num2) + 1) * sizeof(char));
@@ -342,7 +436,7 @@ char * divide(char * num1, char * num2) {
   // normalization
   if (divisor[0] - '0' < 5) {
     int d = 10 / ((divisor[0] - '0') + 1);
-    printf("d is %d\n", d);
+    // printf("d is %d\n", d);
     char dStr[] = {d + '0', 0};
 
     char * newDividendTemp = malloc((dividendLen + 1) * sizeof(char));    
@@ -354,14 +448,14 @@ char * divide(char * num1, char * num2) {
     newDividendTemp[dividendLen] = 0;
     newDivisorTemp[divisorLen] = 0;
 
-    printf("dStr is %s\n", dStr);
+    // printf("dStr is %s\n", dStr);
     reverseDigits(dividend, strlen(dividend));
     reverseDigits(divisor, strlen(divisor));
     multiply_impl(dividend, dStr, newDividendTemp, dividendLen - 1, 1, dividendLen);
     multiply_impl(divisor, dStr, newDivisorTemp, divisorLen, 1, divisorLen);
 
-    printf("New dividend: %s\n", newDividendTemp);
-    printf("New divisor: %s\n", newDivisorTemp);
+    // printf("New dividend: %s\n", newDividendTemp);
+    // printf("New divisor: %s\n", newDivisorTemp);
 
     free(dividend);
     free(divisor);
@@ -372,8 +466,8 @@ char * divide(char * num1, char * num2) {
     reverseDigits(dividend, strlen(dividend));
     reverseDigits(divisor, strlen(divisor));
 
-    printf("Dividend is %s\n", dividend);
-    printf("Divisor is %s\n", divisor);
+    // printf("Dividend is %s\n", dividend);
+    // printf("Divisor is %s\n", divisor);
 
   }
 
@@ -403,7 +497,7 @@ char * divide(char * num1, char * num2) {
     // printf("quotion digit candidate is %d\n", qhat);
     char qDigit[] = { qhat + '0', 0};
     reverseDigits(divisor, divisorLen); // reverse divisor
-    reverseDigits(tempHolder, remainderLen); // reverse 
+    // reverseDigits(tempHolder, remainderLen); // reverse 
     memset(tempHolder, '0', remainderLen);
     multiply_impl(divisor, qDigit, tempHolder, divisorLen, 1, remainderLen);
     // printf("Currend dividend: %s\n", remainder);

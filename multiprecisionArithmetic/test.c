@@ -13,6 +13,7 @@ int main() {
   char sum[] = "9876543223333333223222222211";
   char diff[] = "9876543198641975420753086431";
   char prod[] = "121932631137021795235939643223609205901126352690";
+  char quot[] = "800000007";
 
   c = add(a, b);
   printf("Sum: %s\n", c);
@@ -36,8 +37,11 @@ int main() {
   free(c);
 
   // printf("Testing: %s\n", addLeadingZeroes("12345", 5));
-  c = divide("1234567890", "54321");
+  c = divide(a, b);
   printf("Quotient: %s\n", c);
+  if (strcmp(c, quot) == 0) {
+    printf("[INFO] Quotient is correct\n");
+  }
   free(c);
 
   return 0;
