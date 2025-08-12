@@ -4,5 +4,6 @@ project(multiprecisionArithmetic)
 
 add_executable(add add.c)
 add_executable(subtract subtract.c)
+add_executable(multiply multiply.c)
 
 add_executable(test test.c)

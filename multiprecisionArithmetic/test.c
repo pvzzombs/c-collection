@@ -35,5 +35,10 @@ int main() {
   }
   free(c);
 
+  // printf("Testing: %s\n", addLeadingZeroes("12345", 5));
+  c = divide("1234567890", "54321");
+  printf("Quotient: %s\n", c);
+  free(c);
+
   return 0;
 }
