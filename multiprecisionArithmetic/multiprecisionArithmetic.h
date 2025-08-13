@@ -3,7 +3,7 @@
 #include <string.h>
 
 /*
-* Reverse digits
+* Reverse digits.
 * @param arr The big integer
 * @param len The length of the big integer
 */
@@ -20,8 +20,8 @@ void reverseDigits(char * arr, int len) {
 }
 
 /*
-* Remove leading zeroes, zeroes located infront of the number
-* Returns string zero if string only contains zero characters
+* Remove leading zeroes, zeroes located infront of the number.
+* Returns string zero if string only contains zero characters.
 * @param c The big integer
 * @return The big integer modified
 */
@@ -55,9 +55,10 @@ char * removeLeadingZeroes(char * c) {
 }
 
 /*
-* Core addition logic implementation
-* `sum` can be the `addend1` or `addend2`
-* You can use this technique above to reduce memory allocations
+* Core addition logic implementation.
+* `sum` can be the `addend1` or `addend2`.
+* You can use this technique above to reduce memory allocations.
+* Note that `addend1` and `addemd2` must be reversed before using this.
 * @param addend1 The first addend 
 * @param addend2 The second addend
 * @param sum Location of the sum
@@ -87,8 +88,8 @@ void add_impl(char * addend1, char * addend2, char * sum, int addend1Len, int ad
 }
 
 /*
-* Addition, no assumptions
-* But for better, `num1` should be bigger to `num2`
+* Addition, no assumptions.
+* But for better, `num1` should be bigger to `num2`.
 * @param num1 The first big integer
 * @param num2 The second big integer
 * @return The newly allocated sum
@@ -139,9 +140,10 @@ char * add(char * num1, char * num2) {
 }
 
 /*
-* Core subtraction logic implementation
-* `difference` can be `minuend` or `subtrahend`
-* You can use this technique above to reduce memory allocations
+* Core subtraction logic implementation.
+* `difference` can be `minuend` or `subtrahend`.
+* You can use this technique above to reduce memory allocations.
+* Note that `minuend` and `subtrahend` must be reversed before using this.
 * @param minuend The minuend or the number to start with
 * @param subtrahend The subtrahend or the number used to subtract
 * @param difference The location of the result
@@ -188,7 +190,7 @@ void subtract_impl(char * minuend, char * subtrahend, char * difference, int min
 
 /*
 * Subtraction, assumes that `num1` is always
-* bigger than `num2`
+* bigger than `num2`.
 * @param num1 The minuend
 * @param num2 The subtrahend
 * @return The newly allocated difference
@@ -243,10 +245,11 @@ char * subtract(char * num1, char * num2) {
 }
 
 /*
-* Core multiplication logic implementation
-* Assumes `product` is zeroed, which means all elements are zero characters
+* Core multiplication logic implementation.
+* Assumes `product` is zeroed, which means all elements are zero characters.
 * If `product` is non zero, product will be added to `product`, which
-* might not be what you want
+* might not be what you want.
+* Note that `multiplicand` and `multiplier` must be reversed before using this.
 * @param multiplicand The number to start with
 * @param multiplier The number that tells how many times to add
 * @param product The location of the product
@@ -290,8 +293,8 @@ void multiply_impl(char * multiplicand, char * multiplier, char * product, int m
 }
 
 /*
-* Multiplication, no assumptions
-* But for better, `num1` should be bigger to `num2`
+* Multiplication, no assumptions.
+* But for better, `num1` should be bigger to `num2`.
 * @param num1 The multiplicand
 * @param num2 The multiplier
 * @return The newly allocated product
