@@ -410,6 +410,71 @@ void shiftLeftInPlaceByOne(char * arr) {
 }
 
 /*
+* Core division logic implementation.
+* Assumes `dividend` and `divisor` are normalized.
+* @param dividend The number to be divided
+* @param divisor The number that will be used to divide
+* @param quotient The location of the quotient
+* @param dividendLen The number of digits of dividend
+* @param divisorLen The number of digits of divisor
+* @param quotientLen The number of digits of quotient
+*/
+void divide_impl(char * dividend, char * divisor, char * quotient, int dividendLen, int divisorLen, int quotientLen) {
+  int remainderLen = divisorLen + 1;
+  char * remainder = malloc((remainderLen + 1) * sizeof(char));
+  char * tempHolder = malloc((remainderLen + 1) * sizeof(char));
+
+  for (int i = 0; i < remainderLen; i++) {
+    remainder[i] = dividend[i];
+  }
+
+  remainder[remainderLen] = 0;
+  tempHolder[remainderLen] = 0;
+
+  for (int i = 0; i < quotientLen; i++) {
+    remainder[remainderLen - 1] = dividend[i + remainderLen - 1];
+    int qDigit1 = remainder[0] - '0';
+    int qDigit2 = remainder[1] - '0';
+    int dvsrDigit = divisor[0] - '0';
+    int qhat = (qDigit1 * 10 + qDigit2) / dvsrDigit;
+    qhat = mininumInt(qhat, 9);
+    // printf("quotion digit candidate is %d\n", qhat);
+    char qDigit[] = { qhat + '0', 0};
+    reverseDigits(divisor, divisorLen); // reverse divisor
+    // reverseDigits(tempHolder, remainderLen); // reverse 
+    memset(tempHolder, '0', remainderLen);
+    multiply_impl(divisor, qDigit, tempHolder, divisorLen, 1, remainderLen);
+    // printf("Currend dividend: %s\n", remainder);
+    // printf("Temp is: %s\n", tempHolder);
+    reverseDigits(tempHolder, remainderLen); // back to normal
+    while (lessThanInt(remainder, tempHolder)) {
+      qDigit[0] -= 1;
+      memset(tempHolder, '0', remainderLen);
+      multiply_impl(divisor, qDigit, tempHolder, divisorLen, 1, remainderLen);
+      reverseDigits(tempHolder, remainderLen); // back to normal
+    }
+    // printf("Quotient digit is: %d\n", qDigit[0] - '0');
+    reverseDigits(remainder, remainderLen); // reverse
+    reverseDigits(tempHolder, remainderLen); // reverse
+    // char tempRemainder[remainderLen + 1];
+    // tempRemainder[remainderLen] = 0;
+    // memset(tempRemainder, '0', remainderLen);
+    // subtract_impl(remainder, tempHolder, tempRemainder, remainderLen, remainderLen, remainderLen);
+    subtract_impl(remainder, tempHolder, remainder, remainderLen, remainderLen, remainderLen);
+    quotient[i] = qDigit[0];
+    // strcpy(remainder, tempRemainder);
+    reverseDigits(remainder, remainderLen); // back to normal
+    shiftLeftInPlaceByOne(remainder);
+    reverseDigits(tempHolder, remainderLen); // back to normal
+    reverseDigits(divisor, divisorLen); // back to normal divisor
+    // printf("Remainder new is : %s\n", remainder);
+  }
+
+  free(remainder);
+  free(tempHolder);
+}
+
+/*
 * Division, assumes that `num1` is always bigger than `num2`
 * @param num1 The dividend
 * @param num2 The divisor
@@ -423,12 +488,9 @@ char * divide(char * num1, char * num2) {
   strcpy(divisor, num2);
 
   char * quotient = NULL;
-  char * remainder = NULL;
-  char * tempHolder = NULL;
   int dividendLen = strlen(dividend);
   int divisorLen = strlen(divisor);
   int quotientLen = dividendLen - divisorLen;
-  int remainderLen = divisorLen + 1;
 
   char * newDividend = addLeadingZeroes(dividend, 1);
   free(dividend);
@@ -475,66 +537,14 @@ char * divide(char * num1, char * num2) {
   }
 
   quotient = malloc((quotientLen + 1) * sizeof(char));
-  remainder = malloc((remainderLen + 1) * sizeof(char));
-  tempHolder = malloc((remainderLen + 1) * sizeof(char));
-
-  for (int i = 0; i < remainderLen; i++) {
-    remainder[i] = dividend[i];
-  }
-
-  memset(quotient, '0', quotientLen + 1);
-  // memset(remainder, '0', remainderLen + 1);
-  // memset(tempHolder, '0', remainderLen + 1);
-
   quotient[quotientLen] = 0;
-  remainder[remainderLen] = 0;
-  tempHolder[remainderLen] = 0;
-
-  for (int i = 0; i < quotientLen; i++) {
-    remainder[remainderLen - 1] = dividend[i + remainderLen - 1];
-    int qDigit1 = remainder[0] - '0';
-    int qDigit2 = remainder[1] - '0';
-    int dvsrDigit = divisor[0] - '0';
-    int qhat = (qDigit1 * 10 + qDigit2) / dvsrDigit;
-    qhat = mininumInt(qhat, 9);
-    // printf("quotion digit candidate is %d\n", qhat);
-    char qDigit[] = { qhat + '0', 0};
-    reverseDigits(divisor, divisorLen); // reverse divisor
-    // reverseDigits(tempHolder, remainderLen); // reverse 
-    memset(tempHolder, '0', remainderLen);
-    multiply_impl(divisor, qDigit, tempHolder, divisorLen, 1, remainderLen);
-    // printf("Currend dividend: %s\n", remainder);
-    // printf("Temp is: %s\n", tempHolder);
-    reverseDigits(tempHolder, remainderLen); // back to normal
-    while (lessThanInt(remainder, tempHolder)) {
-      qDigit[0] -= 1;
-      memset(tempHolder, '0', remainderLen);
-      multiply_impl(divisor, qDigit, tempHolder, divisorLen, 1, remainderLen);
-      reverseDigits(tempHolder, remainderLen); // back to normal
-    }
-    // printf("Quotient digit is: %d\n", qDigit[0] - '0');
-    reverseDigits(remainder, remainderLen); // reverse
-    reverseDigits(tempHolder, remainderLen); // reverse
-    // char tempRemainder[remainderLen + 1];
-    // tempRemainder[remainderLen] = 0;
-    // memset(tempRemainder, '0', remainderLen);
-    // subtract_impl(remainder, tempHolder, tempRemainder, remainderLen, remainderLen, remainderLen);
-    subtract_impl(remainder, tempHolder, remainder, remainderLen, remainderLen, remainderLen);
-    quotient[i] = qDigit[0];
-    // strcpy(remainder, tempRemainder);
-    reverseDigits(remainder, remainderLen); // back to normal
-    shiftLeftInPlaceByOne(remainder);
-    reverseDigits(tempHolder, remainderLen); // back to normal
-    reverseDigits(divisor, divisorLen); // back to normal divisor
-    // printf("Remainder new is : %s\n", remainder);
-  }
+  
+  divide_impl(dividend, divisor, quotient, dividendLen, divisorLen, quotientLen);
 
   removeLeadingZeroes(quotient);
 
   free(dividend);
   free(divisor);
-  free(remainder);
-  free(tempHolder);
 
   return quotient;
 }
