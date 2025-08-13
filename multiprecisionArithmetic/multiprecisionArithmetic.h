@@ -59,6 +59,8 @@ char * removeLeadingZeroes(char * c) {
 * `sum` can be the `addend1` or `addend2`.
 * You can use this technique above to reduce memory allocations.
 * Note that `addend1` and `addemd2` must be reversed before using this.
+* Assumes `sumLen` is bigger than or equal to `addend1Len` or `addend2Len`.
+* Assumes `sum` is big enough for the result to be stored correctly.
 * @param addend1 The first addend 
 * @param addend2 The second addend
 * @param sum Location of the sum
@@ -144,6 +146,8 @@ char * add(char * num1, char * num2) {
 * `difference` can be `minuend` or `subtrahend`.
 * You can use this technique above to reduce memory allocations.
 * Note that `minuend` and `subtrahend` must be reversed before using this.
+* Assumes `differenceLen` is equal to `minuendLen` or `subtrahendLen`.
+* Assumes `difference` is big enough to store the result correctly.
 * @param minuend The minuend or the number to start with
 * @param subtrahend The subtrahend or the number used to subtract
 * @param difference The location of the result
@@ -250,6 +254,8 @@ char * subtract(char * num1, char * num2) {
 * If `product` is non zero, product will be added to `product`, which
 * might not be what you want.
 * Note that `multiplicand` and `multiplier` must be reversed before using this.
+* Assumes `productLen` is the size of `multiplicandLen` plus `multiplierLen`.
+* Assumes `product` is big enough to store the result correctly.
 * @param multiplicand The number to start with
 * @param multiplier The number that tells how many times to add
 * @param product The location of the product
@@ -412,6 +418,8 @@ void shiftLeftInPlaceByOne(char * arr) {
 /*
 * Core division logic implementation.
 * Assumes `dividend` and `divisor` are normalized.
+* Assumes `dividendLen` is bigger than `divisorLen`.
+* Assumes `quotient` is big enough to store the result correctly.
 * @param dividend The number to be divided
 * @param divisor The number that will be used to divide
 * @param quotient The location of the quotient
