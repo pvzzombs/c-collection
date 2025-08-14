@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,6 +19,29 @@ void reverseDigits(char * arr, int len) {
     l++;
     r--;
   }
+}
+
+/*
+* Compares big integer digit by digit.
+* @param num1 The first number
+* @param num2 The second number
+* @return `-1` if `num1` is less than `num2`, `0` if `num1` is equal to `num2`, 1 if `num1` is greater than `num2`
+*/
+int bigIntCmp(char * num1, char * num2) {
+  if (strlen(num1) < strlen(num2)) {
+    return -1;
+  } else if (strlen(num1) > strlen(num2)) {
+    return 1;
+  } else {
+    for (int i = 0; i < strlen(num1); i++) {
+      if (num1[i] < num2[i]) {
+        return -1;
+      } else if (num1[i] > num2[i]) {
+        return 1;
+      }
+    }
+  }
+  return 0;
 }
 
 /*
@@ -378,7 +403,8 @@ int mininumInt(int a, int b) {
 }
 
 /*
-* Compares big integer digit by digit
+* Compares big integer digit by digit.
+* Tells whether `num1` is less than `num2`.
 * @param num1 The first number
 * @param num2 The second number
 * @return `1` if true, `0` otherwise
@@ -455,7 +481,7 @@ void divide_impl(char * dividend, char * divisor, char * quotient, int dividendL
     // printf("Currend dividend: %s\n", remainder);
     // printf("Temp is: %s\n", tempHolder);
     reverseDigits(tempHolder, remainderLen); // back to normal
-    while (lessThanInt(remainder, tempHolder)) {
+    while (bigIntCmp(remainder, tempHolder) < 0) {
       qDigit[0] -= 1;
       memset(tempHolder, '0', remainderLen);
       multiply_impl(divisor, qDigit, tempHolder, divisorLen, 1, remainderLen);
