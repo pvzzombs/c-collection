@@ -4,8 +4,6 @@
 
 #include "multiprecisionArithmetic.h"
 
-#define MAXDIGITS 1024
-
 int main() {
   char a[] = "9876543210987654321987654321";
   char b[] = "12345678901234567890";
