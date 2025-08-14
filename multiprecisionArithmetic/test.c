@@ -15,6 +15,9 @@ int main() {
   char prod[] = "121932631137021795235939643223609205901126352690";
   char quot[] = "800000007";
 
+  printf("First number: %s\n", a);
+  printf("Second number: %s\n", b);
+
   c = add(a, b);
   printf("Sum: %s\n", c);
   if (strcmp(c, sum) == 0) {
@@ -36,7 +39,6 @@ int main() {
   }
   free(c);
 
-  // printf("Testing: %s\n", addLeadingZeroes("12345", 5));
   c = divide(a, b);
   printf("Quotient: %s\n", c);
   if (strcmp(c, quot) == 0) {
