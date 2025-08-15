@@ -45,6 +45,29 @@ int bigIntCmp(char * num1, char * num2) {
 }
 
 /*
+* Compares big integer digit by digit, but in reverse.
+* @param num1 The first number
+* @param num2 The second number
+* @return `-1` if `num1` is less than `num2`, `0` if `num1` is equal to `num2`, 1 if `num1` is greater than `num2`
+*/
+int bigIntCmpReverse(char * num1, char * num2) {
+  if (strlen(num1) < strlen(num2)) {
+    return -1;
+  } else if (strlen(num1) > strlen(num2)) {
+    return 1;
+  } else {
+    for (int i = strlen(num1) - 1; i >= 0; i--) {
+      if (num1[i] < num2[i]) {
+        return -1;
+      } else if (num1[i] > num2[i]) {
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+
+/*
 * Remove leading zeroes, zeroes located infront of the number.
 * Returns string zero if string only contains zero characters.
 * @param c The big integer
@@ -393,6 +416,16 @@ char * addLeadingZeroes(char * arr, int count) {
   return newArr;
 }
 
+char * addTrailingZeroes(char * arr, int count) {
+  char * newArr = malloc((strlen(arr) + count + 1) * sizeof(char));
+  memset(newArr, '0', strlen(arr) + count);
+  newArr[strlen(arr) + count] = 0;
+  for (int i = 0; i < strlen(arr); i++) {
+    newArr[i] = arr[i];
+  }
+  return newArr;
+}
+
 /*
 * @param a The first number
 * @param b The second number
@@ -439,6 +472,13 @@ void shiftLeftInPlaceByOne(char * arr) {
     i++;
   }
   arr[strlen(arr) - 1] = '0';
+}
+
+void shiftRightInPlaceByOne(char * arr) {
+  for (int i = strlen(arr) - 1; i > 0; i--) {
+    arr[i] = arr[i - 1];
+  }
+  arr[0] = '0';
 }
 
 /*
@@ -574,6 +614,153 @@ char * divide(char * num1, char * num2) {
   quotient[quotientLen] = 0;
   
   divide_impl(dividend, divisor, quotient, dividendLen, divisorLen, quotientLen);
+
+  removeLeadingZeroes(quotient);
+
+  free(dividend);
+  free(divisor);
+
+  return quotient;
+}
+
+/*
+* Core division logic implementation.
+* Assumes `dividend` and `divisor` are normalized.
+* Assumes `dividendLen` is bigger than `divisorLen`.
+* Assumes `quotient` is big enough to store the result correctly.
+* @param dividend The number to be divided
+* @param divisor The number that will be used to divide
+* @param quotient The location of the quotient
+* @param dividendLen The number of digits of dividend
+* @param divisorLen The number of digits of divisor
+* @param quotientLen The number of digits of quotient
+*/
+void divide_impl_reverse(char * dividend, char * divisor, char * quotient, int dividendLen, int divisorLen, int quotientLen) {
+  int remainderLen = divisorLen + 1;
+  char * remainder = malloc((remainderLen + 1) * sizeof(char));
+  char * tempHolder = malloc((remainderLen + 1) * sizeof(char));
+
+  for (int i = 0; i < remainderLen; i++) {
+    remainder[remainderLen - i - 1] = dividend[dividendLen - i - 1];
+  }
+
+  remainder[remainderLen] = 0;
+  tempHolder[remainderLen] = 0;
+
+  for (int i = 0; i < quotientLen; i++) {
+    remainder[0] = dividend[quotientLen - 1 - i];
+    int qDigit1 = remainder[remainderLen - 1] - '0';
+    int qDigit2 = remainder[remainderLen - 2] - '0';
+    int dvsrDigit = divisor[divisorLen - 1] - '0';
+    int qhat = (qDigit1 * 10 + qDigit2) / dvsrDigit;
+    qhat = mininumInt(qhat, 9);
+    // printf("quotion digit candidate is %d\n", qhat);
+    char qDigit[] = { qhat + '0', 0};
+    // reverseDigits(divisor, divisorLen); // reverse divisor
+    // reverseDigits(tempHolder, remainderLen); // reverse 
+    memset(tempHolder, '0', remainderLen);
+    multiply_impl(divisor, qDigit, tempHolder, divisorLen, 1, remainderLen);
+    // printf("Currend dividend: %s\n", remainder);
+    // printf("Temp is: %s\n", tempHolder);
+    // reverseDigits(tempHolder, remainderLen); // back to normal
+    while (bigIntCmpReverse(remainder, tempHolder) < 0) {
+      qDigit[0] -= 1;
+      memset(tempHolder, '0', remainderLen);
+      multiply_impl(divisor, qDigit, tempHolder, divisorLen, 1, remainderLen);
+      // reverseDigits(tempHolder, remainderLen); // back to normal
+    }
+    // printf("Quotient digit is: %d\n", qDigit[0] - '0');
+    // reverseDigits(remainder, remainderLen); // reverse
+    // reverseDigits(tempHolder, remainderLen); // reverse
+    // char tempRemainder[remainderLen + 1];
+    // tempRemainder[remainderLen] = 0;
+    // memset(tempRemainder, '0', remainderLen);
+    // subtract_impl(remainder, tempHolder, tempRemainder, remainderLen, remainderLen, remainderLen);
+    subtract_impl(remainder, tempHolder, remainder, remainderLen, remainderLen, remainderLen);
+    quotient[quotientLen - 1 - i] = qDigit[0];
+    // strcpy(remainder, tempRemainder);
+    // reverseDigits(remainder, remainderLen); // back to normal
+    shiftRightInPlaceByOne(remainder);
+    // reverseDigits(tempHolder, remainderLen); // back to normal
+    // reverseDigits(divisor, divisorLen); // back to normal divisor
+    // printf("Remainder new is : %s\n", remainder);
+  }
+
+  free(remainder);
+  free(tempHolder);
+}
+
+/*
+* Division, assumes that `num1` is always bigger than `num2`
+* @param num1 The dividend
+* @param num2 The divisor
+* @return The newly allocated quotient
+*/
+char * divide_reverse(char * num1, char * num2) {
+  char * dividend = malloc((strlen(num1) + 1) * sizeof(char));
+  char * divisor = malloc((strlen(num2) + 1) * sizeof(char));
+
+  strcpy(dividend, num1);
+  strcpy(divisor, num2);
+
+  char * quotient = NULL;
+  int dividendLen = strlen(dividend);
+  int divisorLen = strlen(divisor);
+  int quotientLen = dividendLen - divisorLen;
+
+  char * newDividend = addLeadingZeroes(dividend, 1);
+  free(dividend);
+  dividend = newDividend;
+  dividendLen = strlen(newDividend);
+  quotientLen = dividendLen - divisorLen;
+
+  reverseDigits(dividend, dividendLen);
+  reverseDigits(divisor, divisorLen);
+
+  // normalization
+  if (divisor[divisorLen - 1] - '0' < 5) {
+    int d = 10 / ((divisor[divisorLen - 1] - '0') + 1);
+    // printf("d is %d\n", d);
+    char dStr[] = {d + '0', 0};
+
+    char * newDividendTemp = malloc((dividendLen + 1) * sizeof(char));    
+    char * newDivisorTemp = malloc((divisorLen + 1) * sizeof(char));    
+
+    memset(newDividendTemp, '0', dividendLen + 1);
+    memset(newDivisorTemp, '0', divisorLen + 1);
+
+    newDividendTemp[dividendLen] = 0;
+    newDivisorTemp[divisorLen] = 0;
+
+    // printf("dStr is %s\n", dStr);
+    // reverseDigits(dividend, strlen(dividend));
+    // reverseDigits(divisor, strlen(divisor));
+    multiply_impl(dividend, dStr, newDividendTemp, dividendLen - 1, 1, dividendLen);
+    multiply_impl(divisor, dStr, newDivisorTemp, divisorLen, 1, divisorLen);
+
+    // printf("New dividend: %s\n", newDividendTemp);
+    // printf("New divisor: %s\n", newDivisorTemp);
+
+    free(dividend);
+    free(divisor);
+
+    dividend = newDividendTemp;
+    divisor = newDivisorTemp;
+
+    // reverseDigits(dividend, strlen(dividend));
+    // reverseDigits(divisor, strlen(divisor));
+
+    // printf("Dividend is %s\n", dividend);
+    // printf("Divisor is %s\n", divisor);
+
+  }
+
+  quotient = malloc((quotientLen + 1) * sizeof(char));
+  quotient[quotientLen] = 0;
+  
+  divide_impl_reverse(dividend, divisor, quotient, dividendLen, divisorLen, quotientLen);
+
+  reverseDigits(quotient, quotientLen);
 
   removeLeadingZeroes(quotient);
 
