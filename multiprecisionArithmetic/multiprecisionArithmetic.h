@@ -109,6 +109,7 @@ char * removeLeadingZeroes(char * c) {
 * Note that `addend1` and `addemd2` must be reversed before using this.
 * Assumes `sumLen` is bigger than or equal to `addend1Len` or `addend2Len`.
 * Assumes `sum` is big enough for the result to be stored correctly.
+* NOTE: The result is reversed, so you need to reverse it again.
 * @param addend1 The first addend 
 * @param addend2 The second addend
 * @param sum Location of the sum
@@ -196,6 +197,7 @@ char * add(char * num1, char * num2) {
 * Note that `minuend` and `subtrahend` must be reversed before using this.
 * Assumes `differenceLen` is equal to `minuendLen` or `subtrahendLen`.
 * Assumes `difference` is big enough to store the result correctly.
+* NOTE: The result is reversed, so you need to reverse it again.
 * @param minuend The minuend or the number to start with
 * @param subtrahend The subtrahend or the number used to subtract
 * @param difference The location of the result
@@ -304,6 +306,7 @@ char * subtract(char * num1, char * num2) {
 * Note that `multiplicand` and `multiplier` must be reversed before using this.
 * Assumes `productLen` is the size of `multiplicandLen` plus `multiplierLen`.
 * Assumes `product` is big enough to store the result correctly.
+* NOTE: The result is reversed, so you need to reverse it again.
 * @param multiplicand The number to start with
 * @param multiplier The number that tells how many times to add
 * @param product The location of the product
@@ -625,9 +628,11 @@ char * divide(char * num1, char * num2) {
 
 /*
 * Core division logic implementation.
+* Note that `dividend` and `divisor` must be reversed before using this.
 * Assumes `dividend` and `divisor` are normalized.
 * Assumes `dividendLen` is bigger than `divisorLen`.
 * Assumes `quotient` is big enough to store the result correctly.
+* NOTE: The result is reversed, so you need to reverse it again.
 * @param dividend The number to be divided
 * @param divisor The number that will be used to divide
 * @param quotient The location of the quotient
@@ -654,36 +659,19 @@ void divide_impl_reverse(char * dividend, char * divisor, char * quotient, int d
     int dvsrDigit = divisor[divisorLen - 1] - '0';
     int qhat = (qDigit1 * 10 + qDigit2) / dvsrDigit;
     qhat = mininumInt(qhat, 9);
-    // printf("quotion digit candidate is %d\n", qhat);
     char qDigit[] = { qhat + '0', 0};
-    // reverseDigits(divisor, divisorLen); // reverse divisor
-    // reverseDigits(tempHolder, remainderLen); // reverse 
     memset(tempHolder, '0', remainderLen);
     multiply_impl(divisor, qDigit, tempHolder, divisorLen, 1, remainderLen);
-    // printf("Currend dividend: %s\n", remainder);
-    // printf("Temp is: %s\n", tempHolder);
-    // reverseDigits(tempHolder, remainderLen); // back to normal
+
     while (bigIntCmpReverse(remainder, tempHolder) < 0) {
       qDigit[0] -= 1;
       memset(tempHolder, '0', remainderLen);
       multiply_impl(divisor, qDigit, tempHolder, divisorLen, 1, remainderLen);
-      // reverseDigits(tempHolder, remainderLen); // back to normal
     }
-    // printf("Quotient digit is: %d\n", qDigit[0] - '0');
-    // reverseDigits(remainder, remainderLen); // reverse
-    // reverseDigits(tempHolder, remainderLen); // reverse
-    // char tempRemainder[remainderLen + 1];
-    // tempRemainder[remainderLen] = 0;
-    // memset(tempRemainder, '0', remainderLen);
-    // subtract_impl(remainder, tempHolder, tempRemainder, remainderLen, remainderLen, remainderLen);
+
     subtract_impl(remainder, tempHolder, remainder, remainderLen, remainderLen, remainderLen);
     quotient[quotientLen - 1 - i] = qDigit[0];
-    // strcpy(remainder, tempRemainder);
-    // reverseDigits(remainder, remainderLen); // back to normal
     shiftRightInPlaceByOne(remainder);
-    // reverseDigits(tempHolder, remainderLen); // back to normal
-    // reverseDigits(divisor, divisorLen); // back to normal divisor
-    // printf("Remainder new is : %s\n", remainder);
   }
 
   free(remainder);
@@ -720,7 +708,6 @@ char * divide_reverse(char * num1, char * num2) {
   // normalization
   if (divisor[divisorLen - 1] - '0' < 5) {
     int d = 10 / ((divisor[divisorLen - 1] - '0') + 1);
-    // printf("d is %d\n", d);
     char dStr[] = {d + '0', 0};
 
     char * newDividendTemp = malloc((dividendLen + 1) * sizeof(char));    
@@ -732,26 +719,14 @@ char * divide_reverse(char * num1, char * num2) {
     newDividendTemp[dividendLen] = 0;
     newDivisorTemp[divisorLen] = 0;
 
-    // printf("dStr is %s\n", dStr);
-    // reverseDigits(dividend, strlen(dividend));
-    // reverseDigits(divisor, strlen(divisor));
     multiply_impl(dividend, dStr, newDividendTemp, dividendLen - 1, 1, dividendLen);
     multiply_impl(divisor, dStr, newDivisorTemp, divisorLen, 1, divisorLen);
-
-    // printf("New dividend: %s\n", newDividendTemp);
-    // printf("New divisor: %s\n", newDivisorTemp);
 
     free(dividend);
     free(divisor);
 
     dividend = newDividendTemp;
     divisor = newDivisorTemp;
-
-    // reverseDigits(dividend, strlen(dividend));
-    // reverseDigits(divisor, strlen(divisor));
-
-    // printf("Dividend is %s\n", dividend);
-    // printf("Divisor is %s\n", divisor);
 
   }
 
