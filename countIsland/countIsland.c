@@ -22,8 +22,10 @@ void search(int ** mat, int i, int j, int rows, int cols, int * islandSize) {
 int countIslands(int ** mat, int rows, int cols) {
   int count = 0;
   int islandSize = 0;
-  for (int i = 0; i < rows; i++) {
-    for (int j = 0; j < cols; j++) {
+  int i;
+  for (i = 0; i < rows; i++) {
+    int j;
+    for (j = 0; j < cols; j++) {
       search(mat, i, j, rows, cols, & islandSize);
       if (islandSize > 0) {
         count++;
@@ -40,31 +42,34 @@ int main() {
   int rows;
   int cols;
   int * testcasesResult = NULL;
+  int i;
 
   scanf("%d", &testcases);
 
   testcasesResult = malloc(testcases * sizeof(int));
 
-  for (int i = 0; i < testcases; i++) {
+  for (i = 0; i < testcases; i++) {
+    int x;
     scanf("%d %d", & rows, & cols);
     mat = (int ** ) malloc(rows * sizeof(int * ));
-    for (int i = 0; i < rows; i++) {
+    for (x = 0; x < rows; x++) {
+      int j;
       mat[i] = (int * ) malloc(cols * sizeof(int));
-      for (int j = 0; j < cols; j++) {
-        scanf("%d", & mat[i][j]);
+      for (j = 0; j < cols; j++) {
+        scanf("%d", & mat[x][j]);
       }
     }
 
     // printf("Number of islands: %d\n", countIslands(mat, rows, cols));
     testcasesResult[i] = countIslands(mat, rows, cols);
 
-    for (int i = 0; i < rows; i++) {
+    for (x = 0; x < rows; x++) {
       free(mat[i]);
     }
     free(mat);
   }
 
-  for (int i = 0; i < testcases; i++) {
+  for (i = 0; i < testcases; i++) {
     printf("%d\n", testcasesResult[i]);
   }
 

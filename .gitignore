@@ -2,6 +2,8 @@
 .vscode/
 build
 build/
+buildWindows
+buildWindows/
 bin
 bin/
 obj

@@ -12,6 +12,9 @@ int main(int argc, char *argv[]) {
   char testcasesBuffer[5];
   int testcases;
   char ** testcasesResults = NULL;
+  int i;
+  int aEnd, bEnd;
+  char * c = NULL;
 
   fgets(testcasesBuffer, 5, stdin);
 
@@ -19,23 +22,22 @@ int main(int argc, char *argv[]) {
 
   testcasesResults = malloc(testcases * sizeof(char *));
 
-  for (int i = 0; i < testcases; i++) {
+  for (i = 0; i < testcases; i++) {
     fgets(a, MAXDIGITS, stdin);
     fgets(b, MAXDIGITS, stdin);
 
-    int aEnd = strstr(a, "\n") - a;
-    int bEnd = strstr(b, "\n") - b;
+    aEnd = strstr(a, "\n") - a;
+    bEnd = strstr(b, "\n") - b;
 
     a[aEnd] = 0;
     b[bEnd] = 0;
 
-    char * c = NULL;
     c = subtract(a, b);
 
     testcasesResults[i] = c;
   }
 
-  for (int i = 0; i < testcases; i++) {
+  for (i = 0; i < testcases; i++) {
     printf("%s\n", testcasesResults[i]);
     free(testcasesResults[i]);
   }

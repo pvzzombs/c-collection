@@ -33,7 +33,8 @@ int bigIntCmp(char * num1, char * num2) {
   } else if (strlen(num1) > strlen(num2)) {
     return 1;
   } else {
-    for (int i = 0; i < strlen(num1); i++) {
+    int i;
+    for (i = 0; i < strlen(num1); i++) {
       if (num1[i] < num2[i]) {
         return -1;
       } else if (num1[i] > num2[i]) {
@@ -56,7 +57,8 @@ int bigIntCmpReverse(char * num1, char * num2) {
   } else if (strlen(num1) > strlen(num2)) {
     return 1;
   } else {
-    for (int i = strlen(num1) - 1; i >= 0; i--) {
+    int i;
+    for (i = strlen(num1) - 1; i >= 0; i--) {
       if (num1[i] < num2[i]) {
         return -1;
       } else if (num1[i] > num2[i]) {
@@ -148,26 +150,26 @@ void add_impl(char * addend1, char * addend2, char * sum, int addend1Len, int ad
 char * add(char * num1, char * num2) {
   char * addend1 = malloc((strlen(num1) + 1) * sizeof(char));
   char * addend2 = malloc((strlen(num2) + 1) * sizeof(char));
+  int lenA, lenB;
+  int lenC;
+  char * sum = NULL;
 
   strcpy(addend1, num1);
   strcpy(addend2, num2);
 
-  int lenA, lenB;
-  int lenC;
   lenA = strlen(addend1);
   lenB = strlen(addend2);
   reverseDigits(addend1, lenA);
   reverseDigits(addend2, lenB);
-  char * sum = NULL;
 
   // this condition should be ignored
   // as long as addend1 is bigger or
   // equal to addend2
   if (lenB > lenA) {
     char * temp = addend1;
+    int c = lenA;
     addend1 = addend2;
     addend2 = temp;
-    int c = lenA;
     lenA = lenB;
     lenB = c;
   }
@@ -252,17 +254,17 @@ void subtract_impl(char * minuend, char * subtrahend, char * difference, int min
 char * subtract(char * num1, char * num2) {
   char * minuend = malloc((strlen(num1) + 1) * sizeof(char));
   char * subtrahend = malloc((strlen(num2) + 1) * sizeof(char));
+  int lenA, lenB;
+  char * difference = NULL;
 
   strcpy(minuend, num1);
   strcpy(subtrahend, num2);
 
-  int lenA, lenB;
   // int len;
   lenA = strlen(minuend);
   lenB = strlen(subtrahend);
   reverseDigits(minuend, lenA);
   reverseDigits(subtrahend, lenB);
-  char * difference = NULL;
 
   // this condition should be ignored
   // as long as minuend is bigger or
@@ -359,24 +361,25 @@ void multiply_impl(char * multiplicand, char * multiplier, char * product, int m
 char * multiply(char * num1, char * num2) {
   char * multiplicand = malloc((strlen(num1) + 1) * sizeof(char));
   char * multiplier = malloc((strlen(num2) + 1) * sizeof(char));
+  int lenA, lenB;
+  char * product = NULL;
+  int i;
 
   strcpy(multiplicand, num1);
   strcpy(multiplier, num2);
 
-  int lenA, lenB;
   lenA = strlen(multiplicand);
   lenB = strlen(multiplier);
 
   reverseDigits(multiplicand, lenA);
   reverseDigits(multiplier, lenB);
 
-  char * product = NULL;
 
   if (lenB > lenA) {
     char * temp = multiplicand;
+    int c = lenA;
     multiplicand = multiplier;
     multiplier = temp;
-    int c = lenA;
     lenA = lenB;
     lenB = c;
   }
@@ -385,7 +388,7 @@ char * multiply(char * num1, char * num2) {
 
   product[lenA + lenB] = 0;
 
-  for (int i = 0; i < lenA + lenB; i++) {
+  for (i = 0; i < lenA + lenB; i++) {
     product[i] = '0';
   }
 
@@ -409,10 +412,11 @@ char * multiply(char * num1, char * num2) {
 */
 char * addLeadingZeroes(char * arr, int count) {
   char * newArr = malloc((strlen(arr) + count + 1) * sizeof(char));
+  int x = 0;
+  int i;
   newArr[strlen(arr) + count] = 0;
   memset(newArr, '0', strlen(arr) + count);
-  int x = 0;
-  for (int i = count; i < strlen(newArr); i++) {
+  for (i = count; i < strlen(newArr); i++) {
     newArr[i] = arr[x];
     x++;
   }
@@ -421,9 +425,10 @@ char * addLeadingZeroes(char * arr, int count) {
 
 char * addTrailingZeroes(char * arr, int count) {
   char * newArr = malloc((strlen(arr) + count + 1) * sizeof(char));
+  int i;
   memset(newArr, '0', strlen(arr) + count);
   newArr[strlen(arr) + count] = 0;
-  for (int i = 0; i < strlen(arr); i++) {
+  for (i = 0; i < strlen(arr); i++) {
     newArr[i] = arr[i];
   }
   return newArr;
@@ -451,7 +456,8 @@ int lessThanInt(char * num1, char * num2) {
   } else if (strlen(num1) > strlen(num2)) {
     return 0;
   } else {
-    for (int i = 0; i < strlen(num1); i++) {
+    int i;
+    for (i = 0; i < strlen(num1); i++) {
       if (num1[i] < num2[i]) {
         return 1;
       } else if (num1[i] > num2[i]) {
@@ -470,7 +476,8 @@ int lessThanInt(char * num1, char * num2) {
 */
 void shiftLeftInPlaceByOne(char * arr) {
   int i = 0;
-  for (int j = 1; j < strlen(arr); j++) {
+  int j;
+  for (j = 1; j < strlen(arr); j++) {
     arr[i] = arr[j];
     i++;
   }
@@ -478,7 +485,8 @@ void shiftLeftInPlaceByOne(char * arr) {
 }
 
 void shiftRightInPlaceByOne(char * arr) {
-  for (int i = strlen(arr) - 1; i > 0; i--) {
+  int i;
+  for (i = strlen(arr) - 1; i > 0; i--) {
     arr[i] = arr[i - 1];
   }
   arr[0] = '0';
@@ -500,23 +508,28 @@ void divide_impl(char * dividend, char * divisor, char * quotient, int dividendL
   int remainderLen = divisorLen + 1;
   char * remainder = malloc((remainderLen + 1) * sizeof(char));
   char * tempHolder = malloc((remainderLen + 1) * sizeof(char));
+  int i;
+  int qDigit1, qDigit2, dvsrDigit, qhat;
+  char qDigit[2];
 
-  for (int i = 0; i < remainderLen; i++) {
+  for (i = 0; i < remainderLen; i++) {
     remainder[i] = dividend[i];
   }
 
   remainder[remainderLen] = 0;
   tempHolder[remainderLen] = 0;
 
-  for (int i = 0; i < quotientLen; i++) {
+  for (i = 0; i < quotientLen; i++) {
     remainder[remainderLen - 1] = dividend[i + remainderLen - 1];
-    int qDigit1 = remainder[0] - '0';
-    int qDigit2 = remainder[1] - '0';
-    int dvsrDigit = divisor[0] - '0';
-    int qhat = (qDigit1 * 10 + qDigit2) / dvsrDigit;
+    qDigit1 = remainder[0] - '0';
+    qDigit2 = remainder[1] - '0';
+    dvsrDigit = divisor[0] - '0';
+    qhat = (qDigit1 * 10 + qDigit2) / dvsrDigit;
     qhat = mininumInt(qhat, 9);
     // printf("quotion digit candidate is %d\n", qhat);
-    char qDigit[] = { qhat + '0', 0};
+    // char qDigit[] = { qhat + '0', 0};
+    qDigit[0] = qhat + '0';
+    qDigit[1] = 0;
     reverseDigits(divisor, divisorLen); // reverse divisor
     // reverseDigits(tempHolder, remainderLen); // reverse 
     memset(tempHolder, '0', remainderLen);
@@ -560,16 +573,20 @@ void divide_impl(char * dividend, char * divisor, char * quotient, int dividendL
 char * divide(char * num1, char * num2) {
   char * dividend = malloc((strlen(num1) + 1) * sizeof(char));
   char * divisor = malloc((strlen(num2) + 1) * sizeof(char));
+  char * quotient = NULL;
+  char * newDividend = NULL;
+  int dividendLen;
+  int divisorLen;
+  int quotientLen;
 
   strcpy(dividend, num1);
   strcpy(divisor, num2);
 
-  char * quotient = NULL;
-  int dividendLen = strlen(dividend);
-  int divisorLen = strlen(divisor);
-  int quotientLen = dividendLen - divisorLen;
+  dividendLen = strlen(dividend);
+  divisorLen = strlen(divisor);
+  quotientLen = dividendLen - divisorLen;
 
-  char * newDividend = addLeadingZeroes(dividend, 1);
+  newDividend = addLeadingZeroes(dividend, 1);
   free(dividend);
   dividend = newDividend;
   dividendLen = strlen(newDividend);
@@ -644,22 +661,27 @@ void divide_impl_reverse(char * dividend, char * divisor, char * quotient, int d
   int remainderLen = divisorLen + 1;
   char * remainder = malloc((remainderLen + 1) * sizeof(char));
   char * tempHolder = malloc((remainderLen + 1) * sizeof(char));
+  int i;
+  int qDigit1, qDigit2, dvsrDigit, qhat;
+  char qDigit[2];
 
-  for (int i = 0; i < remainderLen; i++) {
+  for (i = 0; i < remainderLen; i++) {
     remainder[remainderLen - i - 1] = dividend[dividendLen - i - 1];
   }
 
   remainder[remainderLen] = 0;
   tempHolder[remainderLen] = 0;
 
-  for (int i = 0; i < quotientLen; i++) {
+  for (i = 0; i < quotientLen; i++) {
     remainder[0] = dividend[quotientLen - 1 - i];
-    int qDigit1 = remainder[remainderLen - 1] - '0';
-    int qDigit2 = remainder[remainderLen - 2] - '0';
-    int dvsrDigit = divisor[divisorLen - 1] - '0';
-    int qhat = (qDigit1 * 10 + qDigit2) / dvsrDigit;
+    qDigit1 = remainder[remainderLen - 1] - '0';
+    qDigit2 = remainder[remainderLen - 2] - '0';
+    dvsrDigit = divisor[divisorLen - 1] - '0';
+    qhat = (qDigit1 * 10 + qDigit2) / dvsrDigit;
     qhat = mininumInt(qhat, 9);
-    char qDigit[] = { qhat + '0', 0};
+    // char qDigit[] = { qhat + '0', 0};
+    qDigit[0] = qhat + '0';
+    qDigit[1] = 0;
     memset(tempHolder, '0', remainderLen);
     multiply_impl(divisor, qDigit, tempHolder, divisorLen, 1, remainderLen);
 
@@ -687,16 +709,20 @@ void divide_impl_reverse(char * dividend, char * divisor, char * quotient, int d
 char * divide_reverse(char * num1, char * num2) {
   char * dividend = malloc((strlen(num1) + 1) * sizeof(char));
   char * divisor = malloc((strlen(num2) + 1) * sizeof(char));
+  char * quotient = NULL;
+  char * newDividend = NULL;
+  int dividendLen;
+  int divisorLen;
+  int quotientLen;
 
   strcpy(dividend, num1);
   strcpy(divisor, num2);
 
-  char * quotient = NULL;
-  int dividendLen = strlen(dividend);
-  int divisorLen = strlen(divisor);
-  int quotientLen = dividendLen - divisorLen;
+  dividendLen = strlen(dividend);
+  divisorLen = strlen(divisor);
+  quotientLen = dividendLen - divisorLen;
 
-  char * newDividend = addLeadingZeroes(dividend, 1);
+  newDividend = addLeadingZeroes(dividend, 1);
   free(dividend);
   dividend = newDividend;
   dividendLen = strlen(newDividend);
