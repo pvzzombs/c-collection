@@ -54,7 +54,7 @@ int main() {
     mat = (int ** ) malloc(rows * sizeof(int * ));
     for (x = 0; x < rows; x++) {
       int j;
-      mat[i] = (int * ) malloc(cols * sizeof(int));
+      mat[x] = (int * ) malloc(cols * sizeof(int));
       for (j = 0; j < cols; j++) {
         scanf("%d", & mat[x][j]);
       }
@@ -64,7 +64,7 @@ int main() {
     testcasesResult[i] = countIslands(mat, rows, cols);
 
     for (x = 0; x < rows; x++) {
-      free(mat[i]);
+      free(mat[x]);
     }
     free(mat);
   }
