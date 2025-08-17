@@ -88,9 +88,9 @@ char * removeLeadingZeroes(char * c) {
   }
   
   if(target >= len) {
-    // it means all digits is zero
+    /* it means all digits is zero */
     if(len >= 1) {
-      // this means the string has some contents, we can modify this
+      /* this means the string has some contents, we can modify this */
       c[0] = '0';
       c[1] = 0;
     }
@@ -162,9 +162,9 @@ char * add(char * num1, char * num2) {
   reverseDigits(addend1, lenA);
   reverseDigits(addend2, lenB);
 
-  // this condition should be ignored
-  // as long as addend1 is bigger or
-  // equal to addend2
+  /* this condition should be ignored
+  as long as addend1 is bigger or
+  equal to addend2 */
   if (lenB > lenA) {
     char * temp = addend1;
     int c = lenA;
@@ -174,12 +174,11 @@ char * add(char * num1, char * num2) {
     lenB = c;
   }
 
-  // len = lenB; // smallest length
-  lenC = lenA + 1; // length of the sum
+  lenC = lenA + 1; /* length of the sum */
   sum = malloc((lenC + 1) * sizeof(char));
-  // lenC + 1 to accomodate the extra zero byte terminator
-  sum[lenC - 1] = '0'; // first digit set to 0, no need to actually do this
-  sum[lenC] = 0; // the zero byte;
+  /* lenC + 1 to accomodate the extra zero byte terminator */
+  sum[lenC - 1] = '0'; /* first digit set to 0, no need to actually do this */
+  sum[lenC] = 0; /* the zero byte; */
   
   add_impl(addend1, addend2, sum, lenA, lenB, lenC);
 
@@ -215,8 +214,6 @@ void subtract_impl(char * minuend, char * subtrahend, char * difference, int min
     int subtrahendDigit = subtrahend[i] - '0';
     int tempBorrow = borrow;
 
-    //printf("Digit is %d\n", minuendDigit);
-
     if (minuendDigit - tempBorrow < subtrahendDigit) {
       minuendDigit += 10;
       borrow = 1;
@@ -225,13 +222,11 @@ void subtract_impl(char * minuend, char * subtrahend, char * difference, int min
     }
     digitDifference = minuendDigit - tempBorrow - subtrahendDigit;
     difference[i] = digitDifference + '0';
-    //printf("d is %d\n", difference[i] - '0');
   }
 
   for (; i < minuendLen; i++) {
     int minuendDigit = minuend[i] - '0';
     int tempBorrow = borrow;
-    //printf("---Digit is %d\n", minuendDigit);
     if (minuendDigit - tempBorrow < 0) {
       minuendDigit += 10;
       borrow = 1;
@@ -240,7 +235,6 @@ void subtract_impl(char * minuend, char * subtrahend, char * difference, int min
     }
     digitDifference = minuendDigit - tempBorrow - 0;
     difference[i] = digitDifference + '0';
-    //printf("d is %d\n", difference[i] - '0');
   }
 }
 
@@ -260,28 +254,12 @@ char * subtract(char * num1, char * num2) {
   strcpy(minuend, num1);
   strcpy(subtrahend, num2);
 
-  // int len;
   lenA = strlen(minuend);
   lenB = strlen(subtrahend);
   reverseDigits(minuend, lenA);
   reverseDigits(subtrahend, lenB);
 
-  // this condition should be ignored
-  // as long as minuend is bigger or
-  // equal to subtrahend
-  // if (lenB > lenA) {
-  //   char * temp = minuend;
-  //   minuend = subtrahend;
-  //   subtrahend = temp;
-  //   int c = lenA;
-  //   lenA = lenB;
-  //   lenB = c;
-  // }
-
-  // len = lenB;
   difference = malloc((lenA + 1) * sizeof(char));
-
-  //printf("Size of difference is %d\n", len);
 
   difference[lenA] = 0;
 
@@ -289,10 +267,7 @@ char * subtract(char * num1, char * num2) {
 
   reverseDigits(difference, strlen(difference));
 
-  //printf("===DEBUG: %s\n", difference);
-
   removeLeadingZeroes(difference);
-  //printf("===DEBUG: %s\n", difference);
 
   free(minuend);
   free(subtrahend);
@@ -339,7 +314,6 @@ void multiply_impl(char * multiplicand, char * multiplier, char * product, int m
       pIndex++;
     }
 
-    // printf("Middle: %d", productDigit);
     for(; pIndex < productLen; pIndex++) {
       int p = product[pIndex] - '0';
       sumDigit = (carryM + carryA + p) % 10;
@@ -393,7 +367,7 @@ char * multiply(char * num1, char * num2) {
   }
 
   multiply_impl(multiplicand, multiplier, product, lenA, lenB, lenA + lenB);
-  // printf("DEBUG: %s", product);
+
   reverseDigits(product, strlen(product));
 
   removeLeadingZeroes(product);
@@ -526,38 +500,26 @@ void divide_impl(char * dividend, char * divisor, char * quotient, int dividendL
     dvsrDigit = divisor[0] - '0';
     qhat = (qDigit1 * 10 + qDigit2) / dvsrDigit;
     qhat = mininumInt(qhat, 9);
-    // printf("quotion digit candidate is %d\n", qhat);
-    // char qDigit[] = { qhat + '0', 0};
     qDigit[0] = qhat + '0';
     qDigit[1] = 0;
-    reverseDigits(divisor, divisorLen); // reverse divisor
-    // reverseDigits(tempHolder, remainderLen); // reverse 
+    reverseDigits(divisor, divisorLen); /* reverse divisor */
     memset(tempHolder, '0', remainderLen);
     multiply_impl(divisor, qDigit, tempHolder, divisorLen, 1, remainderLen);
-    // printf("Currend dividend: %s\n", remainder);
-    // printf("Temp is: %s\n", tempHolder);
-    reverseDigits(tempHolder, remainderLen); // back to normal
+    reverseDigits(tempHolder, remainderLen); /* back to normal */
     while (bigIntCmp(remainder, tempHolder) < 0) {
       qDigit[0] -= 1;
       memset(tempHolder, '0', remainderLen);
       multiply_impl(divisor, qDigit, tempHolder, divisorLen, 1, remainderLen);
-      reverseDigits(tempHolder, remainderLen); // back to normal
+      reverseDigits(tempHolder, remainderLen); /* back to normal */
     }
-    // printf("Quotient digit is: %d\n", qDigit[0] - '0');
-    reverseDigits(remainder, remainderLen); // reverse
-    reverseDigits(tempHolder, remainderLen); // reverse
-    // char tempRemainder[remainderLen + 1];
-    // tempRemainder[remainderLen] = 0;
-    // memset(tempRemainder, '0', remainderLen);
-    // subtract_impl(remainder, tempHolder, tempRemainder, remainderLen, remainderLen, remainderLen);
+    reverseDigits(remainder, remainderLen); /* reverse */
+    reverseDigits(tempHolder, remainderLen); /* reverse */
     subtract_impl(remainder, tempHolder, remainder, remainderLen, remainderLen, remainderLen);
     quotient[i] = qDigit[0];
-    // strcpy(remainder, tempRemainder);
-    reverseDigits(remainder, remainderLen); // back to normal
+    reverseDigits(remainder, remainderLen); /* back to normal */
     shiftLeftInPlaceByOne(remainder);
-    reverseDigits(tempHolder, remainderLen); // back to normal
-    reverseDigits(divisor, divisorLen); // back to normal divisor
-    // printf("Remainder new is : %s\n", remainder);
+    reverseDigits(tempHolder, remainderLen); /* back to normal */
+    reverseDigits(divisor, divisorLen); /* back to normal divisor */
   }
 
   free(remainder);
@@ -592,10 +554,9 @@ char * divide(char * num1, char * num2) {
   dividendLen = strlen(newDividend);
   quotientLen = dividendLen - divisorLen;
 
-  // normalization
+  /* normalization */
   if (divisor[0] - '0' < 5) {
     int d = 10 / ((divisor[0] - '0') + 1);
-    // printf("d is %d\n", d);
     char dStr[] = {d + '0', 0};
 
     char * newDividendTemp = malloc((dividendLen + 1) * sizeof(char));    
@@ -607,14 +568,10 @@ char * divide(char * num1, char * num2) {
     newDividendTemp[dividendLen] = 0;
     newDivisorTemp[divisorLen] = 0;
 
-    // printf("dStr is %s\n", dStr);
     reverseDigits(dividend, strlen(dividend));
     reverseDigits(divisor, strlen(divisor));
     multiply_impl(dividend, dStr, newDividendTemp, dividendLen - 1, 1, dividendLen);
     multiply_impl(divisor, dStr, newDivisorTemp, divisorLen, 1, divisorLen);
-
-    // printf("New dividend: %s\n", newDividendTemp);
-    // printf("New divisor: %s\n", newDivisorTemp);
 
     free(dividend);
     free(divisor);
@@ -624,9 +581,6 @@ char * divide(char * num1, char * num2) {
 
     reverseDigits(dividend, strlen(dividend));
     reverseDigits(divisor, strlen(divisor));
-
-    // printf("Dividend is %s\n", dividend);
-    // printf("Divisor is %s\n", divisor);
 
   }
 
@@ -679,7 +633,7 @@ void divide_impl_reverse(char * dividend, char * divisor, char * quotient, int d
     dvsrDigit = divisor[divisorLen - 1] - '0';
     qhat = (qDigit1 * 10 + qDigit2) / dvsrDigit;
     qhat = mininumInt(qhat, 9);
-    // char qDigit[] = { qhat + '0', 0};
+
     qDigit[0] = qhat + '0';
     qDigit[1] = 0;
     memset(tempHolder, '0', remainderLen);
@@ -731,7 +685,7 @@ char * divide_reverse(char * num1, char * num2) {
   reverseDigits(dividend, dividendLen);
   reverseDigits(divisor, divisorLen);
 
-  // normalization
+  /* normalization */
   if (divisor[divisorLen - 1] - '0' < 5) {
     int d = 10 / ((divisor[divisorLen - 1] - '0') + 1);
     char dStr[] = {d + '0', 0};
