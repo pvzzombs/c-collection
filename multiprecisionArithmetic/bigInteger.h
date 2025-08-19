@@ -77,11 +77,11 @@ void BigInt_init_from_string (BigInt * b, char * str) {
 char * BigInt_to_string(BigInt * b) {
   int x;
   int len = b->internalSize;
-  char * destbuf = malloc(1024 * sizeof(char));
+  char * destbuf = malloc((5 * len + 1) * sizeof(char));
   char * tmpProduct;
   char * tmpAdd;
 
-  memset(destbuf, 0, 1024);
+  memset(destbuf, 0, 5 * len + 1);
   itoa(b->internalRepresentatiom[len - 1], destbuf, 10);
 
   if (len == 0) {
@@ -97,6 +97,7 @@ char * BigInt_to_string(BigInt * b) {
       itoa(b->internalRepresentatiom[x], destbuf, 10);
       tmpAdd = add(tmpProduct, destbuf);
       free(tmpProduct);
+      strcpy(destbuf, tmpAdd);
       if (x != 0) {
         free(tmpAdd);
       }
@@ -109,4 +110,45 @@ char * BigInt_to_string(BigInt * b) {
 void BigInt_destroy(BigInt * b) {
   free(b->internalRepresentatiom);
   b->internalSize = 0;
+}
+
+void BigInt_add_impl(int * addend1, int * addend2, int * sum, int addend1Len, int addend2Len, int sumLen) {
+  int i;
+  int digitSum = 0, carry = 0;
+  for (i = 0; i < addend2Len; i++) {
+    int Addend1 = addend1[i];
+    int Addend2 = addend2[i];
+    digitSum = (Addend1 + Addend2 + carry) % BIGINT_BASE;
+    carry = (Addend1 + Addend2 + carry) / BIGINT_BASE;
+    sum[i] = digitSum;
+  }
+  for(; i < sumLen; i++) {
+    int num = 0;
+    if(i < addend1Len) {
+      num = addend1[i];
+    }
+    digitSum = (num + carry) % BIGINT_BASE;
+    carry = (num + carry) / BIGINT_BASE;
+    sum[i] = digitSum;
+  }
+}
+
+void BigInt_add(BigInt * addend1, BigInt * addend2, BigInt * sum) {
+  if (sum->internalRepresentatiom != NULL) {
+    free(sum->internalRepresentatiom);
+    sum->internalRepresentatiom = NULL;
+    sum->internalSize = 0;
+  }
+  if (addend1->internalSize > addend2->internalSize) {
+    sum->internalRepresentatiom = malloc((addend1->internalSize + 1) * sizeof(int));
+    sum->internalSize = addend1->internalSize + 1;
+    BigInt_add_impl(addend1->internalRepresentatiom, addend2->internalRepresentatiom, sum->internalRepresentatiom, addend1->internalSize, addend2->internalSize, sum->internalSize);
+  } else {
+    sum->internalRepresentatiom = malloc((addend2->internalSize + 1) * sizeof(int));
+    sum->internalSize = addend2->internalSize + 1;
+    BigInt_add_impl(addend2->internalRepresentatiom, addend1->internalRepresentatiom, sum->internalRepresentatiom, addend2->internalSize, addend1->internalSize, sum->internalSize);
+  }
+  if (sum->internalRepresentatiom[sum->internalSize - 1] == 0) {
+    sum->internalSize--;
+  }
 }
