@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     a[aEnd] = 0;
     b[bEnd] = 0;
 
-    c = divide_reverse(a, b);
+    c = divide(a, b);
 
     testcasesResults[i] = c;
   }

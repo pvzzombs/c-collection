@@ -37,7 +37,7 @@ int main() {
   }
   free(c);
 
-  c = divide_reverse(a, b);
+  c = divide(a, b);
   printf("Quotient: %s\n", c);
   if (strcmp(c, quot) == 0) {
     printf("[INFO] Quotient is correct\n");
