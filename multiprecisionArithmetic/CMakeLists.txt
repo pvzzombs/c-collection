@@ -8,3 +8,4 @@ add_executable(multiply multiply.c)
 add_executable(divide divide.c)
 
 add_executable(test test.c)
+add_executable(bigIntTest bigIntTest.c)
