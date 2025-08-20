@@ -316,7 +316,7 @@ int BigInt_internal_cmp(int * num1, int * num2, int num1Len, int num2Len) {
   return 0;
 }
 
-int BigInt_internal_shift_towards_front_by_one(int * arr, int len){
+void BigInt_internal_shift_towards_front_by_one(int * arr, int len){
   int i;
   for (i = len - 1; i > 0; i--) {
     arr[i] = arr[i - 1];
