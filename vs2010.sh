@@ -20,7 +20,7 @@ else
   echo "Generated cmake files..."
 fi
 
-cmake --build .
+cmake --build . --config Debug
 # cl main.c
 # RC.Exe
 
