@@ -152,3 +152,50 @@ void BigInt_add(BigInt * addend1, BigInt * addend2, BigInt * sum) {
     sum->internalSize--;
   }
 }
+
+void BigInt_subtract_impl(int * minuend, int * subtrahend, int * difference, int minuendLen, int subtrahendLen, int differenceLen) {
+  int i;
+  int digitDifference = 0, borrow = 0;
+  for (i = 0; i < subtrahendLen; i++) {
+    int minuendDigit = minuend[i];
+    int subtrahendDigit = subtrahend[i];
+    int tempBorrow = borrow;
+
+    if (minuendDigit - tempBorrow < subtrahendDigit) {
+      minuendDigit += BIGINT_BASE;
+      borrow = 1;
+    } else {
+      borrow = 0;
+    }
+    digitDifference = minuendDigit - tempBorrow - subtrahendDigit;
+    difference[i] = digitDifference;
+  }
+
+  for (; i < minuendLen; i++) {
+    int minuendDigit = minuend[i];
+    int tempBorrow = borrow;
+    if (minuendDigit - tempBorrow < 0) {
+      minuendDigit += BIGINT_BASE;
+      borrow = 1;
+    } else {
+      borrow = 0;
+    }
+    digitDifference = minuendDigit - tempBorrow - 0;
+    difference[i] = digitDifference;
+  }
+}
+
+void BigInt_subtract(BigInt * minuend, BigInt * subtrahend, BigInt * difference) {
+  if (difference->internalRepresentatiom != NULL) {
+    free(difference->internalRepresentatiom);
+    difference->internalRepresentatiom = NULL;
+    difference->internalSize = 0;
+  }
+  difference->internalRepresentatiom = malloc((minuend->internalSize) * sizeof(int));
+  difference->internalSize = minuend->internalSize;
+  BigInt_subtract_impl(minuend->internalRepresentatiom, subtrahend->internalRepresentatiom, difference->internalRepresentatiom, minuend->internalSize, subtrahend->internalSize, difference->internalSize);
+  if (difference->internalRepresentatiom[difference->internalSize - 1] == 0) {
+    difference->internalSize--;
+  }
+}
+
