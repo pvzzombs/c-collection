@@ -136,6 +136,8 @@ void BigInt_remove_leading_zeroes(BigInt * b) {
   for (i = bInternalSize - 1; i >= 0; i--) {
     if (b->internalRepresentatiom[i] == 0) {
       b->internalSize--;
+    } else {
+      break;
     }
   }
   if (b->internalSize == 0) {

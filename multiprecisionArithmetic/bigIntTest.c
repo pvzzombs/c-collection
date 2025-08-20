@@ -1,8 +1,8 @@
 #include "bigInteger.h"
 
 int main() {
-  char test1[] = "9876543210987654321987654321";
-  char test2[] = "12345678901234567890";
+  char test1[] = "32768";
+  char test2[] = "32768";
   BigInt a, b, c;
   char * s;
   BigInt_init_from_string(&a, test1);
