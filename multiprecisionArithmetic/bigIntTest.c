@@ -25,6 +25,11 @@ int main() {
   printf("Product: %s\n", s);
   free(s);
 
+  BigInt_divide(&a, &b, &c);
+  s = BigInt_to_string(&c);
+  printf("Quotient: %s\n", s);
+  free(s);
+
   BigInt_destroy(&a);
   BigInt_destroy(&b);
   BigInt_destroy(&c);

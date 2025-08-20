@@ -146,6 +146,19 @@ void BigInt_remove_leading_zeroes(BigInt * b) {
   }
 }
 
+void BigInt_add_leading_zero(BigInt * b) {
+  int bSize = b->internalSize;
+  int i;
+  int * newInts = malloc((bSize + 1) * sizeof(int));
+  for (i = 0; i < bSize; i++) {
+    newInts[i] = b->internalRepresentatiom[i];
+  }
+  newInts[bSize] = 0;
+  free(b->internalRepresentatiom);
+  b->internalRepresentatiom = newInts;
+  b->internalSize = bSize + 1;
+}
+
 void BigInt_add_impl(int * addend1, int * addend2, int * sum, int addend1Len, int addend2Len, int sumLen) {
   int i;
   int digitSum = 0, carry = 0;
@@ -281,4 +294,103 @@ void BigInt_multiply(BigInt * multiplicand, BigInt * multiplier, BigInt * produc
   }
   BigInt_multiply_impl(multiplicand->internalRepresentatiom, multiplier->internalRepresentatiom, product->internalRepresentatiom, multiplicand->internalSize, multiplier->internalSize, product->internalSize);
   BigInt_remove_leading_zeroes(product);
+}
+
+int BigInt_internal_cmp(int * num1, int * num2, int num1Len, int num2Len) {
+  if (num1Len < num2Len) {
+    return -1;
+  } else if (num1Len > num2Len) {
+    return 1;
+  } else {
+    int i;
+    for (i = num1Len - 1; i >= 0; i--) {
+      if (num1[i] < num2[i]) {
+        return -1;
+      } else if (num1[i] > num2[i]) {
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+
+int BigInt_internal_shift_towards_front_by_one(int * arr, int len){
+  int i;
+  for (i = len - 1; i > 0; i--) {
+    arr[i] = arr[i - 1];
+  }
+}
+
+void BigInt_divide_impl(int * dividend, int * divisor, int * quotient, int dividendLen, int divisorLen, int quotientLen) {
+  int remainderLen = divisorLen + 1;
+  int * remainder = malloc((remainderLen) * sizeof(int));
+  int * tempHolder = malloc((remainderLen) * sizeof(int));
+  int i, j;
+  int qDigit1, qDigit2, dvsrDigit, qhat;
+  int * qDigit = malloc(1 * sizeof(int));
+
+  for (i = 0; i < remainderLen; i++) {
+    remainder[remainderLen - i - 1] = dividend[dividendLen - i - 1];
+  }
+
+  for (i = 0; i < quotientLen; i++) {
+    remainder[0] = dividend[quotientLen - i - 1];
+    qDigit1 = remainder[remainderLen - 1];
+    qDigit2 = remainder[remainderLen - 2];
+    dvsrDigit = divisor[divisorLen - 1];
+    qhat = (qDigit1 * BIGINT_BASE + qDigit2) / dvsrDigit;
+    qhat = mininumInt(qhat, BIGINT_BASE - 1);
+
+    qDigit[0] = qhat;
+    for (j = 0; j < remainderLen; j++) {
+      tempHolder[j] = 0;
+    }
+    BigInt_multiply_impl(divisor, qDigit, tempHolder, divisorLen, 1, remainderLen);
+    while(BigInt_internal_cmp(remainder, tempHolder, remainderLen, remainderLen) < 0) {
+      qDigit[0]--;
+      for (j = 0; j < remainderLen; j++) {
+        tempHolder[j] = 0;
+      }
+      BigInt_multiply_impl(divisor, qDigit, tempHolder, divisorLen, 1, remainderLen);
+    }
+    BigInt_subtract_impl(remainder, tempHolder, remainder, remainderLen, remainderLen, remainderLen);
+    quotient[quotientLen - i - 1] = qDigit[0];
+    BigInt_internal_shift_towards_front_by_one(remainder, remainderLen);
+  }
+
+  free(remainder);
+  free(tempHolder);
+  free(qDigit);
+}
+
+void BigInt_divide(BigInt * dividend, BigInt * divisor, BigInt * quotient) {
+  int * d = malloc(1 * sizeof(int));
+  int i;
+  int * newDividend = NULL;
+  int * newDivisor = NULL;
+  if (quotient->internalRepresentatiom != NULL) {
+    free(quotient->internalRepresentatiom);
+    quotient->internalRepresentatiom = NULL;
+    quotient->internalSize = 0;
+  }
+  BigInt_add_leading_zero(dividend);
+  d[0] = BIGINT_BASE / (divisor->internalRepresentatiom[divisor->internalSize - 1] + 1);
+  newDividend = malloc((dividend->internalSize) * sizeof(int));
+  newDivisor = malloc((divisor->internalSize) * sizeof(int));
+  for (i = 0; i < dividend->internalSize; i++) {
+    newDividend[i] = 0;
+  }
+  for (i = 0; i < divisor->internalSize; i++) {
+    newDivisor[i] = 0;
+  }
+  quotient->internalRepresentatiom = malloc((dividend->internalSize - divisor->internalSize) * sizeof(int));
+  quotient->internalSize = dividend->internalSize - divisor->internalSize;
+  BigInt_multiply_impl(dividend->internalRepresentatiom, d, newDividend, dividend->internalSize - 1, 1, dividend->internalSize);
+  BigInt_multiply_impl(divisor->internalRepresentatiom, d, newDivisor, divisor->internalSize, 1, divisor->internalSize);
+  BigInt_divide_impl(newDividend, newDivisor, quotient->internalRepresentatiom, dividend->internalSize, divisor->internalSize, quotient->internalSize);
+  BigInt_remove_leading_zeroes(quotient);
+
+  free(newDividend);
+  free(newDivisor);
+  free(d);
 }
