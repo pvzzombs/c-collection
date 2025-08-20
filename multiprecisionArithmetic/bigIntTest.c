@@ -19,6 +19,12 @@ int main() {
   s = BigInt_to_string(&c);
   printf("Difference: %s\n", s);
   free(s);
+
+  BigInt_multiply(&a, &b, &c);
+  s = BigInt_to_string(&c);
+  printf("Product: %s\n", s);
+  free(s);
+
   BigInt_destroy(&a);
   BigInt_destroy(&b);
   BigInt_destroy(&c);

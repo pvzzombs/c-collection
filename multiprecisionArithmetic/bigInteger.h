@@ -19,7 +19,7 @@ void BigInt_init (BigInt * b) {
 }
 
 void BigInt_init_from_string (BigInt * b, char * str) {
-  int * tempArray = malloc((BIGINT_INTERNAL_SIZE_LIMIT) * sizeof(int));
+  int * tempArray = malloc((strlen(str) / 2 + 1) * sizeof(int));
   int i = 0;
   int x;
   // char tempDigits[7];
@@ -112,6 +112,40 @@ void BigInt_destroy(BigInt * b) {
   b->internalSize = 0;
 }
 
+int BigInt_cmp(BigInt * num1, BigInt * num2) {
+  if (num1->internalSize < num2->internalSize) {
+    return -1;
+  } else if(num1->internalSize > num2->internalSize) {
+    return 1;
+  } else {
+    int i;
+    for (i = num1->internalSize - 1; i >= 0; i--) {
+      if (num1->internalRepresentatiom[i] < num2->internalRepresentatiom[i]) {
+        return -1;
+      } else if (num1->internalRepresentatiom[i] > num2->internalRepresentatiom[i]) {
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+
+void BigInt_remove_leading_zeroes(BigInt * b) {
+  int bInternalSize = b->internalSize;
+  int i;
+  for (i = bInternalSize - 1; i >= 0; i--) {
+    if (b->internalRepresentatiom[i] == 0) {
+      b->internalSize--;
+    }
+  }
+  if (b->internalSize == 0) {
+    if (bInternalSize > 0) {
+      b->internalRepresentatiom[0] = 0;
+      b->internalSize = 1;
+    }
+  }
+}
+
 void BigInt_add_impl(int * addend1, int * addend2, int * sum, int addend1Len, int addend2Len, int sumLen) {
   int i;
   int digitSum = 0, carry = 0;
@@ -139,18 +173,15 @@ void BigInt_add(BigInt * addend1, BigInt * addend2, BigInt * sum) {
     sum->internalRepresentatiom = NULL;
     sum->internalSize = 0;
   }
-  if (addend1->internalSize > addend2->internalSize) {
-    sum->internalRepresentatiom = malloc((addend1->internalSize + 1) * sizeof(int));
-    sum->internalSize = addend1->internalSize + 1;
-    BigInt_add_impl(addend1->internalRepresentatiom, addend2->internalRepresentatiom, sum->internalRepresentatiom, addend1->internalSize, addend2->internalSize, sum->internalSize);
-  } else {
-    sum->internalRepresentatiom = malloc((addend2->internalSize + 1) * sizeof(int));
-    sum->internalSize = addend2->internalSize + 1;
-    BigInt_add_impl(addend2->internalRepresentatiom, addend1->internalRepresentatiom, sum->internalRepresentatiom, addend2->internalSize, addend1->internalSize, sum->internalSize);
+  if (BigInt_cmp(addend1, addend2) < 0) {
+    BigInt * temp = addend1;
+    addend1 = addend2;
+    addend2 = temp;
   }
-  if (sum->internalRepresentatiom[sum->internalSize - 1] == 0) {
-    sum->internalSize--;
-  }
+  sum->internalRepresentatiom = malloc((addend1->internalSize + 1) * sizeof(int));
+  sum->internalSize = addend1->internalSize + 1;
+  BigInt_add_impl(addend1->internalRepresentatiom, addend2->internalRepresentatiom, sum->internalRepresentatiom, addend1->internalSize, addend2->internalSize, sum->internalSize);
+  BigInt_remove_leading_zeroes(sum);
 }
 
 void BigInt_subtract_impl(int * minuend, int * subtrahend, int * difference, int minuendLen, int subtrahendLen, int differenceLen) {
@@ -194,8 +225,60 @@ void BigInt_subtract(BigInt * minuend, BigInt * subtrahend, BigInt * difference)
   difference->internalRepresentatiom = malloc((minuend->internalSize) * sizeof(int));
   difference->internalSize = minuend->internalSize;
   BigInt_subtract_impl(minuend->internalRepresentatiom, subtrahend->internalRepresentatiom, difference->internalRepresentatiom, minuend->internalSize, subtrahend->internalSize, difference->internalSize);
-  if (difference->internalRepresentatiom[difference->internalSize - 1] == 0) {
-    difference->internalSize--;
+  BigInt_remove_leading_zeroes(difference);
+}
+
+void BigInt_multiply_impl(int * multiplicand, int * multiplier, int * product, int multiplicandLen, int multiplierLen, int productLen) {
+  int carryM;
+  int carryA;
+  int productDigit;
+  int sumDigit;
+  int pIndex = 0, pIndexTemp;
+  int i, j;
+  for (j = 0; j < multiplierLen; j++) {
+    carryA = 0;
+    carryM = 0;
+    pIndexTemp = pIndex;
+    for (i = 0; i < multiplicandLen; i++) {
+      int m = multiplicand[i];
+      int n = multiplier[j];
+      int p = product[pIndex];
+      productDigit = (m * n + carryM) % BIGINT_BASE;
+      carryM = (m * n + carryM) / BIGINT_BASE;
+      sumDigit = (productDigit + carryA + p) % BIGINT_BASE;
+      carryA = (productDigit + carryA + p) / BIGINT_BASE;
+      product[pIndex] = sumDigit;
+      pIndex++;
+    }
+
+    for(; pIndex < productLen; pIndex++) {
+      int p = product[pIndex];
+      sumDigit = (carryM + carryA + p) % BIGINT_BASE;
+      carryA = (carryM + carryA + p) / BIGINT_BASE;
+      product[pIndex] = sumDigit;
+      carryM = 0;
+    }
+    pIndex = pIndexTemp + 1;
   }
 }
 
+void BigInt_multiply(BigInt * multiplicand, BigInt * multiplier, BigInt * product) {
+  int i;
+  if (product->internalRepresentatiom != NULL) {
+    free(product->internalRepresentatiom);
+    product->internalRepresentatiom = NULL;
+    product->internalSize = 0;
+  }
+  if (BigInt_cmp(multiplicand, multiplier) < 0) {
+    BigInt * temp = multiplicand;
+    multiplicand = multiplier;
+    multiplier = temp;
+  }
+  product->internalRepresentatiom = malloc((multiplicand->internalSize + multiplier->internalSize) * sizeof(int));
+  product->internalSize = multiplicand->internalSize + multiplier->internalSize;
+  for (i = 0; i < product->internalSize; i++) {
+    product->internalRepresentatiom[i] = 0;
+  }
+  BigInt_multiply_impl(multiplicand->internalRepresentatiom, multiplier->internalRepresentatiom, product->internalRepresentatiom, multiplicand->internalSize, multiplier->internalSize, product->internalSize);
+  BigInt_remove_leading_zeroes(product);
+}
