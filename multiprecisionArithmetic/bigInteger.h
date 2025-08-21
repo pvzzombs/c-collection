@@ -8,14 +8,15 @@
 #define BIGINT_BASE_STRING "32768"
 #define BIGINT_INTERNAL_SIZE_LIMIT 16
 
-typedef struct {
+typedef struct BigInt_ {
   int * internalRepresentation;
   int internalSize;
 } BigInt;
 
 void BigInt_init (BigInt * b) {
-  b->internalRepresentation = NULL;
-  b->internalSize = 0;
+  b->internalRepresentation = malloc(1 * sizeof(int));
+  b->internalSize = 1;
+  b->internalRepresentation[0] = 0;
 }
 
 void BigInt_init_from_string (BigInt * b, char * str) {
@@ -109,6 +110,7 @@ char * BigInt_to_string(BigInt * b) {
 
 void BigInt_destroy(BigInt * b) {
   free(b->internalRepresentation);
+  b->internalRepresentation = NULL;
   b->internalSize = 0;
 }
 
