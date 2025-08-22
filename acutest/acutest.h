@@ -300,6 +300,13 @@
 /* The unit test files should not rely on anything below. */
 
 #include <stdlib.h>
+/* This include below is to fix snprintf error in vs2010 */
+/* From: https://www.ijs.si/software/snprintf/ */
+#ifdef _MSC_VER
+#if (_MSC_VER == 1600)
+#include "../others/snprintf.h"
+#endif
+#endif
 
 /* Enable the use of the non-standard keyword __attribute__ to silence warnings under some compilers */
 #if defined(__GNUC__) || defined(__clang__)

@@ -27,10 +27,10 @@ void additionTest() {
   };
   int i;
   BigInt a, b, c;
+  char * s;
   BigInt_init(&a);
   BigInt_init(&b);
   BigInt_init(&c);
-  char * s;
 
   for (i = 0; i < 5; i++) {
     BigInt_set_from_string(&a, addends1[i]);
@@ -68,10 +68,10 @@ void subtractionTest() {
   };
   int i;
   BigInt a, b, c;
+  char * s;
   BigInt_init(&a);
   BigInt_init(&b);
   BigInt_init(&c);
-  char * s;
 
   for (i = 0; i < 5; i++) {
     BigInt_set_from_string(&a, minuend[i]);
