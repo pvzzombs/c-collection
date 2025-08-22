@@ -136,9 +136,55 @@ void multiplicationTest() {
   BigInt_destroy(&c);
 }
 
+void divisionTest() {
+  char * dividend[] = {
+    "121932631112635269",
+    "100",
+    "1000000000000",
+    "314159265358979323846264338327950288419716939937510",
+    "99999999999999999999"
+  };
+
+  char * divisor[] = {
+    "123456789",
+    "3",
+    "1000000",
+    "271828182845904523536028747135266249775724709369995",
+    "1"
+  };
+
+  char * quotient[] = {
+    "987654321",
+    "33",
+    "1000000",
+    "1",
+    "99999999999999999999"
+  };
+  int i;
+  BigInt a, b, c;
+  char * s;
+  BigInt_init(&a);
+  BigInt_init(&b);
+  BigInt_init(&c);
+
+  for (i = 0; i < 5; i++) {
+    BigInt_set_from_string(&a, dividend[i]);
+    BigInt_set_from_string(&b, divisor[i]);
+    BigInt_divide(&a, &b, &c);
+    s = BigInt_to_string(&c);
+    TEST_CHECK(strcmp(s, quotient[i]) == 0);
+    free(s);
+  }
+
+  BigInt_destroy(&a);
+  BigInt_destroy(&b);
+  BigInt_destroy(&c);
+}
+
 TEST_LIST = {
   {"addition", additionTest},
   {"subtraction", subtractionTest},
   {"multiplication", multiplicationTest},
+  {"division", divisionTest},
   {NULL, NULL}
 };
