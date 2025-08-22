@@ -11,12 +11,14 @@
 typedef struct BigInt_ {
   int * internalRepresentation;
   int internalSize;
+  int allocSize;
 } BigInt;
 
 void BigInt_init (BigInt * b) {
   b->internalRepresentation = malloc(1 * sizeof(int));
   b->internalSize = 1;
   b->internalRepresentation[0] = 0;
+  b->allocSize = 1;
 }
 
 void BigInt_init_from_string (BigInt * b, char * str) {
@@ -66,6 +68,7 @@ void BigInt_init_from_string (BigInt * b, char * str) {
   for (x = 0; x < i; x++) {
     b->internalRepresentation[x] = tempArray[x];
   }
+  b->allocSize = i;
 
   if (clearTemp) {
     free(tmp);
@@ -112,6 +115,7 @@ void BigInt_destroy(BigInt * b) {
   free(b->internalRepresentation);
   b->internalRepresentation = NULL;
   b->internalSize = 0;
+  b->allocSize = 0;
 }
 
 int BigInt_cmp(BigInt * num1, BigInt * num2) {
@@ -134,6 +138,7 @@ int BigInt_cmp(BigInt * num1, BigInt * num2) {
 
 void BigInt_remove_leading_zeroes(BigInt * b) {
   int bInternalSize = b->internalSize;
+  int bAllocSize = b->allocSize;
   int i;
   for (i = bInternalSize - 1; i >= 0; i--) {
     if (b->internalRepresentation[i] == 0) {
@@ -143,7 +148,7 @@ void BigInt_remove_leading_zeroes(BigInt * b) {
     }
   }
   if (b->internalSize == 0) {
-    if (bInternalSize > 0) {
+    if (bAllocSize > 0) {
       b->internalRepresentation[0] = 0;
       b->internalSize = 1;
     }
@@ -153,14 +158,21 @@ void BigInt_remove_leading_zeroes(BigInt * b) {
 void BigInt_add_leading_zero(BigInt * b) {
   int bSize = b->internalSize;
   int i;
-  int * newInts = malloc((bSize + 1) * sizeof(int));
-  for (i = 0; i < bSize; i++) {
-    newInts[i] = b->internalRepresentation[i];
+  int * newInts = NULL;
+  if (b->allocSize > bSize) {
+    b->internalRepresentation[bSize] = 0;
+    b->internalSize = bSize + 1;
+  } else {
+    newInts = malloc((bSize + 1) * sizeof(int));
+    for (i = 0; i < bSize; i++) {
+      newInts[i] = b->internalRepresentation[i];
+    }
+    newInts[bSize] = 0;
+    free(b->internalRepresentation);
+    b->internalRepresentation = newInts;
+    b->internalSize = bSize + 1;
+    b->allocSize = bSize + 1;
   }
-  newInts[bSize] = 0;
-  free(b->internalRepresentation);
-  b->internalRepresentation = newInts;
-  b->internalSize = bSize + 1;
 }
 
 void BigInt_add_impl(int * addend1, int * addend2, int * sum, int addend1Len, int addend2Len, int sumLen) {
@@ -185,18 +197,20 @@ void BigInt_add_impl(int * addend1, int * addend2, int * sum, int addend1Len, in
 }
 
 void BigInt_add(BigInt * addend1, BigInt * addend2, BigInt * sum) {
-  if (sum->internalRepresentation != NULL) {
-    free(sum->internalRepresentation);
-    sum->internalRepresentation = NULL;
-    sum->internalSize = 0;
-  }
   if (BigInt_cmp(addend1, addend2) < 0) {
     BigInt * temp = addend1;
     addend1 = addend2;
     addend2 = temp;
   }
-  sum->internalRepresentation = malloc((addend1->internalSize + 1) * sizeof(int));
-  sum->internalSize = addend1->internalSize + 1;
+  if (sum->allocSize > addend1->internalSize) {
+    sum->internalSize = addend1->internalSize + 1;
+  } else {
+    free(sum->internalRepresentation);
+    sum->internalRepresentation = malloc((addend1->internalSize + 1) * sizeof(int));
+    sum->internalSize = addend1->internalSize + 1;
+    sum->allocSize = addend1->internalSize + 1;
+  }
+  
   BigInt_add_impl(addend1->internalRepresentation, addend2->internalRepresentation, sum->internalRepresentation, addend1->internalSize, addend2->internalSize, sum->internalSize);
   BigInt_remove_leading_zeroes(sum);
 }
@@ -234,13 +248,14 @@ void BigInt_subtract_impl(int * minuend, int * subtrahend, int * difference, int
 }
 
 void BigInt_subtract(BigInt * minuend, BigInt * subtrahend, BigInt * difference) {
-  if (difference->internalRepresentation != NULL) {
+  if (difference->allocSize >= minuend->internalSize) {
+    difference->internalSize = minuend->internalSize;
+  } else {
     free(difference->internalRepresentation);
-    difference->internalRepresentation = NULL;
-    difference->internalSize = 0;
+    difference->internalRepresentation = malloc((minuend->internalSize) * sizeof(int));
+    difference->internalSize = minuend->internalSize;
+    difference->allocSize = minuend->internalSize;
   }
-  difference->internalRepresentation = malloc((minuend->internalSize) * sizeof(int));
-  difference->internalSize = minuend->internalSize;
   BigInt_subtract_impl(minuend->internalRepresentation, subtrahend->internalRepresentation, difference->internalRepresentation, minuend->internalSize, subtrahend->internalSize, difference->internalSize);
   BigInt_remove_leading_zeroes(difference);
 }
@@ -281,18 +296,19 @@ void BigInt_multiply_impl(int * multiplicand, int * multiplier, int * product, i
 
 void BigInt_multiply(BigInt * multiplicand, BigInt * multiplier, BigInt * product) {
   int i;
-  if (product->internalRepresentation != NULL) {
-    free(product->internalRepresentation);
-    product->internalRepresentation = NULL;
-    product->internalSize = 0;
-  }
   if (BigInt_cmp(multiplicand, multiplier) < 0) {
     BigInt * temp = multiplicand;
     multiplicand = multiplier;
     multiplier = temp;
   }
-  product->internalRepresentation = malloc((multiplicand->internalSize + multiplier->internalSize) * sizeof(int));
-  product->internalSize = multiplicand->internalSize + multiplier->internalSize;
+  if (product->allocSize >= multiplicand->internalSize + multiplier->internalSize) {
+    product->internalSize = multiplicand->internalSize + multiplier->internalSize;
+  } else {
+    free(product->internalRepresentation);
+    product->internalRepresentation = malloc((multiplicand->internalSize + multiplier->internalSize) * sizeof(int));
+    product->internalSize = multiplicand->internalSize + multiplier->internalSize;
+    product->allocSize = multiplicand->internalSize + multiplier->internalSize;
+  }
   for (i = 0; i < product->internalSize; i++) {
     product->internalRepresentation[i] = 0;
   }
@@ -372,11 +388,7 @@ void BigInt_divide(BigInt * dividend, BigInt * divisor, BigInt * quotient) {
   int i;
   int * newDividend = NULL;
   int * newDivisor = NULL;
-  if (quotient->internalRepresentation != NULL) {
-    free(quotient->internalRepresentation);
-    quotient->internalRepresentation = NULL;
-    quotient->internalSize = 0;
-  }
+
   BigInt_add_leading_zero(dividend);
   d[0] = BIGINT_BASE / (divisor->internalRepresentation[divisor->internalSize - 1] + 1);
   newDividend = malloc((dividend->internalSize) * sizeof(int));
@@ -387,8 +399,15 @@ void BigInt_divide(BigInt * dividend, BigInt * divisor, BigInt * quotient) {
   for (i = 0; i < divisor->internalSize; i++) {
     newDivisor[i] = 0;
   }
-  quotient->internalRepresentation = malloc((dividend->internalSize - divisor->internalSize) * sizeof(int));
-  quotient->internalSize = dividend->internalSize - divisor->internalSize;
+  
+  if (quotient->allocSize >= dividend->internalSize - divisor->internalSize) {
+    quotient->internalSize = dividend->internalSize - divisor->internalSize;
+  } else {
+    free(quotient->internalRepresentation);
+    quotient->internalRepresentation = malloc((dividend->internalSize - divisor->internalSize) * sizeof(int));
+    quotient->internalSize = dividend->internalSize - divisor->internalSize;
+    quotient->allocSize = dividend->internalSize - divisor->internalSize;
+  }
   BigInt_multiply_impl(dividend->internalRepresentation, d, newDividend, dividend->internalSize - 1, 1, dividend->internalSize);
   BigInt_multiply_impl(divisor->internalRepresentation, d, newDivisor, divisor->internalSize, 1, divisor->internalSize);
   BigInt_divide_impl(newDividend, newDivisor, quotient->internalRepresentation, dividend->internalSize, divisor->internalSize, quotient->internalSize);
