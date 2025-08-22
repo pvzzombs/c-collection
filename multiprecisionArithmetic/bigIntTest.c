@@ -1,5 +1,5 @@
 #include "bigInteger.h"
-#include "../acutest/acutest.h"
+#include "../others/acutest.h"
 
 void additionTest() {
   char * addends1[] = {

@@ -285,6 +285,7 @@
 /* ============================================= */
 
 #ifdef _MSC_VER
+#if (_MSC_VER == 1600)
 
 #define PORTABLE_SNPRINTF_VERSION_MAJOR 2
 #define PORTABLE_SNPRINTF_VERSION_MINOR 2
@@ -1026,4 +1027,5 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap) {
 }
 #endif
 
+#endif
 #endif

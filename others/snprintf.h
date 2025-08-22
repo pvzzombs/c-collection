@@ -1,3 +1,6 @@
+#ifdef _MSC_VER
+#if (_MSC_VER == 1600)
+
 #ifndef _PORTABLE_SNPRINTF_H_
 #define _PORTABLE_SNPRINTF_H_
 
@@ -23,4 +26,7 @@ extern int vasprintf (char **ptr, const char *fmt, va_list ap);
 extern int asnprintf (char **ptr, size_t str_m, const char *fmt, /*args*/ ...);
 extern int vasnprintf(char **ptr, size_t str_m, const char *fmt, va_list ap);
 
+#endif
+
+#endif
 #endif

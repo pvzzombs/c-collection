@@ -70,7 +70,8 @@ int BigInt_determine_number_of_digits(char * str) {
   double L = strlen(str);
   double B = BIGINT_BASE;
   double log10B = log10(B);
-  double result = ceil(L / log10B);
+  /* double result = ceil(L / log10B); */
+  double result = (L / log10B) + 1.0;
   return (int) result;
 }
 
