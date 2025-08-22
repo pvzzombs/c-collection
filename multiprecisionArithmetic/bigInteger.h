@@ -77,6 +77,66 @@ void BigInt_init_from_string (BigInt * b, char * str) {
   free(tempArray);
 }
 
+void BigInt_set_from_string(BigInt * b, char * str) {
+  int * tempArray = malloc((strlen(str) / 2 + 1) * sizeof(int));
+  int i = 0;
+  int x;
+
+  char * tmp = NULL;
+  char * rem = NULL;
+  char * mul = NULL;
+  char * str2 = malloc((strlen(str) + 1) * sizeof(char));
+  int clearTemp = 1;
+
+  strcpy(str2, str);
+
+  if (bigIntCmp(str2, BIGINT_BASE_STRING) < 0) {
+    tempArray[i] = atoi(str2);
+    i++;
+    clearTemp = 0;
+  } else {
+    tmp = divide(str2, BIGINT_BASE_STRING);
+    while(bigIntCmp(tmp, "0") > 0) {
+      mul = multiply(tmp, BIGINT_BASE_STRING);
+      rem = subtract(str2, mul);
+      tempArray[i] = atoi(rem);
+      i++;
+      free(mul);
+      free(rem);
+      strcpy(str2, tmp);
+      free(tmp);
+      if (bigIntCmp(str2, BIGINT_BASE_STRING) < 0) {
+        tempArray[i] = atoi(str2);
+        i++;
+        clearTemp = 0;
+        break;
+      } else {
+        tmp = divide(str2, BIGINT_BASE_STRING);
+      }
+    }
+  }
+
+  if (b->allocSize >= i) {
+    b->internalSize = i;
+    for (x = 0; x < i; x++) {
+      b->internalRepresentation[x] = tempArray[x];
+    }
+  } else {
+    free(b->internalRepresentation);
+    b->internalRepresentation = malloc(i * sizeof(int));
+    b->internalSize = i;
+    for (x = 0; x < i; x++) {
+      b->internalRepresentation[x] = tempArray[x];
+    }
+    b->allocSize = i;
+  }
+
+  if (clearTemp) {
+    free(tmp);
+  }
+  free(str2);
+  free(tempArray);
+}
 
 char * BigInt_to_string(BigInt * b) {
   int x;
