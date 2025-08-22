@@ -40,6 +40,10 @@ void additionTest() {
     TEST_CHECK(strcmp(s, sums[i]) == 0);
     free(s);
   }
+
+  BigInt_destroy(&a);
+  BigInt_destroy(&b);
+  BigInt_destroy(&c);
 }
 
 void subtractionTest() {
@@ -81,10 +85,60 @@ void subtractionTest() {
     TEST_CHECK(strcmp(s, difference[i]) == 0);
     free(s);
   }
+
+  BigInt_destroy(&a);
+  BigInt_destroy(&b);
+  BigInt_destroy(&c);
+}
+
+void multiplicationTest() {
+  char * multiplicand[] = {
+    "123456789",
+    "123456789",
+    "987654321",
+    "12345",
+    "314159265358979323846264338327950288419716939937510"
+  };
+
+  char * multiplier[] = {
+    "987654321",
+    "0",
+    "1",
+    "987654321",
+    "271828182845904523536028747135266249775724709369995"
+  };
+
+  char * product[] = {
+    "121932631112635269",
+    "0",
+    "987654321",
+    "12192592592745",
+    "85397342226735670654635508695465744950348885357650690581833014653136349617576232159238592126769012450"
+  };
+  int i;
+  BigInt a, b, c;
+  char * s;
+  BigInt_init(&a);
+  BigInt_init(&b);
+  BigInt_init(&c);
+
+  for (i = 0; i < 5; i++) {
+    BigInt_set_from_string(&a, multiplicand[i]);
+    BigInt_set_from_string(&b, multiplier[i]);
+    BigInt_multiply(&a, &b, &c);
+    s = BigInt_to_string(&c);
+    TEST_CHECK(strcmp(s, product[i]) == 0);
+    free(s);
+  }
+
+  BigInt_destroy(&a);
+  BigInt_destroy(&b);
+  BigInt_destroy(&c);
 }
 
 TEST_LIST = {
   {"addition", additionTest},
   {"subtraction", subtractionTest},
+  {"multiplication", multiplicationTest},
   {NULL, NULL}
 };
