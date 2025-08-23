@@ -15,6 +15,7 @@ typedef struct BigInt_ {
   int * internalRepresentation;
   int internalSize;
   int allocSize;
+  int sign;
 } BigInt;
 
 void BigInt_init (BigInt * b) {
@@ -22,6 +23,7 @@ void BigInt_init (BigInt * b) {
   b->internalSize = 1;
   b->internalRepresentation[0] = 0;
   b->allocSize = 1;
+  b->sign = 0;
 }
 
 void BigInt_from_string_impl (char * str, int * tempArray, int * i) {
@@ -78,10 +80,45 @@ int BigInt_determine_number_of_digits(char * str) {
 void BigInt_init_from_string (BigInt * b, char * str) {
   int * tempArray = malloc(BigInt_determine_number_of_digits(str) * sizeof(int));
   int i = 0;
+  int x;
   BigInt_from_string_impl(str, tempArray, &i);
   b->internalRepresentation = malloc(i * sizeof(int));
   b->allocSize = i;
+  for (x = 0; x < i; x++) {
+    b->internalRepresentation[x] = tempArray[x];
+  }
   b->internalSize = i;
+  free(tempArray);
+}
+
+void BigInt_init_from_string_with_sign (BigInt * b, char * str) {
+  int * tempArray = NULL;
+  int i = 0;
+  int x;
+  char * absnum = strdup(str);
+  if (str[0] == '-') {
+    b->sign = -1;
+    for (x = 0; x < strlen(absnum) - 1; x++) {
+      absnum[x] = absnum[x + 1];
+    }
+    absnum[strlen(absnum) - 1] = 0;
+  } else {
+    b->sign = 1;
+  }
+  tempArray = malloc(BigInt_determine_number_of_digits(absnum) * sizeof(int));
+  BigInt_from_string_impl(absnum, tempArray, &i);
+
+  if (i == 1 && tempArray[0] == 0) {
+    b->sign = 0;
+  }
+
+  b->internalRepresentation = malloc(i * sizeof(int));
+  b->allocSize = i;
+  for (x = 0; x < i; x++) {
+    b->internalRepresentation[x] = tempArray[x];
+  }
+  b->internalSize = i;
+  free(absnum);
   free(tempArray);
 }
 
@@ -111,37 +148,44 @@ void BigInt_set_from_string(BigInt * b, char * str) {
   free(tempArray);
 }
 
-char * BigInt_to_string(BigInt * b) {
-  int x;
-  int len = b->internalSize;
-  char * destbuf = malloc((5 * len + 1) * sizeof(char));
-  char * tmpProduct;
+void BigInt_to_string_impl(int * arr, char * output, int arrLen) {
+  char * tmpMul;
   char * tmpAdd;
-
-  memset(destbuf, 0, 5 * len + 1);
-  itoa(b->internalRepresentation[len - 1], destbuf, 10);
-
-  if (len == 0) {
-    tmpAdd = malloc(2 * sizeof(char));
-    tmpAdd[0] = '0';
-    tmpAdd[1] = 0;
-  } else if (len == 1) {
-    tmpAdd = malloc((strlen(destbuf) + 1) * sizeof(char));
-    strcpy(tmpAdd, destbuf);
+  int x;
+  if (arrLen == 0) {
+    output[0] = '0';
+    output[1] = 0;
   } else {
-    for (x = len - 2; x >= 0; x--) {
-      tmpProduct = multiply(destbuf, BIGINT_BASE_STRING);
-      itoa(b->internalRepresentation[x], destbuf, 10);
-      tmpAdd = add(tmpProduct, destbuf);
-      free(tmpProduct);
-      strcpy(destbuf, tmpAdd);
-      if (x != 0) {
-        free(tmpAdd);
-      }
+    itoa(arr[arrLen - 1], output, 10);
+    for (x = arrLen - 2; x >= 0; x--) {
+      tmpMul = multiply(output, BIGINT_BASE_STRING);
+      itoa(arr[x], output, 10);
+      tmpAdd = add(tmpMul, output);
+      free(tmpMul);
+      strcpy(output, tmpAdd);
+      free(tmpAdd);
     }
   }
-  free(destbuf);
-  return tmpAdd;
+}
+
+int BigInt_number_of_digits_to_base_10(int num) {
+  double L = num;
+  double B = BIGINT_BASE;
+  double log10B = log10(B);
+  double result = L * log10B + 1.0;
+  return (int) result;
+}
+
+char * BigInt_to_string(BigInt * b) {
+  int len = b->internalSize;
+  int charLen = BigInt_number_of_digits_to_base_10(len);
+  char * output = malloc((charLen + 1) * sizeof(char));
+
+  memset(output, 0, charLen + 1);
+
+  BigInt_to_string_impl(b->internalRepresentation, output, len);
+
+  return output;
 }
 
 void BigInt_destroy(BigInt * b) {
