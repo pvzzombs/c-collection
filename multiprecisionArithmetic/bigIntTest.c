@@ -45,7 +45,7 @@ void additionTest() {
     TEST_CASE_("Iteration #%d, %s", i, names[i]);
     BigInt_set_from_string(&a, addends1[i]);
     BigInt_set_from_string(&b, addends2[i]);
-    BigInt_add(&a, &b, &c);
+    BigInt_add(&c, &a, &b);
     s = BigInt_to_string(&c);
     TEST_CHECK(strcmp(s, sums[i]) == 0);
     TEST_MSG("Expected: %s, Output: %s, Addend1: %s, Addend2: %s", sums[i], s, addends1[i], addends2[i]);
@@ -101,7 +101,7 @@ void subtractionTest() {
     TEST_CASE_("Iteration #%d, %s", i, names[i]);
     BigInt_set_from_string(&a, minuend[i]);
     BigInt_set_from_string(&b, subtrahend[i]);
-    BigInt_subtract(&a, &b, &c);
+    BigInt_subtract(&c, &a, &b);
     s = BigInt_to_string(&c);
     TEST_CHECK(strcmp(s, difference[i]) == 0);
     TEST_MSG("Expected: %s, Output: %s, Minuend: %s, Subtrahend: %s", difference[i], s, minuend[i], subtrahend[i]);
@@ -157,7 +157,7 @@ void multiplicationTest() {
     TEST_CASE_("Iteration #%d, %s", i, names[i]);
     BigInt_set_from_string(&a, multiplicand[i]);
     BigInt_set_from_string(&b, multiplier[i]);
-    BigInt_multiply(&a, &b, &c);
+    BigInt_multiply(&c, &a, &b);
     s = BigInt_to_string(&c);
     TEST_CHECK(strcmp(s, product[i]) == 0);
     TEST_MSG("Expected: %s, Output: %s, Multiplicand: %s, Multiplier: %s", product[i], s, multiplicand[i], multiplier[i]);
@@ -213,7 +213,7 @@ void divisionTest() {
     TEST_CASE_("Iteration #%d, %s", i, names[i]);
     BigInt_set_from_string(&a, dividend[i]);
     BigInt_set_from_string(&b, divisor[i]);
-    BigInt_divide(&a, &b, &c);
+    BigInt_divide(&c, &a, &b);
     s = BigInt_to_string(&c);
     TEST_CHECK(strcmp(s, quotient[i]) == 0);
     TEST_MSG("Expected: %s, Output: %s, Dividend: %s, Divisor: %s", quotient[i], s, dividend[i], divisor[i]);

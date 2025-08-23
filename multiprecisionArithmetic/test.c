@@ -51,7 +51,7 @@ int main() {
   BigInt_init_from_string(&b2, b);
   BigInt_init(&b3);
 
-  BigInt_add(&b1, &b2, &b3);
+  BigInt_add(&b3, &b1, &b2);
   c = BigInt_to_string(&b3);
   printf("%s\n", c);
   free(c);
