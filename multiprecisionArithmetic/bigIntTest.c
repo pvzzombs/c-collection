@@ -25,6 +25,15 @@ void additionTest() {
     "585987448204883847382293085463216538195441649307505",
     "123456789"
   };
+
+  char * names[] = {
+    "Simple addition",
+    "Carry over in each digit",
+    "Different lengths",
+    "Very large numbers",
+    "Adding zero"
+  };
+
   int i;
   BigInt a, b, c;
   char * s;
@@ -33,11 +42,13 @@ void additionTest() {
   BigInt_init(&c);
 
   for (i = 0; i < 5; i++) {
+    TEST_CASE_("Iteration #%d, %s", i, names[i]);
     BigInt_set_from_string(&a, addends1[i]);
     BigInt_set_from_string(&b, addends2[i]);
     BigInt_add(&a, &b, &c);
     s = BigInt_to_string(&c);
     TEST_CHECK(strcmp(s, sums[i]) == 0);
+    TEST_MSG("Expected: %s, Output: %s, Addend1: %s, Addend2: %s", sums[i], s, addends1[i], addends2[i]);
     free(s);
   }
 
@@ -70,6 +81,15 @@ void subtractionTest() {
     "42331082513074800310235591192684038643992230567515",
     "1000002"
   };
+
+  char * names[] = {
+    "Simple subtraction",
+    "Result is zero",
+    "Borrow across digits",
+    "Very large numbers",
+    "Subtraction leading to multiple borrows"
+  };
+
   int i;
   BigInt a, b, c;
   char * s;
@@ -78,11 +98,13 @@ void subtractionTest() {
   BigInt_init(&c);
 
   for (i = 0; i < 5; i++) {
+    TEST_CASE_("Iteration #%d, %s", i, names[i]);
     BigInt_set_from_string(&a, minuend[i]);
     BigInt_set_from_string(&b, subtrahend[i]);
     BigInt_subtract(&a, &b, &c);
     s = BigInt_to_string(&c);
     TEST_CHECK(strcmp(s, difference[i]) == 0);
+    TEST_MSG("Expected: %s, Output: %s, Minuend: %s, Subtrahend: %s", difference[i], s, minuend[i], subtrahend[i]);
     free(s);
   }
 
@@ -115,6 +137,15 @@ void multiplicationTest() {
     "12192592592745",
     "85397342226735670654635508695465744950348885357650690581833014653136349617576232159238592126769012450"
   };
+
+  char * names[] = {
+    "Simple multiplication",
+    "Multiply by zero",
+    "Multiply by one",
+    "Different lengths",
+    "Very large numbers"
+  };
+
   int i;
   BigInt a, b, c;
   char * s;
@@ -123,11 +154,13 @@ void multiplicationTest() {
   BigInt_init(&c);
 
   for (i = 0; i < 5; i++) {
+    TEST_CASE_("Iteration #%d, %s", i, names[i]);
     BigInt_set_from_string(&a, multiplicand[i]);
     BigInt_set_from_string(&b, multiplier[i]);
     BigInt_multiply(&a, &b, &c);
     s = BigInt_to_string(&c);
     TEST_CHECK(strcmp(s, product[i]) == 0);
+    TEST_MSG("Expected: %s, Output: %s, Multiplicand: %s, Multiplier: %s", product[i], s, multiplicand[i], multiplier[i]);
     free(s);
   }
 
@@ -160,6 +193,15 @@ void divisionTest() {
     "1",
     "99999999999999999999"
   };
+
+  char * names[] = {
+    "Simple division",
+    "Division with remainder",
+    "Powers of 10",
+    "Very large numbers",
+    "Division by 1"
+  };
+
   int i;
   BigInt a, b, c;
   char * s;
@@ -168,11 +210,13 @@ void divisionTest() {
   BigInt_init(&c);
 
   for (i = 0; i < 5; i++) {
+    TEST_CASE_("Iteration #%d, %s", i, names[i]);
     BigInt_set_from_string(&a, dividend[i]);
     BigInt_set_from_string(&b, divisor[i]);
     BigInt_divide(&a, &b, &c);
     s = BigInt_to_string(&c);
     TEST_CHECK(strcmp(s, quotient[i]) == 0);
+    TEST_MSG("Expected: %s, Output: %s, Dividend: %s, Divisor: %s", quotient[i], s, dividend[i], divisor[i]);
     free(s);
   }
 
