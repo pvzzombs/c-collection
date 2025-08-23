@@ -213,7 +213,7 @@ void divisionTest() {
     TEST_CASE_("Iteration #%d, %s", i, names[i]);
     BigInt_set_from_string(&a, dividend[i]);
     BigInt_set_from_string(&b, divisor[i]);
-    BigInt_divide(&c, &a, &b);
+    BigInt_divide_no_copy(&c, &a, &b);
     s = BigInt_to_string(&c);
     TEST_CHECK(strcmp(s, quotient[i]) == 0);
     TEST_MSG("Expected: %s, Output: %s, Dividend: %s, Divisor: %s", quotient[i], s, dividend[i], divisor[i]);

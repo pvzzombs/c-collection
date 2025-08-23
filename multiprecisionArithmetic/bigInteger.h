@@ -515,3 +515,40 @@ void BigInt_divide(BigInt * quotient, BigInt * dividend1, BigInt * divisor) {
   free(newDivisor);
   free(d);
 }
+
+void BigInt_divide_no_copy(BigInt * quotient, BigInt * dividend, BigInt * divisor) {
+  int * d = malloc(1 * sizeof(int));
+  int i;
+  int * newDividend = NULL;
+  int * newDivisor = NULL;
+
+  BigInt_add_leading_zero(dividend);
+
+  d[0] = BIGINT_BASE / (divisor->internalRepresentation[divisor->internalSize - 1] + 1);
+  newDividend = malloc((dividend->internalSize) * sizeof(int));
+  newDivisor = malloc((divisor->internalSize) * sizeof(int));
+  for (i = 0; i < dividend->internalSize; i++) {
+    newDividend[i] = 0;
+  }
+  for (i = 0; i < divisor->internalSize; i++) {
+    newDivisor[i] = 0;
+  }
+  
+  if (quotient->allocSize >= dividend->internalSize - divisor->internalSize) {
+    quotient->internalSize = dividend->internalSize - divisor->internalSize;
+  } else {
+    free(quotient->internalRepresentation);
+    quotient->internalRepresentation = malloc((dividend->internalSize - divisor->internalSize) * sizeof(int));
+    quotient->internalSize = dividend->internalSize - divisor->internalSize;
+    quotient->allocSize = dividend->internalSize - divisor->internalSize;
+  }
+  BigInt_multiply_impl(dividend->internalRepresentation, d, newDividend, dividend->internalSize - 1, 1, dividend->internalSize);
+  BigInt_multiply_impl(divisor->internalRepresentation, d, newDivisor, divisor->internalSize, 1, divisor->internalSize);
+  BigInt_divide_impl(newDividend, newDivisor, quotient->internalRepresentation, dividend->internalSize, divisor->internalSize, quotient->internalSize);
+  BigInt_remove_leading_zeroes(quotient);
+  BigInt_remove_leading_zeroes(dividend);
+
+  free(newDividend);
+  free(newDivisor);
+  free(d);
+}
