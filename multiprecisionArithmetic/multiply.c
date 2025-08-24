@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     a[aEnd] = 0;
     b[bEnd] = 0;
 
-    c = multiply(a, b);
+    c = mpa_multiply(a, b);
 
     testcasesResults[i] = c;
   }

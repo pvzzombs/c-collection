@@ -35,28 +35,28 @@ void BigInt_from_string_impl (char * str, int * tempArray, int * i) {
 
   strcpy(str2, str);
 
-  if (bigIntCmp(str2, BIGINT_BASE_STRING) < 0) {
+  if (mpa_bigIntCmp(str2, BIGINT_BASE_STRING) < 0) {
     tempArray[*i] = atoi(str2);
     (*i)++;
     clearTemp = 0;
   } else {
-    tmp = divide(str2, BIGINT_BASE_STRING);
-    while(bigIntCmp(tmp, "0") > 0) {
-      mul = multiply(tmp, BIGINT_BASE_STRING);
-      rem = subtract(str2, mul);
+    tmp = mpa_divide(str2, BIGINT_BASE_STRING);
+    while(mpa_bigIntCmp(tmp, "0") > 0) {
+      mul = mpa_multiply(tmp, BIGINT_BASE_STRING);
+      rem = mpa_subtract(str2, mul);
       tempArray[*i] = atoi(rem);
       (*i)++;
       free(mul);
       free(rem);
       strcpy(str2, tmp);
       free(tmp);
-      if (bigIntCmp(str2, BIGINT_BASE_STRING) < 0) {
+      if (mpa_bigIntCmp(str2, BIGINT_BASE_STRING) < 0) {
         tempArray[*i] = atoi(str2);
         (*i)++;
         clearTemp = 0;
         break;
       } else {
-        tmp = divide(str2, BIGINT_BASE_STRING);
+        tmp = mpa_divide(str2, BIGINT_BASE_STRING);
       }
     }
   }
@@ -158,9 +158,9 @@ void BigInt_to_string_impl(int * arr, char * output, int arrLen) {
   } else {
     itoa(arr[arrLen - 1], output, 10);
     for (x = arrLen - 2; x >= 0; x--) {
-      tmpMul = multiply(output, BIGINT_BASE_STRING);
+      tmpMul = mpa_multiply(output, BIGINT_BASE_STRING);
       itoa(arr[x], output, 10);
-      tmpAdd = add(tmpMul, output);
+      tmpAdd = mpa_add(tmpMul, output);
       free(tmpMul);
       strcpy(output, tmpAdd);
       free(tmpAdd);
@@ -454,7 +454,7 @@ void BigInt_divide_impl(int * dividend, int * divisor, int * quotient, int divid
     qDigit2 = remainder[remainderLen - 2];
     dvsrDigit = divisor[divisorLen - 1];
     qhat = (qDigit1 * BIGINT_BASE + qDigit2) / dvsrDigit;
-    qhat = mininumInt(qhat, BIGINT_BASE - 1);
+    qhat = mpa_mininumInt(qhat, BIGINT_BASE - 1);
 
     qDigit[0] = qhat;
     for (j = 0; j < remainderLen; j++) {

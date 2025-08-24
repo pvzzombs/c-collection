@@ -9,7 +9,7 @@
 * @param arr The big integer
 * @param len The length of the big integer
 */
-void reverseDigits(char * arr, int len) {
+void mpa_reverseDigits(char * arr, int len) {
   int mid = (len - 1) / 2;
   int l = 0, r = len - 1;
   while(l <= mid) {
@@ -27,7 +27,7 @@ void reverseDigits(char * arr, int len) {
 * @param num2 The second number
 * @return `-1` if `num1` is less than `num2`, `0` if `num1` is equal to `num2`, 1 if `num1` is greater than `num2`
 */
-int bigIntCmp(char * num1, char * num2) {
+int mpa_bigIntCmp(char * num1, char * num2) {
   if (strlen(num1) < strlen(num2)) {
     return -1;
   } else if (strlen(num1) > strlen(num2)) {
@@ -51,7 +51,7 @@ int bigIntCmp(char * num1, char * num2) {
 * @param num2 The second number
 * @return `-1` if `num1` is less than `num2`, `0` if `num1` is equal to `num2`, 1 if `num1` is greater than `num2`
 */
-int bigIntCmpReverse(char * num1, char * num2) {
+int mpa_bigIntCmpReverse(char * num1, char * num2) {
   if (strlen(num1) < strlen(num2)) {
     return -1;
   } else if (strlen(num1) > strlen(num2)) {
@@ -75,7 +75,7 @@ int bigIntCmpReverse(char * num1, char * num2) {
 * @param c The big integer
 * @return The big integer modified
 */
-char * removeLeadingZeroes(char * c) {
+char * mpa_removeLeadingZeroes(char * c) {
   int target = 0;
   int len = strlen(c);
   int i;
@@ -119,7 +119,7 @@ char * removeLeadingZeroes(char * c) {
 * @param addend2Len Number of digits of the second addend
 * @param sumLen Number of digits of the sum
 */
-void add_impl(char * addend1, char * addend2, char * sum, int addend1Len, int addend2Len, int sumLen) {
+void mpa_add_impl(char * addend1, char * addend2, char * sum, int addend1Len, int addend2Len, int sumLen) {
   int i;
   int digitSum = 0, carry = 0;
   for (i = 0; i < addend2Len; i++) {
@@ -147,7 +147,7 @@ void add_impl(char * addend1, char * addend2, char * sum, int addend1Len, int ad
 * @param num2 The second big integer
 * @return The newly allocated sum
 */
-char * add(char * num1, char * num2) {
+char * mpa_add(char * num1, char * num2) {
   char * addend1 = malloc((strlen(num1) + 1) * sizeof(char));
   char * addend2 = malloc((strlen(num2) + 1) * sizeof(char));
   int lenA, lenB;
@@ -159,8 +159,8 @@ char * add(char * num1, char * num2) {
 
   lenA = strlen(addend1);
   lenB = strlen(addend2);
-  reverseDigits(addend1, lenA);
-  reverseDigits(addend2, lenB);
+  mpa_reverseDigits(addend1, lenA);
+  mpa_reverseDigits(addend2, lenB);
 
   /* this condition should be ignored
   as long as addend1 is bigger or
@@ -180,10 +180,10 @@ char * add(char * num1, char * num2) {
   sum[lenC - 1] = '0'; /* first digit set to 0, no need to actually do this */
   sum[lenC] = 0; /* the zero byte; */
   
-  add_impl(addend1, addend2, sum, lenA, lenB, lenC);
+  mpa_add_impl(addend1, addend2, sum, lenA, lenB, lenC);
 
-  reverseDigits(sum, strlen(sum));
-  removeLeadingZeroes(sum);
+  mpa_reverseDigits(sum, strlen(sum));
+  mpa_removeLeadingZeroes(sum);
 
   free(addend1);
   free(addend2);
@@ -206,7 +206,7 @@ char * add(char * num1, char * num2) {
 * @param subtrahendLen The number of digits of subtrahend
 * @param differenceLen The number of digits of difference
 */
-void subtract_impl(char * minuend, char * subtrahend, char * difference, int minuendLen, int subtrahendLen, int differenceLen) {
+void mpa_subtract_impl(char * minuend, char * subtrahend, char * difference, int minuendLen, int subtrahendLen, int differenceLen) {
   int i;
   int digitDifference = 0, borrow = 0;
   for (i = 0; i < subtrahendLen; i++) {
@@ -245,7 +245,7 @@ void subtract_impl(char * minuend, char * subtrahend, char * difference, int min
 * @param num2 The subtrahend
 * @return The newly allocated difference
 */
-char * subtract(char * num1, char * num2) {
+char * mpa_subtract(char * num1, char * num2) {
   char * minuend = malloc((strlen(num1) + 1) * sizeof(char));
   char * subtrahend = malloc((strlen(num2) + 1) * sizeof(char));
   int lenA, lenB;
@@ -256,18 +256,18 @@ char * subtract(char * num1, char * num2) {
 
   lenA = strlen(minuend);
   lenB = strlen(subtrahend);
-  reverseDigits(minuend, lenA);
-  reverseDigits(subtrahend, lenB);
+  mpa_reverseDigits(minuend, lenA);
+  mpa_reverseDigits(subtrahend, lenB);
 
   difference = malloc((lenA + 1) * sizeof(char));
 
   difference[lenA] = 0;
 
-  subtract_impl(minuend, subtrahend, difference, lenA, lenB, lenA);
+  mpa_subtract_impl(minuend, subtrahend, difference, lenA, lenB, lenA);
 
-  reverseDigits(difference, strlen(difference));
+  mpa_reverseDigits(difference, strlen(difference));
 
-  removeLeadingZeroes(difference);
+  mpa_removeLeadingZeroes(difference);
 
   free(minuend);
   free(subtrahend);
@@ -291,7 +291,7 @@ char * subtract(char * num1, char * num2) {
 * @param multiplierLen The number of digits of multiplier
 * @param productLen The number of digits of product
 */
-void multiply_impl(char * multiplicand, char * multiplier, char * product, int multiplicandLen, int multiplierLen, int productLen) {
+void mpa_multiply_impl(char * multiplicand, char * multiplier, char * product, int multiplicandLen, int multiplierLen, int productLen) {
   int carryM;
   int carryA;
   int productDigit;
@@ -332,7 +332,7 @@ void multiply_impl(char * multiplicand, char * multiplier, char * product, int m
 * @param num2 The multiplier
 * @return The newly allocated product
 */
-char * multiply(char * num1, char * num2) {
+char * mpa_multiply(char * num1, char * num2) {
   char * multiplicand = malloc((strlen(num1) + 1) * sizeof(char));
   char * multiplier = malloc((strlen(num2) + 1) * sizeof(char));
   int lenA, lenB;
@@ -345,8 +345,8 @@ char * multiply(char * num1, char * num2) {
   lenA = strlen(multiplicand);
   lenB = strlen(multiplier);
 
-  reverseDigits(multiplicand, lenA);
-  reverseDigits(multiplier, lenB);
+  mpa_reverseDigits(multiplicand, lenA);
+  mpa_reverseDigits(multiplier, lenB);
 
 
   if (lenB > lenA) {
@@ -366,11 +366,11 @@ char * multiply(char * num1, char * num2) {
     product[i] = '0';
   }
 
-  multiply_impl(multiplicand, multiplier, product, lenA, lenB, lenA + lenB);
+  mpa_multiply_impl(multiplicand, multiplier, product, lenA, lenB, lenA + lenB);
 
-  reverseDigits(product, strlen(product));
+  mpa_reverseDigits(product, strlen(product));
 
-  removeLeadingZeroes(product);
+  mpa_removeLeadingZeroes(product);
 
   free(multiplicand);
   free(multiplier);
@@ -384,7 +384,7 @@ char * multiply(char * num1, char * num2) {
 * @param count The number of zeroes to add
 * @return The newly allocated big int, with zeroes in front
 */
-char * addLeadingZeroes(char * arr, int count) {
+char * mpa_addLeadingZeroes(char * arr, int count) {
   char * newArr = malloc((strlen(arr) + count + 1) * sizeof(char));
   int x = 0;
   int i;
@@ -397,7 +397,7 @@ char * addLeadingZeroes(char * arr, int count) {
   return newArr;
 }
 
-char * addTrailingZeroes(char * arr, int count) {
+char * mpa_addTrailingZeroes(char * arr, int count) {
   char * newArr = malloc((strlen(arr) + count + 1) * sizeof(char));
   int i;
   memset(newArr, '0', strlen(arr) + count);
@@ -413,7 +413,7 @@ char * addTrailingZeroes(char * arr, int count) {
 * @param b The second number
 * @return The smallest number
 */
-int mininumInt(int a, int b) {
+int mpa_mininumInt(int a, int b) {
   return a < b ? a : b;
 }
 
@@ -424,7 +424,7 @@ int mininumInt(int a, int b) {
 * @param num2 The second number
 * @return `1` if true, `0` otherwise
 */
-int lessThanInt(char * num1, char * num2) {
+int mpa_lessThanInt(char * num1, char * num2) {
   if (strlen(num1) < strlen(num2)) {
     return 1;
   } else if (strlen(num1) > strlen(num2)) {
@@ -448,7 +448,7 @@ int lessThanInt(char * num1, char * num2) {
 * Disregard the last digit
 * @param arr The big integer
 */
-void shiftLeftInPlaceByOne(char * arr) {
+void mpa_shiftLeftInPlaceByOne(char * arr) {
   int i = 0;
   int j;
   for (j = 1; j < strlen(arr); j++) {
@@ -458,7 +458,7 @@ void shiftLeftInPlaceByOne(char * arr) {
   arr[strlen(arr) - 1] = '0';
 }
 
-void shiftRightInPlaceByOne(char * arr) {
+void mpa_shiftRightInPlaceByOne(char * arr) {
   int i;
   for (i = strlen(arr) - 1; i > 0; i--) {
     arr[i] = arr[i - 1];
@@ -480,7 +480,7 @@ void shiftRightInPlaceByOne(char * arr) {
 * @param divisorLen The number of digits of divisor
 * @param quotientLen The number of digits of quotient
 */
-void divide_impl(char * dividend, char * divisor, char * quotient, int dividendLen, int divisorLen, int quotientLen) {
+void mpa_divide_impl(char * dividend, char * divisor, char * quotient, int dividendLen, int divisorLen, int quotientLen) {
   int remainderLen = divisorLen + 1;
   char * remainder = malloc((remainderLen + 1) * sizeof(char));
   char * tempHolder = malloc((remainderLen + 1) * sizeof(char));
@@ -501,22 +501,22 @@ void divide_impl(char * dividend, char * divisor, char * quotient, int dividendL
     qDigit2 = remainder[remainderLen - 2] - '0';
     dvsrDigit = divisor[divisorLen - 1] - '0';
     qhat = (qDigit1 * 10 + qDigit2) / dvsrDigit;
-    qhat = mininumInt(qhat, 9);
+    qhat = mpa_mininumInt(qhat, 9);
 
     qDigit[0] = qhat + '0';
     qDigit[1] = 0;
     memset(tempHolder, '0', remainderLen);
-    multiply_impl(divisor, qDigit, tempHolder, divisorLen, 1, remainderLen);
+    mpa_multiply_impl(divisor, qDigit, tempHolder, divisorLen, 1, remainderLen);
 
-    while (bigIntCmpReverse(remainder, tempHolder) < 0) {
+    while (mpa_bigIntCmpReverse(remainder, tempHolder) < 0) {
       qDigit[0] -= 1;
       memset(tempHolder, '0', remainderLen);
-      multiply_impl(divisor, qDigit, tempHolder, divisorLen, 1, remainderLen);
+      mpa_multiply_impl(divisor, qDigit, tempHolder, divisorLen, 1, remainderLen);
     }
 
-    subtract_impl(remainder, tempHolder, remainder, remainderLen, remainderLen, remainderLen);
+    mpa_subtract_impl(remainder, tempHolder, remainder, remainderLen, remainderLen, remainderLen);
     quotient[quotientLen - 1 - i] = qDigit[0];
-    shiftRightInPlaceByOne(remainder);
+    mpa_shiftRightInPlaceByOne(remainder);
   }
 
   free(remainder);
@@ -529,7 +529,7 @@ void divide_impl(char * dividend, char * divisor, char * quotient, int dividendL
 * @param num2 The divisor
 * @return The newly allocated quotient
 */
-char * divide(char * num1, char * num2) {
+char * mpa_divide(char * num1, char * num2) {
   char * dividend = malloc((strlen(num1) + 1) * sizeof(char));
   char * divisor = malloc((strlen(num2) + 1) * sizeof(char));
   char * quotient = NULL;
@@ -545,14 +545,14 @@ char * divide(char * num1, char * num2) {
   divisorLen = strlen(divisor);
   quotientLen = dividendLen - divisorLen;
 
-  newDividend = addLeadingZeroes(dividend, 1);
+  newDividend = mpa_addLeadingZeroes(dividend, 1);
   free(dividend);
   dividend = newDividend;
   dividendLen = strlen(newDividend);
   quotientLen = dividendLen - divisorLen;
 
-  reverseDigits(dividend, dividendLen);
-  reverseDigits(divisor, divisorLen);
+  mpa_reverseDigits(dividend, dividendLen);
+  mpa_reverseDigits(divisor, divisorLen);
 
   /* normalization */
   if (divisor[divisorLen - 1] - '0' < 5) {
@@ -568,8 +568,8 @@ char * divide(char * num1, char * num2) {
     newDividendTemp[dividendLen] = 0;
     newDivisorTemp[divisorLen] = 0;
 
-    multiply_impl(dividend, dStr, newDividendTemp, dividendLen - 1, 1, dividendLen);
-    multiply_impl(divisor, dStr, newDivisorTemp, divisorLen, 1, divisorLen);
+    mpa_multiply_impl(dividend, dStr, newDividendTemp, dividendLen - 1, 1, dividendLen);
+    mpa_multiply_impl(divisor, dStr, newDivisorTemp, divisorLen, 1, divisorLen);
 
     free(dividend);
     free(divisor);
@@ -582,11 +582,11 @@ char * divide(char * num1, char * num2) {
   quotient = malloc((quotientLen + 1) * sizeof(char));
   quotient[quotientLen] = 0;
   
-  divide_impl(dividend, divisor, quotient, dividendLen, divisorLen, quotientLen);
+  mpa_divide_impl(dividend, divisor, quotient, dividendLen, divisorLen, quotientLen);
 
-  reverseDigits(quotient, quotientLen);
+  mpa_reverseDigits(quotient, quotientLen);
 
-  removeLeadingZeroes(quotient);
+  mpa_removeLeadingZeroes(quotient);
 
   free(dividend);
   free(divisor);

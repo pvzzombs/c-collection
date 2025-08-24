@@ -19,28 +19,28 @@ int main() {
   printf("First number: %s\n", a);
   printf("Second number: %s\n", b);
 
-  c = add(a, b);
+  c = mpa_add(a, b);
   printf("Sum: %s\n", c);
   if (strcmp(c, sum) == 0) {
     printf("[INFO] Sum is correct\n");
   }
   free(c);
 
-  c = subtract(a, b);
+  c = mpa_subtract(a, b);
   printf("Difference: %s\n", c);
   if (strcmp(c, diff) == 0) {
     printf("[INFO] Difference is correct\n");
   }
   free(c);
 
-  c = multiply(a, b);
+  c = mpa_multiply(a, b);
   printf("Product: %s\n", c);
   if (strcmp(c, prod) == 0) {
     printf("[INFO] Product is correct\n");
   }
   free(c);
 
-  c = divide(a, b);
+  c = mpa_divide(a, b);
   printf("Quotient: %s\n", c);
   if (strcmp(c, quot) == 0) {
     printf("[INFO] Quotient is correct\n");
