@@ -106,9 +106,6 @@ BigInt_destroy(&c);
 ### Windows 10 benchmark results:
 ```
 Processor	AMD A6-7480 Radeon R5, 8 Compute Cores 2C+6G      3.50 GHz
-Installed RAM	8.00 GB (6.93 GB usable)
-Storage	119 GB SSD Patriot P210 128GB
-Graphics Card	AMD Radeon R5 Graphics (1006 MB)
 System Type	64-bit operating system, x64-based processor
 ```
 ```
@@ -120,6 +117,24 @@ Subtraction performance test...
 Average: 4529856 per second.
 Division performance test...
 Average: 258892 per second.
+```
+### Porteus 5.01 (Linux) benchmark results:
+```
+OS: Porteus 5.01 x86_64
+Host: Hewlett-Packard 172A
+Kernel: 6.12.5-porteus
+CPU: Intel i7 M 620 (2) @ 2.667GHz
+```
+```
+Addition performance test...
+Average: 4341531 per second.
+Multiplication performance test...
+Average: 122977 per second.
+Subtraction performance test...
+Average: 4413290 per second.
+Division performance test...
+Average: 555831 per second.
+
 ```
 ### How to perform benchmarking?
 Please kindly run `performance` or `performance.exe`.
