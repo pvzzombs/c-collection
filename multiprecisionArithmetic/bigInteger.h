@@ -18,6 +18,32 @@ typedef struct BigInt_ {
   int sign;
 } BigInt;
 
+int BigInt_atoi_impl (char * src) {
+  int num = 0;
+  int i;
+  for (i = 0; i < strlen(src); i++) {
+    num = num * 10 + (src[i] - '0');
+  }
+  return num;
+}
+
+void BigInt_itoa_impl (int num, char * dest) {
+  int i = 0;
+  if (num == 0) {
+    dest[0] = '0';
+    dest[1] = 0;
+    return;
+  }
+  while (num > 0) {
+    int rem = num % 10;
+    dest[i] = rem + '0';
+    num = num / 10;
+    i++;
+  }
+  dest[i] = 0;
+  mpa_reverseDigits(dest, i);
+}
+
 void BigInt_init (BigInt * b) {
   b->internalRepresentation = malloc(1 * sizeof(int));
   b->internalSize = 1;
@@ -36,7 +62,7 @@ void BigInt_from_string_impl (char * str, int * tempArray, int * i) {
   strcpy(str2, str);
 
   if (mpa_bigIntCmp(str2, BIGINT_BASE_STRING) < 0) {
-    tempArray[*i] = atoi(str2);
+    tempArray[*i] = BigInt_atoi_impl(str2);
     (*i)++;
     clearTemp = 0;
   } else {
@@ -44,14 +70,14 @@ void BigInt_from_string_impl (char * str, int * tempArray, int * i) {
     while(mpa_bigIntCmp(tmp, "0") > 0) {
       mul = mpa_multiply(tmp, BIGINT_BASE_STRING);
       rem = mpa_subtract(str2, mul);
-      tempArray[*i] = atoi(rem);
+      tempArray[*i] = BigInt_atoi_impl(rem);
       (*i)++;
       free(mul);
       free(rem);
       strcpy(str2, tmp);
       free(tmp);
       if (mpa_bigIntCmp(str2, BIGINT_BASE_STRING) < 0) {
-        tempArray[*i] = atoi(str2);
+        tempArray[*i] = BigInt_atoi_impl(str2);
         (*i)++;
         clearTemp = 0;
         break;
@@ -156,10 +182,10 @@ void BigInt_to_string_impl(int * arr, char * output, int arrLen) {
     output[0] = '0';
     output[1] = 0;
   } else {
-    itoa(arr[arrLen - 1], output, 10);
+    BigInt_itoa_impl(arr[arrLen - 1], output);
     for (x = arrLen - 2; x >= 0; x--) {
       tmpMul = mpa_multiply(output, BIGINT_BASE_STRING);
-      itoa(arr[x], output, 10);
+      BigInt_itoa_impl(arr[x], output);
       tmpAdd = mpa_add(tmpMul, output);
       free(tmpMul);
       strcpy(output, tmpAdd);
