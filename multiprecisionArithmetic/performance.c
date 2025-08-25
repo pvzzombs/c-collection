@@ -65,6 +65,8 @@ int main() {
     iterations = 0;
     generateBigInteger(bigNum1);
     generateBigInteger(bigNum2);
+    mpa_removeLeadingZeroes(bigNum1);
+    mpa_removeLeadingZeroes(bigNum2);
     BigInt_set_from_string(&a, bigNum1);
     BigInt_set_from_string(&b, bigNum2);
     BigInt_set_from_string(&c, "0");
@@ -88,6 +90,8 @@ int main() {
     iterations = 0;
     generateBigInteger(bigNum1);
     generateBigInteger(bigNum2);
+    mpa_removeLeadingZeroes(bigNum1);
+    mpa_removeLeadingZeroes(bigNum2);
     BigInt_set_from_string(&a, bigNum1);
     BigInt_set_from_string(&b, bigNum2);
     BigInt_set_from_string(&c, "0");
@@ -111,6 +115,8 @@ int main() {
     iterations = 0;
     generateBigInteger(bigNum1);
     generateBigInteger(bigNum2);
+    mpa_removeLeadingZeroes(bigNum1);
+    mpa_removeLeadingZeroes(bigNum2);
     BigInt_set_from_string(&a, bigNum1);
     BigInt_set_from_string(&b, bigNum2);
     if (BigInt_cmp(&a, &b) < 0) {
@@ -137,6 +143,8 @@ int main() {
     iterations = 0;
     generateBigInteger(bigNum1);
     generateBigInteger(bigNum2);
+    mpa_removeLeadingZeroes(bigNum1);
+    mpa_removeLeadingZeroes(bigNum2);
     BigInt_set_from_string(&a, bigNum1);
     BigInt_set_from_string(&b, bigNum2);
     if (BigInt_cmp(&a, &b) < 0) {
