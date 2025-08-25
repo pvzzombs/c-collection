@@ -206,6 +206,23 @@ void BigInt_copy_to_no_init(BigInt * dest, BigInt * src, int allowance, int useA
   }
 }
 
+void BigInt_swap(BigInt * b1, BigInt * b2) {
+  int * tempInternalRepresentation = b1->internalRepresentation;
+  int tempAllocSize = b1->allocSize;
+  int tempInternalSize = b1->internalSize;
+  int tempSign = b1->sign;
+
+  b1->internalRepresentation = b2->internalRepresentation;
+  b1->allocSize = b2->allocSize;
+  b1->internalSize = b2->internalSize;
+  b1->sign = b2->sign;
+
+  b2->internalRepresentation = tempInternalRepresentation;
+  b2->allocSize = tempAllocSize;
+  b2->internalSize = tempInternalSize;
+  b2->sign = tempSign;
+}
+
 void BigInt_destroy(BigInt * b) {
   free(b->internalRepresentation);
   b->internalRepresentation = NULL;
