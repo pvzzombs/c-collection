@@ -101,3 +101,25 @@ BigInt_destroy(&a);
 BigInt_destroy(&b);
 BigInt_destroy(&c);
 ```
+
+## Performance Results:
+### Windows 10 benchmark results:
+```
+Processor	AMD A6-7480 Radeon R5, 8 Compute Cores 2C+6G      3.50 GHz
+Installed RAM	8.00 GB (6.93 GB usable)
+Storage	119 GB SSD Patriot P210 128GB
+Graphics Card	AMD Radeon R5 Graphics (1006 MB)
+System Type	64-bit operating system, x64-based processor
+```
+```
+Addition performance test...
+Average: 4907433 per second.
+Multiplication performance test...
+Average: 145545 per second.
+Subtraction performance test...
+Average: 4529856 per second.
+Division performance test...
+Average: 258892 per second.
+```
+### How to perform benchmarking?
+Please kindly run `performance` or `performance.exe`.
