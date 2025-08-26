@@ -35,14 +35,14 @@ int main() {
   s = BigInt_to_string_with_sign(&c);
   printf("Difference: %s\n",s);
   free(s);
-  /* BigInt_multiply(&c, &a, &b);
-  s = BigInt_to_string(&c);
+  BigInt_multiply_with_sign(&c, &a, &b);
+  s = BigInt_to_string_with_sign(&c);
   printf("Product: %s\n",s);
   free(s);
-  BigInt_divide(&c, &a, &b);
-  s = BigInt_to_string(&c);
+  BigInt_divide_with_sign(&c, &a, &b);
+  s = BigInt_to_string_with_sign(&c);
   printf("Quotient: %s\n",s);
-  free(s); */
+  free(s);
 
   BigInt_destroy(&a);
   BigInt_destroy(&b);

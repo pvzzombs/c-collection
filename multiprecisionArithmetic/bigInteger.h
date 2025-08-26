@@ -346,6 +346,31 @@ void BigInt_destroy(BigInt * b) {
   b->allocSize = 0;
 }
 
+int BigInt_internal_cmp(int * num1, int * num2, int num1Len, int num2Len) {
+  if (num1Len < num2Len) {
+    return -1;
+  } else if (num1Len > num2Len) {
+    return 1;
+  } else {
+    int i;
+    for (i = num1Len - 1; i >= 0; i--) {
+      if (num1[i] < num2[i]) {
+        return -1;
+      } else if (num1[i] > num2[i]) {
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+
+void BigInt_internal_shift_towards_front_by_one(int * arr, int len){
+  int i;
+  for (i = len - 1; i > 0; i--) {
+    arr[i] = arr[i - 1];
+  }
+}
+
 int BigInt_cmp(BigInt * num1, BigInt * num2) {
   if (num1->internalSize < num2->internalSize) {
     return -1;
@@ -611,29 +636,27 @@ void BigInt_multiply(BigInt * product, BigInt * multiplicand, BigInt * multiplie
   BigInt_remove_leading_zeroes(product);
 }
 
-int BigInt_internal_cmp(int * num1, int * num2, int num1Len, int num2Len) {
-  if (num1Len < num2Len) {
-    return -1;
-  } else if (num1Len > num2Len) {
-    return 1;
-  } else {
-    int i;
-    for (i = num1Len - 1; i >= 0; i--) {
-      if (num1[i] < num2[i]) {
-        return -1;
-      } else if (num1[i] > num2[i]) {
-        return 1;
-      }
-    }
-  }
-  return 0;
-}
-
-void BigInt_internal_shift_towards_front_by_one(int * arr, int len){
+void BigInt_multiply_with_sign(BigInt * product, BigInt * multiplicand, BigInt * multiplier) {
   int i;
-  for (i = len - 1; i > 0; i--) {
-    arr[i] = arr[i - 1];
+  if (BigInt_cmp(multiplicand, multiplier) < 0) {
+    BigInt * temp = multiplicand;
+    multiplicand = multiplier;
+    multiplier = temp;
   }
+  product->sign = multiplicand->sign * multiplier->sign;
+  if (product->allocSize >= multiplicand->internalSize + multiplier->internalSize) {
+    product->internalSize = multiplicand->internalSize + multiplier->internalSize;
+  } else {
+    free(product->internalRepresentation);
+    product->internalRepresentation = malloc((multiplicand->internalSize + multiplier->internalSize) * sizeof(int));
+    product->internalSize = multiplicand->internalSize + multiplier->internalSize;
+    product->allocSize = multiplicand->internalSize + multiplier->internalSize;
+  }
+  for (i = 0; i < product->internalSize; i++) {
+    product->internalRepresentation[i] = 0;
+  }
+  BigInt_multiply_impl(multiplicand->internalRepresentation, multiplier->internalRepresentation, product->internalRepresentation, multiplicand->internalSize, multiplier->internalSize, product->internalSize);
+  BigInt_remove_leading_zeroes(product);
 }
 
 void BigInt_divide_impl(int * dividend, int * divisor, int * quotient, int dividendLen, int divisorLen, int quotientLen) {
@@ -747,6 +770,110 @@ void BigInt_divide_no_copy(BigInt * quotient, BigInt * dividend, BigInt * diviso
   BigInt_divide_impl(newDividend, newDivisor, quotient->internalRepresentation, dividend->internalSize, divisor->internalSize, quotient->internalSize);
   BigInt_remove_leading_zeroes(quotient);
   BigInt_remove_leading_zeroes(dividend);
+
+  free(newDividend);
+  free(newDivisor);
+  free(d);
+}
+
+void BigInt_divide_with_sign(BigInt * quotient, BigInt * dividend1, BigInt * divisor) {
+  int * d = malloc(1 * sizeof(int));
+  int i;
+  int * newDividend = NULL;
+  int * newDivisor = NULL;
+
+  BigInt dividend2;
+  BigInt_copy_to_no_init(&dividend2, dividend1, 1, 1);
+
+  d[0] = BIGINT_BASE / (divisor->internalRepresentation[divisor->internalSize - 1] + 1);
+  newDividend = malloc((dividend2.internalSize) * sizeof(int));
+  newDivisor = malloc((divisor->internalSize) * sizeof(int));
+  for (i = 0; i < dividend2.internalSize; i++) {
+    newDividend[i] = 0;
+  }
+  for (i = 0; i < divisor->internalSize; i++) {
+    newDivisor[i] = 0;
+  }
+
+  quotient->sign = dividend2.sign * divisor->sign;
+  if (BigInt_cmp(&dividend2, divisor) < 0 || BigInt_is_zero_impl(divisor->internalRepresentation, divisor->internalSize)) {
+    if (quotient->allocSize >= 1) {
+      quotient->internalRepresentation[0] = 0;
+      quotient->internalSize = 1;
+    } else {
+      free(quotient->internalRepresentation);
+      quotient->internalRepresentation = malloc(1 * sizeof(int));
+      quotient->internalRepresentation[0] = 0;
+      quotient->internalSize = 1;
+      quotient->allocSize = 1;
+    }
+  } else {
+    if (quotient->allocSize >= dividend2.internalSize - divisor->internalSize) {
+      quotient->internalSize = dividend2.internalSize - divisor->internalSize;
+    } else {
+      free(quotient->internalRepresentation);
+      quotient->internalRepresentation = malloc((dividend2.internalSize - divisor->internalSize) * sizeof(int));
+      quotient->internalSize = dividend2.internalSize - divisor->internalSize;
+      quotient->allocSize = dividend2.internalSize - divisor->internalSize;
+    }
+    BigInt_multiply_impl(dividend2.internalRepresentation, d, newDividend, dividend2.internalSize - 1, 1, dividend2.internalSize);
+    BigInt_multiply_impl(divisor->internalRepresentation, d, newDivisor, divisor->internalSize, 1, divisor->internalSize);
+    BigInt_divide_impl(newDividend, newDivisor, quotient->internalRepresentation, dividend2.internalSize, divisor->internalSize, quotient->internalSize);
+    BigInt_remove_leading_zeroes(quotient);
+  }
+  
+  BigInt_destroy(&dividend2);
+  free(newDividend);
+  free(newDivisor);
+  free(d);
+}
+
+void BigInt_divide_no_copy_with_sign(BigInt * quotient, BigInt * dividend, BigInt * divisor) {
+  int * d = malloc(1 * sizeof(int));
+  int i;
+  int * newDividend = NULL;
+  int * newDivisor = NULL;
+
+  BigInt_add_leading_zero(dividend);
+
+  d[0] = BIGINT_BASE / (divisor->internalRepresentation[divisor->internalSize - 1] + 1);
+  newDividend = malloc((dividend->internalSize) * sizeof(int));
+  newDivisor = malloc((divisor->internalSize) * sizeof(int));
+  for (i = 0; i < dividend->internalSize; i++) {
+    newDividend[i] = 0;
+  }
+  for (i = 0; i < divisor->internalSize; i++) {
+    newDivisor[i] = 0;
+  }
+  
+  quotient->sign = dividend->sign * divisor->sign;
+
+  if (BigInt_cmp(dividend, divisor) < 0 || BigInt_is_zero_impl(divisor->internalRepresentation, divisor->internalSize)) {
+    if (quotient->allocSize >= 1) {
+      quotient->internalRepresentation[0] = 0;
+      quotient->internalSize = 1;
+    } else {
+      free(quotient->internalRepresentation);
+      quotient->internalRepresentation = malloc(1 * sizeof(int));
+      quotient->internalRepresentation[0] = 0;
+      quotient->internalSize = 1;
+      quotient->allocSize = 1;
+    }
+  } else {
+    if (quotient->allocSize >= dividend->internalSize - divisor->internalSize) {
+      quotient->internalSize = dividend->internalSize - divisor->internalSize;
+    } else {
+      free(quotient->internalRepresentation);
+      quotient->internalRepresentation = malloc((dividend->internalSize - divisor->internalSize) * sizeof(int));
+      quotient->internalSize = dividend->internalSize - divisor->internalSize;
+      quotient->allocSize = dividend->internalSize - divisor->internalSize;
+    }
+    BigInt_multiply_impl(dividend->internalRepresentation, d, newDividend, dividend->internalSize - 1, 1, dividend->internalSize);
+    BigInt_multiply_impl(divisor->internalRepresentation, d, newDivisor, divisor->internalSize, 1, divisor->internalSize);
+    BigInt_divide_impl(newDividend, newDivisor, quotient->internalRepresentation, dividend->internalSize, divisor->internalSize, quotient->internalSize);
+    BigInt_remove_leading_zeroes(quotient);
+    BigInt_remove_leading_zeroes(dividend);
+  }
 
   free(newDividend);
   free(newDivisor);
