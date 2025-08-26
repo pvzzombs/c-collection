@@ -271,6 +271,8 @@ char * BigInt_to_string(BigInt * b) {
 
   BigInt_to_string_impl(b->internalRepresentation, output, len);
 
+  mpa_removeLeadingZeroes(output);
+
   return output;
 }
 
@@ -284,8 +286,14 @@ char * BigInt_to_string_with_sign(BigInt * b) {
   memset(output, 0, charLen + 2);
 
   BigInt_to_string_impl(b->internalRepresentation, output, len);
-  tempLen = strlen(output);
 
+  mpa_removeLeadingZeroes(output);
+
+  if (strcmp(output, "0") == 0) {
+    return output;
+  }
+
+  tempLen = strlen(output);
   if (b->sign == -1) {
     for (i = tempLen + 1; i > 0; i--) {
       output[i] = output[i - 1];
