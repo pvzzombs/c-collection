@@ -56,9 +56,10 @@ int main() {
   printf("%s\n", c);
   free(c);
 
-  BigInt_destroy(&b1);
+  // BigInt_destroy(&b1);
 
-  BigInt_init_from_string_with_sign(&b1, "-1000");
+  // BigInt_init_from_string_with_sign(&b1, "-1000");
+  BigInt_set_from_string_with_sign(&b1, "-100");
 
   c = BigInt_to_string(&b1);
   free(c);

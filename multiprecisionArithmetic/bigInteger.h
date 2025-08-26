@@ -44,6 +44,23 @@ void BigInt_itoa_impl (int num, char * dest) {
   mpa_reverseDigits(dest, i);
 }
 
+void BigInt_zero_all_impl(int * dest, int len) {
+  int i;
+  for (i = 0; i < len; i++) {
+    dest[i] = 0;
+  }
+}
+
+int BigInt_is_zero_impl(int * arr, int len) {
+  int i;
+  for (i = 0; i < len; i++) {
+    if (arr[i] != 0) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
 void BigInt_init (BigInt * b) {
   b->internalRepresentation = malloc(1 * sizeof(int));
   b->internalSize = 1;
@@ -134,7 +151,7 @@ void BigInt_init_from_string_with_sign (BigInt * b, char * str) {
   tempArray = malloc(BigInt_determine_number_of_digits(absnum) * sizeof(int));
   BigInt_from_string_impl(absnum, tempArray, &i);
 
-  if (i == 1 && tempArray[0] == 0) {
+  if (BigInt_is_zero_impl(tempArray, i)) {
     b->sign = 0;
   }
 
@@ -174,6 +191,49 @@ void BigInt_set_from_string(BigInt * b, char * str) {
   free(tempArray);
 }
 
+void BigInt_set_from_string_with_sign(BigInt * b, char * str) {
+  int * tempArray = NULL;
+  int i = 0;
+  int x;
+  char * absnum = strdup(str);
+
+  if (str[0] == '-') {
+    b->sign = -1;
+    for (x = 0; x < strlen(absnum) - 1; x++) {
+      absnum[x] = absnum[x + 1];
+    }
+    absnum[strlen(absnum) - 1] = 0;
+  } else {
+    b->sign = 1;
+  }
+
+  tempArray = malloc(BigInt_determine_number_of_digits(absnum) * sizeof(int));
+  BigInt_from_string_impl(absnum, tempArray, &i);
+
+  if (BigInt_is_zero_impl(tempArray, i)) {
+    b->sign = 0;
+  }
+
+  /* printf("Len is %d, I is %d, number is %s\n", BigInt_determine_number_of_digits(str), i, str); */
+  
+  if (b->allocSize >= i) {
+    b->internalSize = i;
+    for (x = 0; x < i; x++) {
+      b->internalRepresentation[x] = tempArray[x];
+    }
+  } else {
+    free(b->internalRepresentation);
+    b->internalRepresentation = malloc(i * sizeof(int));
+    b->internalSize = i;
+    for (x = 0; x < i; x++) {
+      b->internalRepresentation[x] = tempArray[x];
+    }
+    b->allocSize = i;
+  }
+  free(absnum);
+  free(tempArray);
+}
+
 void BigInt_to_string_impl(int * arr, char * output, int arrLen) {
   char * tmpMul;
   char * tmpAdd;
@@ -210,6 +270,28 @@ char * BigInt_to_string(BigInt * b) {
   memset(output, 0, charLen + 1);
 
   BigInt_to_string_impl(b->internalRepresentation, output, len);
+
+  return output;
+}
+
+char * BigInt_to_string_with_sign(BigInt * b) {
+  int len = b->internalSize;
+  int charLen = BigInt_number_of_digits_to_base_10(len);
+  char * output = malloc((charLen + 2) * sizeof(char));
+  int tempLen;
+  int i;
+
+  memset(output, 0, charLen + 2);
+
+  BigInt_to_string_impl(b->internalRepresentation, output, len);
+  tempLen = strlen(output);
+
+  if (b->sign == -1) {
+    for (i = tempLen + 1; i > 0; i--) {
+      output[i] = output[i - 1];
+    }
+    output[0] = '-';
+  }
 
   return output;
 }
@@ -289,6 +371,7 @@ void BigInt_remove_leading_zeroes(BigInt * b) {
     if (bAllocSize > 0) {
       b->internalRepresentation[0] = 0;
       b->internalSize = 1;
+      b->sign = 0;
     }
   }
 }
@@ -345,6 +428,7 @@ void BigInt_add(BigInt * sum, BigInt * addend1, BigInt * addend2) {
   } else {
     free(sum->internalRepresentation);
     sum->internalRepresentation = malloc((addend1->internalSize + 1) * sizeof(int));
+    sum->internalRepresentation[addend1->internalSize] = 0;
     sum->internalSize = addend1->internalSize + 1;
     sum->allocSize = addend1->internalSize + 1;
   }
@@ -395,6 +479,71 @@ void BigInt_subtract(BigInt * difference, BigInt * minuend, BigInt * subtrahend)
     difference->allocSize = minuend->internalSize;
   }
   BigInt_subtract_impl(minuend->internalRepresentation, subtrahend->internalRepresentation, difference->internalRepresentation, minuend->internalSize, subtrahend->internalSize, difference->internalSize);
+  BigInt_remove_leading_zeroes(difference);
+}
+
+void BigInt_add_with_sign(BigInt * sum, BigInt * addend1, BigInt * addend2) {
+  int sameSign = 0;
+  /* addend1 has the biggest absolute value */
+  if (BigInt_cmp(addend1, addend2) < 0) {
+    BigInt * temp = addend1;
+    addend1 = addend2;
+    addend2 = temp;
+  }
+
+  sum->sign = addend1->sign;
+  /* If same sign keep it */
+  if (addend1->sign == addend2->sign) {
+    sameSign = 1;
+  }
+  if (sum->allocSize > addend1->internalSize) {
+    sum->internalSize = addend1->internalSize + 1;
+  } else {
+    free(sum->internalRepresentation);
+    sum->internalRepresentation = malloc((addend1->internalSize + 1) * sizeof(int));
+    sum->internalRepresentation[addend1->internalSize] = 0;
+    sum->internalSize = addend1->internalSize + 1;
+    sum->allocSize = addend1->internalSize + 1;
+  }
+  if(sameSign) {
+    BigInt_add_impl(addend1->internalRepresentation, addend2->internalRepresentation, sum->internalRepresentation, addend1->internalSize, addend2->internalSize, sum->internalSize);
+  } else {
+    BigInt_subtract_impl(addend1->internalRepresentation, addend2->internalRepresentation, sum->internalRepresentation, addend1->internalSize, addend2->internalSize, sum->internalSize);
+  }
+  
+  BigInt_remove_leading_zeroes(sum);
+}
+
+void BigInt_subtract_with_sign(BigInt * difference, BigInt * minuend, BigInt * subtrahend) {
+  int allowance = 0;
+  int subtrahendSign = subtrahend->sign * -1;
+  int sameSign = 0;
+
+  if (BigInt_cmp(minuend, subtrahend) < 0) {
+    BigInt * temp = minuend;
+    minuend = subtrahend;
+    subtrahend = temp;
+  }
+
+  difference->sign = minuend->sign;
+  if (minuend->sign == subtrahendSign) {
+    sameSign = 1;
+    allowance = 1;
+  }
+  if (difference->allocSize >= minuend->internalSize + allowance) {
+    difference->internalSize = minuend->internalSize + allowance;
+  } else {
+    free(difference->internalRepresentation);
+    difference->internalRepresentation = malloc((minuend->internalSize + allowance) * sizeof(int));
+    difference->internalRepresentation[minuend->internalSize + allowance] = 0;
+    difference->internalSize = minuend->internalSize + allowance;
+    difference->allocSize = minuend->internalSize + allowance;
+  }
+  if (sameSign) {
+    BigInt_add_impl(minuend->internalRepresentation, subtrahend->internalRepresentation, difference->internalRepresentation, minuend->internalSize, subtrahend->internalSize, difference->internalSize);
+  } else {
+    BigInt_subtract_impl(minuend->internalRepresentation, subtrahend->internalRepresentation, difference->internalRepresentation, minuend->internalSize, subtrahend->internalSize, difference->internalSize);
+  }
   BigInt_remove_leading_zeroes(difference);
 }
 
