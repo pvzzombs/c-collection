@@ -552,17 +552,20 @@ void BigInt_subtract_with_sign(BigInt * difference, BigInt * minuend, BigInt * s
   int subtrahendSign = subtrahend->sign * -1;
   int sameSign = 0;
 
-  if (BigInt_cmp(minuend, subtrahend) < 0) {
-    BigInt * temp = minuend;
-    minuend = subtrahend;
-    subtrahend = temp;
-  }
-
-  difference->sign = minuend->sign;
   if (minuend->sign == subtrahendSign) {
     sameSign = 1;
     allowance = 1;
   }
+
+  if (BigInt_cmp(minuend, subtrahend) < 0) {
+    BigInt * temp = minuend;
+    minuend = subtrahend;
+    subtrahend = temp;
+    difference->sign = subtrahendSign;
+  } else {
+    difference->sign = minuend->sign;
+  }
+
   if (difference->allocSize >= minuend->internalSize + allowance) {
     difference->internalSize = minuend->internalSize + allowance;
   } else {
