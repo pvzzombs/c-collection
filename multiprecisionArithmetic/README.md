@@ -112,6 +112,58 @@ BigInt_destroy(&b);
 BigInt_destroy(&c);
 ```
 
+With sign:
+```c
+int main() {
+  char num1[1024];
+  char num2[1024];
+  char * s;
+
+  BigInt a, b, c;
+  int index;
+  char * end;
+
+  BigInt_init(&a);
+  BigInt_init(&b);
+  BigInt_init(&c);
+
+  printf("Enter first number: ");
+  fgets(num1, 1024, stdin);
+  printf("Enter second number: ");
+  fgets(num2, 1024, stdin);
+
+  end = strstr(num1, "\n");
+  num1[end - num1] = 0;
+  end = strstr(num2, "\n");
+  num2[end - num2] = 0;
+
+  BigInt_set_from_string_with_sign(&a, num1);
+  BigInt_set_from_string_with_sign(&b, num2);
+
+  BigInt_add_with_sign(&c, &a, &b);
+  s = BigInt_to_string_with_sign(&c);
+  printf("Sum: %s\n",s);
+  free(s);
+  BigInt_subtract_with_sign(&c, &a, &b);
+  s = BigInt_to_string_with_sign(&c);
+  printf("Difference: %s\n",s);
+  free(s);
+  BigInt_multiply_with_sign(&c, &a, &b);
+  s = BigInt_to_string_with_sign(&c);
+  printf("Product: %s\n",s);
+  free(s);
+  BigInt_divide_with_sign(&c, &a, &b);
+  s = BigInt_to_string_with_sign(&c);
+  printf("Quotient: %s\n",s);
+  free(s);
+
+  BigInt_destroy(&a);
+  BigInt_destroy(&b);
+  BigInt_destroy(&c);
+  return 0;
+}
+```
+
 ## Performance Results:
 ### Windows 10 benchmark results:
 ```
