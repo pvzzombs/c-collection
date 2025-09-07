@@ -28,7 +28,7 @@ See `test.c`.
 
 ### Example/s:
 
-**NOTE**: Please ensure that the **minuend is bigger** than or **equal** to the **subtrahend** and that the **dividend is bigger** than or **equal** to the **divisor**. If not correctly done, might lead to unintended results.
+**NOTE**: Please ensure that the **minuend is bigger** than or **equal** to the **subtrahend** and that the **dividend is bigger** than or **equal** to the **divisor**. If not correctly done, might lead to unintended results. (Only applies to common functions without sign).
 
 ```c
 char num1[] = "9876543210987654321987654321";
