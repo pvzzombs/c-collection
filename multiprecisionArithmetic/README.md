@@ -16,6 +16,16 @@ See `test.c`.
 `BigInt_multiply` - Multiply `BigInt`.  
 `BigInt_divide` - Divide `BigInt`.  
 
+### With Sign
+`BigInt_init_from_string_with_sign`  
+`BigInt_set_from_string_with_sign`  
+`BigInt_to_string_with_sign`  
+`BigInt_add_with_sign`  
+`BigInt_subtract_with_sign`  
+`BigInt_multiply_with_sign`  
+`BigInt_divide_with_sign`  
+`BigInt_divide_no_copy_with_sign`  
+
 ### Example/s:
 
 **NOTE**: Please ensure that the **minuend is bigger** than or **equal** to the **subtrahend** and that the **dividend is bigger** than or **equal** to the **divisor**. If not correctly done, might lead to unintended results.
