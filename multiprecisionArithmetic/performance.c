@@ -4,6 +4,7 @@
 #include "bigInteger.h"
 
 #define ITERATIONS_COUNT 10
+#define DIGIT_COUNT 100
 
 #ifdef _WIN32
 #include <windows.h>
@@ -32,14 +33,14 @@ double get_time() {
 
 void generateBigInteger(char * dest) {
   int i;
-  for(i = 0; i < 100; i++) {
+  for(i = 0; i < DIGIT_COUNT; i++) {
     dest[i] = (rand() % 10) + '0';
   }
 }
 
 int main() {
-  char * bigNum1 = malloc(101 * sizeof(char));
-  char * bigNum2 = malloc(101 * sizeof(char));
+  char * bigNum1 = malloc((DIGIT_COUNT + 1) * sizeof(char));
+  char * bigNum2 = malloc((DIGIT_COUNT + 1) * sizeof(char));
   char * s;
   int i;
   float startTime, endTime;
@@ -48,8 +49,8 @@ int main() {
   BigInt a, b, c;
   
   srand(time(NULL));
-  bigNum1[100] = 0;
-  bigNum2[100] = 0;
+  bigNum1[DIGIT_COUNT] = 0;
+  bigNum2[DIGIT_COUNT] = 0;
   BigInt_init(&a);
   BigInt_init(&b);
   BigInt_init(&c);
@@ -58,6 +59,8 @@ int main() {
   generateBigInteger(bigNum2);
   printf("Num1: %s\n", bigNum1);
   printf("Num2: %s\n", bigNum2); */
+
+  printf("Maximum digits: %d\n", DIGIT_COUNT);
 
   printf("Addition performance test...\n");
 
@@ -70,6 +73,7 @@ int main() {
     BigInt_set_from_string(&a, bigNum1);
     BigInt_set_from_string(&b, bigNum2);
     BigInt_set_from_string(&c, "0");
+    printf("Processing number/s done...\n");
     startTime = get_time();
     endTime = startTime;
     do {
@@ -95,6 +99,7 @@ int main() {
     BigInt_set_from_string(&a, bigNum1);
     BigInt_set_from_string(&b, bigNum2);
     BigInt_set_from_string(&c, "0");
+    printf("Processing number/s done...\n");
     startTime = get_time();
     endTime = startTime;
     do {
@@ -123,6 +128,7 @@ int main() {
       BigInt_swap(&a, &b);
     }
     BigInt_set_from_string(&c, "0");
+    printf("Processing number/s done...\n");
     startTime = get_time();
     endTime = startTime;
     do {
@@ -151,6 +157,7 @@ int main() {
       BigInt_swap(&a, &b);
     }
     BigInt_set_from_string(&c, "0");
+    printf("Processing number/s done...\n");
     startTime = get_time();
     endTime = startTime;
     do {
