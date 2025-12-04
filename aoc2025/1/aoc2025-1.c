@@ -88,7 +88,9 @@ int main() {
 
   if (fptr != NULL) {
     while(fgets(buf, 128, fptr)) {
-      buf[strstr(buf, "\n") - buf] = 0;
+      if (strstr(buf, "\n") != NULL) {
+        buf[strstr(buf, "\n") - buf] = 0;
+      }
       if (strcmp(buf, "") != 0) {
         movelock(buf, &lock1, &password1);
         movelock3(buf, &lock2, &password2);
@@ -97,8 +99,8 @@ int main() {
 
     fclose(fptr);
 
-    printf("Part 1 password: %d\n", password1);
-    printf("Part 2 password: %d\n", password2);
+    printf("Part 1 answer is: %d\n", password1);
+    printf("Part 2 answer is: %d\n", password2);
   }
 
   return 0;
