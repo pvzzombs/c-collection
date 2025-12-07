@@ -303,7 +303,7 @@ void solveBeam2(char ** table, int w, int h, unsigned long long * timeline) {
           if (l >= 0) {
             dp[i][l] += dp[i - 1][j];
           }
-          if (r >= 0) {
+          if (r < w) {
             dp[i][r] += dp[i - 1][j];
           }
           dp[i][j] = 0;
