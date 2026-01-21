@@ -16,3 +16,4 @@ add_executable(bigIntTest bigIntTest.c ../others/snprintf.c)
 
 add_executable(performance performance.c)
 add_executable(demo demo.c)
+add_executable(set set.c)

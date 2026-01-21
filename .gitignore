@@ -12,3 +12,6 @@ obj/
 *.obj
 *.exe
 *.out
+*.un
+*.swp
+*.*~
