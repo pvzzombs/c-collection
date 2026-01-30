@@ -171,6 +171,47 @@ int main() {
 
   printf("Average: %d per second.\n", totalIteratons / ITERATIONS_COUNT);
 
+  totalIteratons = 0;
+  printf("BigInt set_from_string performance test...\n");
+
+  for (i = 0; i < ITERATIONS_COUNT; i++) {
+    iterations = 0;
+    generateBigInteger(bigNum1);
+    mpa_removeLeadingZeroes(bigNum1);
+    startTime = get_time();
+    endTime = startTime;
+    do {
+      BigInt_set_from_string(&a, bigNum1);
+      ++iterations;
+      endTime = get_time();
+    } while(endTime - startTime < 1.0);
+    totalIteratons += iterations;
+    printf("Iterations executed: %d\n", iterations);
+  }
+
+  printf("Average: %d per second.\n", totalIteratons / ITERATIONS_COUNT);
+
+  totalIteratons = 0;
+  printf("BigInt set_from_string_with_small_base_10000 performance test...\n");
+
+  for (i = 0; i < ITERATIONS_COUNT; i++) {
+    iterations = 0;
+    generateBigInteger(bigNum1);
+    mpa_removeLeadingZeroes(bigNum1);
+    startTime = get_time();
+    endTime = startTime;
+    do {
+      BigInt_set_from_string_with_small_base_10000(&a, bigNum1);
+      ++iterations;
+      endTime = get_time();
+    } while(endTime - startTime < 1.0);
+    totalIteratons += iterations;
+    printf("Iterations executed: %d\n", iterations);
+  }
+
+  printf("Average: %d per second.\n", totalIteratons / ITERATIONS_COUNT);
+
+
   free(bigNum1);
   free(bigNum2);
 
