@@ -119,7 +119,7 @@ void BigInt_from_string_impl (char * str, int * tempArray, int * i) {
   free(str2);
 }
 
-int BigInt_determine_number_of_digits(char * str) {
+int BigInt_count_digits_to_base_Big(char * str) {
   /* return (strlen(str) * 8 / BIGINT_BASE_BITS_COUNT) + 1; */
   double L = strlen(str);
   double B = BIGINT_BASE;
@@ -130,7 +130,7 @@ int BigInt_determine_number_of_digits(char * str) {
 }
 
 void BigInt_init_from_string (BigInt * b, char * str) {
-  int * tempArray = malloc(BigInt_determine_number_of_digits(str) * sizeof(int));
+  int * tempArray = malloc(BigInt_count_digits_to_base_Big(str) * sizeof(int));
   int i = 0;
   int x;
   BigInt_from_string_impl(str, tempArray, &i);
@@ -157,7 +157,7 @@ void BigInt_init_from_string_with_sign (BigInt * b, char * str) {
   } else {
     b->sign = 1;
   }
-  tempArray = malloc(BigInt_determine_number_of_digits(absnum) * sizeof(int));
+  tempArray = malloc(BigInt_count_digits_to_base_Big(absnum) * sizeof(int));
   BigInt_from_string_impl(absnum, tempArray, &i);
 
   if (BigInt_is_zero_impl(tempArray, i)) {
@@ -175,13 +175,13 @@ void BigInt_init_from_string_with_sign (BigInt * b, char * str) {
 }
 
 void BigInt_set_from_string(BigInt * b, char * str) {
-  int * tempArray = malloc(BigInt_determine_number_of_digits(str) * sizeof(int));
+  int * tempArray = malloc(BigInt_count_digits_to_base_Big(str) * sizeof(int));
   int i = 0;
   int x;
 
   BigInt_from_string_impl(str, tempArray, &i);
 
-  /* printf("Len is %d, I is %d, number is %s\n", BigInt_determine_number_of_digits(str), i, str); */
+  /* printf("Len is %d, I is %d, number is %s\n", BigInt_count_digits_to_base_Big(str), i, str); */
   
   if (b->allocSize >= i) {
     b->internalSize = i;
@@ -216,14 +216,14 @@ void BigInt_set_from_string_with_sign(BigInt * b, char * str) {
     b->sign = 1;
   }
 
-  tempArray = malloc(BigInt_determine_number_of_digits(absnum) * sizeof(int));
+  tempArray = malloc(BigInt_count_digits_to_base_Big(absnum) * sizeof(int));
   BigInt_from_string_impl(absnum, tempArray, &i);
 
   if (BigInt_is_zero_impl(tempArray, i)) {
     b->sign = 0;
   }
 
-  /* printf("Len is %d, I is %d, number is %s\n", BigInt_determine_number_of_digits(str), i, str); */
+  /* printf("Len is %d, I is %d, number is %s\n", BigInt_count_digits_to_base_Big(str), i, str); */
   
   if (b->allocSize >= i) {
     b->internalSize = i;
@@ -263,7 +263,7 @@ void BigInt_to_string_impl(int * arr, char * output, int arrLen) {
   }
 }
 
-int BigInt_number_of_digits_to_base_10(int num) {
+int BigInt_count_digits_to_base_10(int num) {
   double L = num;
   double B = BIGINT_BASE;
   double log10B = log10(B);
@@ -273,7 +273,7 @@ int BigInt_number_of_digits_to_base_10(int num) {
 
 char * BigInt_to_string(BigInt * b) {
   int len = b->internalSize;
-  int charLen = BigInt_number_of_digits_to_base_10(len);
+  int charLen = BigInt_count_digits_to_base_10(len);
   char * output = malloc((charLen + 1) * sizeof(char));
 
   memset(output, 0, charLen + 1);
@@ -287,7 +287,7 @@ char * BigInt_to_string(BigInt * b) {
 
 char * BigInt_to_string_with_sign(BigInt * b) {
   int len = b->internalSize;
-  int charLen = BigInt_number_of_digits_to_base_10(len);
+  int charLen = BigInt_count_digits_to_base_10(len);
   char * output = malloc((charLen + 2) * sizeof(char));
   int tempLen;
   int i;
