@@ -147,13 +147,10 @@ void BigInt_init_from_string_with_sign (BigInt * b, char * str) {
   int * tempArray = NULL;
   int i = 0;
   int x;
-  char * absnum = strdup(str);
+  char * absnum = str;
   if (str[0] == '-') {
     b->sign = -1;
-    for (x = 0; x < strlen(absnum) - 1; x++) {
-      absnum[x] = absnum[x + 1];
-    }
-    absnum[strlen(absnum) - 1] = 0;
+    absnum = str + 1;
   } else {
     b->sign = 1;
   }
@@ -170,7 +167,6 @@ void BigInt_init_from_string_with_sign (BigInt * b, char * str) {
     b->internalRepresentation[x] = tempArray[x];
   }
   b->internalSize = i;
-  free(absnum);
   free(tempArray);
 }
 
@@ -204,14 +200,11 @@ void BigInt_set_from_string_with_sign(BigInt * b, char * str) {
   int * tempArray = NULL;
   int i = 0;
   int x;
-  char * absnum = strdup(str);
+  char * absnum = str;
 
   if (str[0] == '-') {
     b->sign = -1;
-    for (x = 0; x < strlen(absnum) - 1; x++) {
-      absnum[x] = absnum[x + 1];
-    }
-    absnum[strlen(absnum) - 1] = 0;
+    absnum = str + 1;
   } else {
     b->sign = 1;
   }
@@ -239,7 +232,6 @@ void BigInt_set_from_string_with_sign(BigInt * b, char * str) {
     }
     b->allocSize = i;
   }
-  free(absnum);
   free(tempArray);
 }
 
@@ -1020,6 +1012,43 @@ void BigInt_set_from_string_with_small_base_10000(BigInt * b, char * str) {
     BigInt_multiply_small(&out, &temp, 10000);
     BigInt_add_small(&temp, &out, BigInt_atoi_impl_with_range(str, i, i + 4 - 1));
   }
+  BigInt_copy(b, &temp);
+  BigInt_destroy(&out);
+  BigInt_destroy(&temp);
+}
+
+void BigInt_set_from_string_with_small_base_10000_with_sign(BigInt * b, char * str) {
+  int len = strlen(str);
+  int i;
+  int firstLen = len % 4;
+  char * str2 = str;
+  BigInt temp, out;
+
+  BigInt_init(&out);
+  BigInt_init(&temp);
+
+  if (str2[0] == '-') {
+    str2 = str + 1;
+    temp.sign = -1;
+    len = len - 1;
+    firstLen = len % 4;
+  } else {
+    temp.sign = 1;
+  }
+
+  if (firstLen == 0) { firstLen = 4; }
+
+  BigInt_add_small(&temp, &out, BigInt_atoi_impl_with_range(str2, 0, firstLen - 1));
+
+  for (i = firstLen; i < len; i+=4) {
+    BigInt_multiply_small(&out, &temp, 10000);
+    BigInt_add_small(&temp, &out, BigInt_atoi_impl_with_range(str2, i, i + 4 - 1));
+  }
+
+  if (BigInt_is_zero_impl(temp.internalRepresentation, temp.internalSize)) {
+    temp.sign = 0;
+  }
+
   BigInt_copy(b, &temp);
   BigInt_destroy(&out);
   BigInt_destroy(&temp);

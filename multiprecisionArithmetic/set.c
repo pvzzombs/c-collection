@@ -1,4 +1,4 @@
-#include "multiprecisionArithmetic.h"
+//#include "multiprecisionArithmetic.h"
 #include "bigInteger.h"
 
 int main() {
@@ -8,15 +8,24 @@ int main() {
   char * s;
 
 
-  BigInt_set_from_string_with_small(&num1, "123456");
-  s = BigInt_to_string(&num1);
+  BigInt_set_from_string_with_sign(&num1, "-123456");
+  s = BigInt_to_string_with_sign(&num1);
   printf("Num1 is %s\n", s);
   free(s);
 
   //BigInt_copy(&num2, &num1);
-  BigInt_set_from_string_with_small_base_10000(&num2, "123456789801234567890");
-  s = BigInt_to_string(&num2);
+  BigInt_set_from_string_with_small_base_10000_with_sign(&num2, "-123456789801234567890");
+  s = BigInt_to_string_with_sign(&num2);
+  //printf("Sign is %d\n", num2.sign);
   printf("Num2 is %s\n", s);
+  free(s);
+
+
+  BigInt_destroy(&num1);
+
+  BigInt_init_from_string_with_sign(&num1, "-123");
+  s = BigInt_to_string_with_sign(&num1);
+  printf("Number init is %s\n", s);
   free(s);
   
   BigInt_destroy(&num1);
