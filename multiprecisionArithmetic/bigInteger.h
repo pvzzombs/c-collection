@@ -302,6 +302,20 @@ char * BigInt_to_string_with_sign(BigInt * b) {
   return output;
 }
 
+void BigInt_copy(BigInt * to, BigInt * from) {
+  int i;
+  if (to->allocSize < from->internalSize) {
+    free(to->internalRepresentation);
+    to->internalRepresentation = malloc(sizeof(int) * from->internalSize);
+    to->allocSize = from->internalSize;
+  }
+  for (i = 0; i < from->internalSize; i++) {
+    to->internalRepresentation[i] = from->internalRepresentation[i];
+  }
+  to->internalSize = from->internalSize;
+  to->sign = from->sign;
+}
+
 void BigInt_copy_to_no_init(BigInt * dest, BigInt * src, int allowance, int useAllowance) {
   int i;
   dest->allocSize = src->internalSize + allowance;
@@ -965,20 +979,6 @@ void BigInt_divide_no_copy_with_sign(BigInt * quotient, BigInt * dividend, BigIn
   free(d);
 }
 
-void BigInt_copy(BigInt * to, BigInt * from) {
-  int i;
-  if (to->allocSize < from->internalSize) {
-    free(to->internalRepresentation);
-    to->internalRepresentation = malloc(sizeof(int) * from->internalSize);
-    to->allocSize = from->internalSize;
-  }
-  for (i = 0; i < from->internalSize; i++) {
-    to->internalRepresentation[i] = from->internalRepresentation[i];
-  }
-  to->internalSize = from->internalSize;
-  to->sign = from->sign;
-}
-
 void BigInt_set_from_string_with_small(BigInt * b, char * str) {
   int len = strlen(str);
   int i;
@@ -1044,5 +1044,85 @@ void BigInt_set_from_string_with_small_base_10000_with_sign(BigInt * b, char * s
   }
 
   BigInt_copy(b, &temp);
+  BigInt_destroy(&temp);
+}
+
+void BigInt_add_t(BigInt * out, BigInt * a, BigInt * b) {
+  BigInt temp;
+  BigInt_init(&temp);
+
+  BigInt_add(&temp, a, b);
+  
+  BigInt_copy(out, &temp);
+  BigInt_destroy(&temp);
+}
+
+void BigInt_subtract_t(BigInt * out, BigInt * a, BigInt * b) {
+  BigInt temp;
+  BigInt_init(&temp);
+
+  BigInt_subtract(&temp, a, b);
+  
+  BigInt_copy(out, &temp);
+  BigInt_destroy(&temp);
+}
+
+void BigInt_multiply_t(BigInt * out, BigInt * a, BigInt * b) {
+  BigInt temp;
+  BigInt_init(&temp);
+
+  BigInt_multiply(&temp, a, b);
+  
+  BigInt_copy(out, &temp);
+  BigInt_destroy(&temp);
+}
+
+void BigInt_divide_t(BigInt * out, BigInt * a, BigInt * b) {
+  BigInt temp;
+  BigInt_init(&temp);
+
+  BigInt_divide(&temp, a, b);
+  
+  BigInt_copy(out, &temp);
+  BigInt_destroy(&temp);
+}
+
+void BigInt_add_ts(BigInt * out, BigInt * a, BigInt * b) {
+  BigInt temp;
+  BigInt_init(&temp);
+
+  BigInt_add_with_sign(&temp, a, b);
+  
+  BigInt_copy(out, &temp);
+  BigInt_destroy(&temp);
+}
+
+void BigInt_subtract_ts(BigInt * out, BigInt * a, BigInt * b) {
+  BigInt temp;
+  BigInt_init(&temp);
+
+  BigInt_subtract_with_sign(&temp, a, b);
+  
+  BigInt_copy(out, &temp);
+  BigInt_destroy(&temp);
+}
+
+void BigInt_multiply_ts(BigInt * out, BigInt * a, BigInt * b) {
+  BigInt temp;
+  BigInt_init(&temp);
+
+  BigInt_multiply_with_sign(&temp, a, b);
+  
+  BigInt_copy(out, &temp);
+  BigInt_destroy(&temp);
+}
+
+void BigInt_divide_ts(BigInt * out, BigInt * a, BigInt * b) {
+  BigInt temp;
+  BigInt_init(&temp);
+
+  BigInt_divide_with_sign(&temp, a, b);
+  
+  BigInt_copy(out, &temp);
   BigInt_destroy(&temp);
 }
