@@ -25,6 +25,7 @@ void BigInt_destroy(BigInt *);
 int BigInt_internal_cmp(int *, int *, int, int);
 void BigInt_internal_shift_towards_front_by_one(int *, int);
 int BigInt_cmp(BigInt *, BigInt *);
+int BigInt_cmp_with_sign(BigInt *, BigInt *);
 void BigInt_remove_leading_zeroes(BigInt *);
 void BigInt_add_leading_zero(BigInt *);
 void BigInt_add_impl(int *, int *, int *, int, int, int);
@@ -456,6 +457,22 @@ int BigInt_cmp(BigInt * num1, BigInt * num2) {
       } else if (num1->internalRepresentation[i] > num2->internalRepresentation[i]) {
         return 1;
       }
+    }
+  }
+  return 0;
+}
+
+
+int BigInt_cmp_with_sign(BigInt * num1, BigInt * num2) {
+  if (num1->sign >= 0 && num2->sign >= 0) {
+    return BigInt_cmp(num1, num2);
+  } else if (num1->sign < 0 && num2->sign < 0) {
+    return BigInt_cmp(num1, num2) * -1;
+  } else {
+    if (num1->sign < 0) {
+      return -1;
+    } else if (num2->sign < 0) {
+      return 1;
     }
   }
   return 0;
