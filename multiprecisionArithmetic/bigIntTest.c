@@ -1,3 +1,4 @@
+#define BIGINT_IMPL
 #include "bigInteger.h"
 #include "../others/acutest.h"
 

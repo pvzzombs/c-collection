@@ -1,5 +1,65 @@
 #pragma once
 
+struct BigInt_;
+typedef struct BigInt_ BigInt;
+int BigInt_atoi_impl(char *);
+int BigInt_atoi_impl_with_range(char *, int, int);
+void BigInt_itoa_impl(int, char *);
+void BigInt_zero_all_impl(int *, int);
+int BigInt_is_zero_impl(int *, int);
+void BigInt_init(BigInt *);
+void BigInt_from_string_impl(char *, int *, int *);
+int BigInt_count_digits_to_base_Big(char * );
+void BigInt_init_from_string(BigInt *, char *);
+void BigInt_init_from_string_with_sign(BigInt *, char *);
+void BigInt_set_from_string(BigInt *, char *);
+void BigInt_set_from_string_with_sign(BigInt *, char *);
+void BigInt_to_string_impl(int *, char *, int);
+int BigInt_count_digits_to_base_10(int);
+char * BigInt_to_string(BigInt *);
+char * BigInt_to_string_with_sign(BigInt *);
+void BigInt_copy(BigInt *, BigInt *);
+void BigInt_copy_to_no_init(BigInt *, BigInt *, int, int);
+void BigInt_swap(BigInt *, BigInt *);
+void BigInt_destroy(BigInt *);
+int BigInt_internal_cmp(int *, int *, int, int);
+void BigInt_internal_shift_towards_front_by_one(int *, int);
+int BigInt_cmp(BigInt *, BigInt *);
+void BigInt_remove_leading_zeroes(BigInt *);
+void BigInt_add_leading_zero(BigInt *);
+void BigInt_add_impl(int *, int *, int *, int, int, int);
+void BigInt_add(BigInt *, BigInt *, BigInt *);
+void BigInt_add_small_impl(int *, int, int *, int, int);
+void BigInt_add_small(BigInt *, BigInt *, int);
+void BigInt_subtract_impl(int *, int *, int *, int, int, int);
+void BigInt_subtract(BigInt *, BigInt *, BigInt *);
+void BigInt_add_with_sign(BigInt *, BigInt *, BigInt *);
+void BigInt_subtract_with_sign(BigInt *, BigInt *, BigInt *);
+void BigInt_multiply_impl(int *, int *, int *, int, int, int);
+void BigInt_multiply(BigInt *, BigInt *, BigInt *);
+void BigInt_multiply_small_impl(int *, int, int *, int, int);
+void BigInt_multiply_small(BigInt *, BigInt *, int);
+void BigInt_multiply_with_sign(BigInt *, BigInt *, BigInt *);
+void BigInt_divide_impl(int *, int *, int *, int, int, int);
+void BigInt_divide(BigInt *, BigInt *, BigInt *);
+void BigInt_divide_no_copy(BigInt *, BigInt *, BigInt *);
+void BigInt_divide_with_sign(BigInt *, BigInt *, BigInt *);
+void BigInt_divide_no_copy_with_sign(BigInt *, BigInt *, BigInt *);
+void BigInt_set_from_string_with_small(BigInt *, char *);
+void BigInt_set_from_string_with_small_base_10000_impl(BigInt *, char *);
+void BigInt_set_from_string_with_small_base_10000(BigInt *, char *);
+void BigInt_set_from_string_with_small_base_10000_with_sign(BigInt *, char *);
+void BigInt_add_t(BigInt *, BigInt *, BigInt *);
+void BigInt_subtract_t(BigInt *, BigInt *, BigInt *);
+void BigInt_multiply_t(BigInt *, BigInt *, BigInt *);
+void BigInt_divide_t(BigInt *, BigInt *, BigInt *);
+void BigInt_add_ts(BigInt *, BigInt *, BigInt *);
+void BigInt_subtract_ts(BigInt *, BigInt *, BigInt *);
+void BigInt_multiply_ts(BigInt *, BigInt *, BigInt *);
+void BigInt_divide_ts(BigInt *, BigInt *, BigInt *);
+
+#ifdef BIGINT_IMPL
+
 #include <stdlib.h>
 #include <math.h>
 
@@ -8,12 +68,12 @@
 #define BIGINT_BASE 32768
 #define BIGINT_BASE_STRING "32768"
 
-typedef struct BigInt_ {
+struct BigInt_ {
   int * internalRepresentation;
   int internalSize;
   int allocSize;
   int sign;
-} BigInt;
+};
 
 int BigInt_atoi_impl (char * src) {
   int num = 0;
@@ -1126,3 +1186,5 @@ void BigInt_divide_ts(BigInt * out, BigInt * a, BigInt * b) {
   BigInt_copy(out, &temp);
   BigInt_destroy(&temp);
 }
+
+#endif

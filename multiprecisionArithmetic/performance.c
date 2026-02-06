@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+
+#define BIGINT_IMPL
 #include "bigInteger.h"
 
 #define ITERATIONS_COUNT 10

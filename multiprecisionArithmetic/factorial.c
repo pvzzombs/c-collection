@@ -1,3 +1,4 @@
+#define BIGINT_IMPL
 #include "bigInteger.h"
 
 int main() {
