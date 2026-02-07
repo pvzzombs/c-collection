@@ -16,6 +16,7 @@ void BigInt_set_from_string(BigInt *, char *);
 void BigInt_set_from_string_with_sign(BigInt *, char *);
 void BigInt_to_string_impl(int *, char *, int);
 int BigInt_count_digits_to_base_10(int);
+int BigInt_count_digits_base_10(BigInt *);
 char * BigInt_to_string(BigInt *);
 char * BigInt_to_string_with_sign(BigInt *);
 void BigInt_copy(BigInt *, BigInt *);
@@ -319,6 +320,21 @@ int BigInt_count_digits_to_base_10(int num) {
   double log10B = log10(B);
   double result = L * log10B + 1.0;
   return (int) result;
+}
+
+int BigInt_count_digits_base_10(BigInt * b) {
+  double k = b->internalSize;
+  double f = b->internalRepresentation[b->internalSize - 1];
+  double B = BIGINT_BASE;
+  double log10B = log10(B);
+  double log10f = log10(f);
+  double result = (k - 1) * log10B + log10f;
+
+  if (BigInt_is_zero_impl(b->internalRepresentation, b->internalSize)) {
+    return 1;
+  }
+
+  return (int) result + 1;
 }
 
 char * BigInt_to_string(BigInt * b) {
