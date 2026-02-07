@@ -34,6 +34,8 @@ int BigInt_cmp(BigInt *, BigInt *);
 int BigInt_cmp_with_sign(BigInt *, BigInt *);
 void BigInt_remove_leading_zeroes(BigInt *);
 void BigInt_add_leading_zero(BigInt *);
+void BigInt_print(BigInt *);
+void BigInt_print_s(BigInt *);
 void BigInt_add_impl(int *, int *, int *, int, int, int);
 void BigInt_add(BigInt *, BigInt *, BigInt *);
 void BigInt_add_small_impl(int *, int, int *, int, int);
@@ -67,6 +69,7 @@ void BigInt_divide_ts(BigInt *, BigInt *, BigInt *);
 
 #ifdef BIGINT_IMPL
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -530,6 +533,18 @@ void BigInt_add_leading_zero(BigInt * b) {
     b->internalSize = bSize + 1;
     b->allocSize = bSize + 1;
   }
+}
+
+void BigInt_print(BigInt * b) {
+  char * s = BigInt_to_string(b);
+  printf("%s", s);
+  free(s);
+}
+
+void BigInt_print_s(BigInt * b) {
+  char * s = BigInt_to_string_with_sign(b);
+  printf("%s", s);
+  free(s);
 }
 
 void BigInt_add_impl(int * addend1, int * addend2, int * sum, int addend1Len, int addend2Len, int sumLen) {
@@ -1114,8 +1129,8 @@ void BigInt_set_from_string_with_small_base_10000(BigInt * b, char * str) {
 
 void BigInt_set_from_string_with_small_base_10000_with_sign(BigInt * b, char * str) {
   BigInt temp;
-  BigInt_init(&temp);
   int is_negative = 0;
+  BigInt_init(&temp);
 
   if (str[0] == '-') {
     str = str + 1;
