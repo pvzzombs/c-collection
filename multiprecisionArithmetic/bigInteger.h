@@ -1,6 +1,11 @@
 #pragma once
 
-struct BigInt_;
+struct BigInt_ {
+  int * internalRepresentation;
+  int internalSize;
+  int allocSize;
+  int sign;
+};
 typedef struct BigInt_ BigInt;
 int BigInt_atoi_impl(char *);
 int BigInt_atoi_impl_with_range(char *, int, int);
@@ -69,13 +74,6 @@ void BigInt_divide_ts(BigInt *, BigInt *, BigInt *);
 
 #define BIGINT_BASE 32768
 #define BIGINT_BASE_STRING "32768"
-
-struct BigInt_ {
-  int * internalRepresentation;
-  int internalSize;
-  int allocSize;
-  int sign;
-};
 
 int BigInt_atoi_impl (char * src) {
   int num = 0;
