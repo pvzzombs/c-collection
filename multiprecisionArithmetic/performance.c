@@ -3,6 +3,7 @@
 #include <time.h>
 
 #define BIGINT_IMPL
+#define BIGINT_USE_64_BIT
 #include "bigInteger.h"
 
 #define ITERATIONS_COUNT 10
@@ -194,7 +195,7 @@ int main() {
   printf("Average: %d per second.\n", totalIteratons / ITERATIONS_COUNT);
 
   totalIteratons = 0;
-  printf("BigInt set_from_string_with_small_base_10000 performance test...\n");
+  printf("BigInt set_from_string_with_small_base performance test...\n");
 
   for (i = 0; i < ITERATIONS_COUNT; i++) {
     iterations = 0;
@@ -203,7 +204,7 @@ int main() {
     startTime = get_time();
     endTime = startTime;
     do {
-      BigInt_set_from_string_with_small_base_10000(&a, bigNum1);
+      BigInt_set_from_string_with_small_base(&a, bigNum1);
       ++iterations;
       endTime = get_time();
     } while(endTime - startTime < 1.0);

@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #define BIGINT_IMPL
+#define BIGINT_USE_64_BIT
 #include "bigInteger.h"
 
 int main() {
@@ -23,6 +24,9 @@ int main() {
     BigInt_copy(&a, &b);
     BigInt_copy(&b, &temp);
     index++;
+    // s = BigInt_to_string(&a);
+    // printf("Index is %d, digits are %s.\n", index, s);
+    // free(s);
   }
   
   s = BigInt_to_string(&a);
