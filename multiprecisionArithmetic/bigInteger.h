@@ -85,6 +85,7 @@ void BigInt_add_ts(BigInt *, BigInt *, BigInt *);
 void BigInt_subtract_ts(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_ts(BigInt *, BigInt *, BigInt *);
 void BigInt_divide_ts(BigInt *, BigInt *, BigInt *);
+char * BigInt_to_string_with_small_base_impl(BigInt *);
 
 #ifdef BIGINT_IMPL
 
@@ -1247,6 +1248,157 @@ void BigInt_divide_ts(BigInt * out, BigInt * a, BigInt * b) {
   
   BigInt_copy(out, &temp);
   BigInt_destroy(&temp);
+}
+
+void BigInt_B10_set_from_limb(BigInt * b, BigInt_limb_t num) {
+  int len = log10(num) + 1;
+  int i = 0;
+  if (num == 0) {
+    b->internalRepresentation[0] = 0;
+    b->internalSize = 1;
+    return;
+  }
+  if (b->allocSize < len) {
+    free(b->internalRepresentation);
+    b->internalRepresentation = malloc(len * sizeof(BigInt_limb_t));
+    b->allocSize = len;
+  }
+  b->internalSize = len;
+  while (num != 0) {
+    b->internalRepresentation[i] = num % 10;
+    num = num / 10;
+    i++;
+  }
+}
+
+void BigInt_B10_add_impl(BigInt_limb_t * addend1, BigInt_limb_t * addend2, BigInt_limb_t * sum, int addend1Len, int addend2Len, int sumLen) {
+  int i;
+  BigInt_limb_t digitSum = 0, carry = 0;
+  for (i = 0; i < addend2Len; i++) {
+    BigInt_limb_t Addend1 = addend1[i];
+    BigInt_limb_t Addend2 = addend2[i];
+    digitSum = (Addend1 + Addend2 + carry) % (BigInt_limb_t)10;
+    carry = (Addend1 + Addend2 + carry) / (BigInt_limb_t)10;
+    sum[i] = digitSum;
+  }
+  for(; i < sumLen; i++) {
+    BigInt_limb_t num = 0;
+    if(i < addend1Len) {
+      num = addend1[i];
+    }
+    digitSum = (num + carry) % (BigInt_limb_t)10;
+    carry = (num + carry) / (BigInt_limb_t)10;
+    sum[i] = digitSum;
+  }
+}
+
+void BigInt_B10_add(BigInt * sum, BigInt * addend1, BigInt * addend2) {
+  if (BigInt_cmp(addend1, addend2) < 0) {
+    BigInt * temp = addend1;
+    addend1 = addend2;
+    addend2 = temp;
+  }
+  if (sum->allocSize > addend1->internalSize) {
+    sum->internalSize = addend1->internalSize + 1;
+  } else {
+    free(sum->internalRepresentation);
+    sum->internalRepresentation = malloc((addend1->internalSize + 1) * sizeof(BigInt_limb_t));
+    sum->internalRepresentation[addend1->internalSize] = 0;
+    sum->internalSize = addend1->internalSize + 1;
+    sum->allocSize = addend1->internalSize + 1;
+  }
+  
+  BigInt_B10_add_impl(addend1->internalRepresentation, addend2->internalRepresentation, sum->internalRepresentation, addend1->internalSize, addend2->internalSize, sum->internalSize);
+  BigInt_remove_leading_zeroes(sum);
+}
+
+void BigInt_B10_multiply_impl(BigInt_limb_t * multiplicand, BigInt_limb_t * multiplier, BigInt_limb_t * product, int multiplicandLen, int multiplierLen, int productLen) {
+  BigInt_limb_t carryM;
+  BigInt_limb_t carryA;
+  BigInt_limb_t productDigit;
+  BigInt_limb_t sumDigit;
+  int pIndex = 0, pIndexTemp;
+  int i, j;
+  for (j = 0; j < multiplierLen; j++) {
+    carryA = 0;
+    carryM = 0;
+    pIndexTemp = pIndex;
+    for (i = 0; i < multiplicandLen; i++) {
+      BigInt_limb_t m = multiplicand[i];
+      BigInt_limb_t n = multiplier[j];
+      BigInt_limb_t p = product[pIndex];
+      productDigit = (m * n + carryM) % 10;
+      carryM = (m * n + carryM) / 10;
+      sumDigit = (productDigit + carryA + p) % 10;
+      carryA = (productDigit + carryA + p) / 10;
+      product[pIndex] = sumDigit;
+      pIndex++;
+    }
+
+    for(; pIndex < productLen; pIndex++) {
+      BigInt_limb_t p = product[pIndex];
+      sumDigit = (carryM + carryA + p) % 10;
+      carryA = (carryM + carryA + p) / 10;
+      product[pIndex] = sumDigit;
+      carryM = 0;
+    }
+    pIndex = pIndexTemp + 1;
+  }
+}
+
+void BigInt_B10_multiply(BigInt * product, BigInt * multiplicand, BigInt * multiplier) {
+  int i;
+  if (BigInt_cmp(multiplicand, multiplier) < 0) {
+    BigInt * temp = multiplicand;
+    multiplicand = multiplier;
+    multiplier = temp;
+  }
+  if (product->allocSize >= multiplicand->internalSize + multiplier->internalSize) {
+    product->internalSize = multiplicand->internalSize + multiplier->internalSize;
+  } else {
+    free(product->internalRepresentation);
+    product->internalRepresentation = malloc((multiplicand->internalSize + multiplier->internalSize) * sizeof(BigInt_limb_t));
+    product->internalSize = multiplicand->internalSize + multiplier->internalSize;
+    product->allocSize = multiplicand->internalSize + multiplier->internalSize;
+  }
+  for (i = 0; i < product->internalSize; i++) {
+    product->internalRepresentation[i] = 0;
+  }
+  BigInt_B10_multiply_impl(multiplicand->internalRepresentation, multiplier->internalRepresentation, product->internalRepresentation, multiplicand->internalSize, multiplier->internalSize, product->internalSize);
+  BigInt_remove_leading_zeroes(product);
+}
+
+char * BigInt_to_string_with_small_base(BigInt * b) {
+  int i;
+  BigInt out1, out2, base, temp;
+  char * str_out;
+  BigInt_init(&out1);
+  BigInt_init(&out2);
+  BigInt_init(&base);
+  BigInt_init(&temp);
+
+  BigInt_B10_set_from_limb(&base, BIGINT_BASE);
+
+  for (i = 0; i < b->internalSize; i++) {
+    BigInt_B10_multiply(&out2, &out1, &base);
+    BigInt_B10_set_from_limb(&temp, b->internalRepresentation[b->internalSize - 1 - i]);
+    BigInt_B10_add(&out1, &out2, &temp);
+  }
+
+  str_out = malloc((out1.internalSize + 1) * sizeof(char));
+
+  for (i = 0; i < out1.internalSize; i++) {
+    str_out[i] = out1.internalRepresentation[out1.internalSize - 1 - i] + '0';
+  }
+
+  str_out[out1.internalSize] = 0;
+
+  BigInt_destroy(&base);
+  BigInt_destroy(&temp);
+  BigInt_destroy(&out2);
+  BigInt_destroy(&out1);
+
+  return str_out;
 }
 
 #endif

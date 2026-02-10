@@ -27,6 +27,10 @@ int main() {
   //printf("Sign is %d\n", num2.sign);
   printf("Num2 is %s\n", s);
   free(s);
+  s = BigInt_to_string_with_small_base(&num2);
+  //printf("Sign is %d\n", num2.sign);
+  printf("Num2 is %s\n", s);
+  free(s);
 
   BigInt_destroy(&num1);
 
