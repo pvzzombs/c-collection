@@ -238,7 +238,7 @@ int main() {
   printf("Average: %d per second.\n", totalIteratons / ITERATIONS_COUNT);
 
   totalIteratons = 0;
-  printf("BigInt_to_string_with_small_base performance test...\n");
+  printf("BigInt_to_string_with_big_base performance test...\n");
 
   for (i = 0; i < ITERATIONS_COUNT; i++) {
     char * str_out = NULL;
@@ -249,7 +249,7 @@ int main() {
     startTime = get_time();
     endTime = startTime;
     do {
-      str_out = BigInt_to_string_with_small_base(&a);
+      str_out = BigInt_to_string_with_big_base(&a);
       free(str_out);
       ++iterations;
       endTime = get_time();
