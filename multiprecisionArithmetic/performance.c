@@ -204,7 +204,7 @@ int main() {
     startTime = get_time();
     endTime = startTime;
     do {
-      BigInt_set_from_string_with_small_base(&a, bigNum1);
+      BigInt_set_from_string_2(&a, bigNum1);
       ++iterations;
       endTime = get_time();
     } while(endTime - startTime < 1.0);
@@ -249,7 +249,7 @@ int main() {
     startTime = get_time();
     endTime = startTime;
     do {
-      str_out = BigInt_to_string_with_big_base(&a);
+      str_out = BigInt_to_string_2(&a);
       free(str_out);
       ++iterations;
       endTime = get_time();

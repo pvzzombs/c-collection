@@ -57,7 +57,7 @@ void BigInt_print(BigInt *);
 void BigInt_print_s(BigInt *);
 void BigInt_add_impl(BigInt_limb_t *, BigInt_limb_t *, BigInt_limb_t *, int, int, int, BigInt_limb_t);
 void BigInt_add(BigInt *, BigInt *, BigInt *);
-void BigInt_add_small_impl(BigInt_limb_t *, BigInt_limb_t, BigInt_limb_t *, int, int);
+void BigInt_add_small_impl(BigInt_limb_t *, BigInt_limb_t, BigInt_limb_t *, int, int, BigInt_limb_t);
 void BigInt_add_small(BigInt *, BigInt *, BigInt_limb_t);
 void BigInt_subtract_impl(BigInt_limb_t *, BigInt_limb_t *, BigInt_limb_t *, int, int, int, BigInt_limb_t);
 void BigInt_subtract(BigInt *, BigInt *, BigInt *);
@@ -65,7 +65,7 @@ void BigInt_add_with_sign(BigInt *, BigInt *, BigInt *);
 void BigInt_subtract_with_sign(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_impl(BigInt_limb_t *, BigInt_limb_t *, BigInt_limb_t *, int, int, int, BigInt_limb_t);
 void BigInt_multiply(BigInt *, BigInt *, BigInt *);
-void BigInt_multiply_small_impl(BigInt_limb_t *, BigInt_limb_t, BigInt_limb_t *, int, int);
+void BigInt_multiply_small_impl(BigInt_limb_t *, BigInt_limb_t, BigInt_limb_t *, int, int, BigInt_limb_t);
 void BigInt_multiply_small(BigInt *, BigInt *, BigInt_limb_t);
 void BigInt_multiply_with_sign(BigInt *, BigInt *, BigInt *);
 void BigInt_divide_impl(BigInt_limb_t *, BigInt_limb_t *, BigInt_limb_t *, int, int, int, BigInt_limb_t);
@@ -74,9 +74,9 @@ void BigInt_divide_no_copy(BigInt *, BigInt *, BigInt *);
 void BigInt_divide_with_sign(BigInt *, BigInt *, BigInt *);
 void BigInt_divide_no_copy_with_sign(BigInt *, BigInt *, BigInt *);
 void BigInt_set_from_string_with_small(BigInt *, char *);
-void BigInt_set_from_string_with_small_base_impl(BigInt *, char *);
-void BigInt_set_from_string_with_small_base(BigInt *, char *);
-void BigInt_set_from_string_with_small_base_with_sign(BigInt *, char *);
+void BigInt_set_from_string_2_impl(BigInt *, char *);
+void BigInt_set_from_string_2(BigInt *, char *);
+void BigInt_set_from_string_2_with_sign(BigInt *, char *);
 void BigInt_add_t(BigInt *, BigInt *, BigInt *);
 void BigInt_subtract_t(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_t(BigInt *, BigInt *, BigInt *);
@@ -85,8 +85,8 @@ void BigInt_add_ts(BigInt *, BigInt *, BigInt *);
 void BigInt_subtract_ts(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_ts(BigInt *, BigInt *, BigInt *);
 void BigInt_divide_ts(BigInt *, BigInt *, BigInt *);
-char * BigInt_to_string_with_small_base_impl(BigInt *);
-char * BigInt_to_string_with_big_base(BigInt *);
+char * BigInt_to_string_with_small_base(BigInt *);
+char * BigInt_to_string_2(BigInt *);
 
 #ifdef BIGINT_IMPL
 
@@ -606,13 +606,13 @@ void BigInt_add(BigInt * sum, BigInt * addend1, BigInt * addend2) {
   BigInt_remove_leading_zeroes(sum);
 }
 
-void BigInt_add_small_impl(BigInt_limb_t * addend1, BigInt_limb_t addend2, BigInt_limb_t * sum, int addend1Len, int sumLen) {
+void BigInt_add_small_impl(BigInt_limb_t * addend1, BigInt_limb_t addend2, BigInt_limb_t * sum, int addend1Len, int sumLen, BigInt_limb_t limb_base) {
   int i = 0;
   BigInt_limb_t digitSum = 0, carry = 0;
   BigInt_limb_t Addend1 = addend1[i];
   BigInt_limb_t Addend2 = addend2;
-  digitSum = (Addend1 + Addend2 + carry) % BIGINT_BASE;
-  carry = (Addend1 + Addend2 + carry) / BIGINT_BASE;
+  digitSum = (Addend1 + Addend2 + carry) % limb_base;
+  carry = (Addend1 + Addend2 + carry) / limb_base;
   sum[i] = digitSum;
   i++;
   for(; i < sumLen; i++) {
@@ -620,8 +620,8 @@ void BigInt_add_small_impl(BigInt_limb_t * addend1, BigInt_limb_t addend2, BigIn
     if(i < addend1Len) {
       num = addend1[i];
     }
-    digitSum = (num + carry) % BIGINT_BASE;
-    carry = (num + carry) / BIGINT_BASE;
+    digitSum = (num + carry) % limb_base;
+    carry = (num + carry) / limb_base;
     sum[i] = digitSum;
   }
 }
@@ -637,7 +637,7 @@ void BigInt_add_small(BigInt * sum, BigInt * addend1, BigInt_limb_t addend2) {
     sum->allocSize = addend1->internalSize + 1;
   }
   
-  BigInt_add_small_impl(addend1->internalRepresentation, addend2, sum->internalRepresentation, addend1->internalSize, sum->internalSize);
+  BigInt_add_small_impl(addend1->internalRepresentation, addend2, sum->internalRepresentation, addend1->internalSize, sum->internalSize, BIGINT_BASE);
   BigInt_remove_leading_zeroes(sum);
 }
 
@@ -810,7 +810,7 @@ void BigInt_multiply(BigInt * product, BigInt * multiplicand, BigInt * multiplie
   BigInt_remove_leading_zeroes(product);
 }
 
-void BigInt_multiply_small_impl(BigInt_limb_t * multiplicand, BigInt_limb_t multiplier, BigInt_limb_t * product, int multiplicandLen, int productLen) {
+void BigInt_multiply_small_impl(BigInt_limb_t * multiplicand, BigInt_limb_t multiplier, BigInt_limb_t * product, int multiplicandLen, int productLen, BigInt_limb_t limb_base) {
   BigInt_limb_t carryM;
   BigInt_limb_t carryA;
   BigInt_limb_t productDigit;
@@ -824,18 +824,18 @@ void BigInt_multiply_small_impl(BigInt_limb_t * multiplicand, BigInt_limb_t mult
     BigInt_limb_t m = multiplicand[i];
     BigInt_limb_t n = multiplier;
     BigInt_limb_t p = product[pIndex];
-    productDigit = (m * n + carryM) % BIGINT_BASE;
-    carryM = (m * n + carryM) / BIGINT_BASE;
-    sumDigit = (productDigit + carryA + p) % BIGINT_BASE;
-    carryA = (productDigit + carryA + p) / BIGINT_BASE;
+    productDigit = (m * n + carryM) % limb_base;
+    carryM = (m * n + carryM) / limb_base;
+    sumDigit = (productDigit + carryA + p) % limb_base;
+    carryA = (productDigit + carryA + p) / limb_base;
     product[pIndex] = sumDigit;
     pIndex++;
   }
 
   for(; pIndex < productLen; pIndex++) {
     BigInt_limb_t p = product[pIndex];
-    sumDigit = (carryM + carryA + p) % BIGINT_BASE;
-    carryA = (carryM + carryA + p) / BIGINT_BASE;
+    sumDigit = (carryM + carryA + p) % limb_base;
+    carryA = (carryM + carryA + p) / limb_base;
     product[pIndex] = sumDigit;
     carryM = 0;
   }
@@ -855,7 +855,7 @@ void BigInt_multiply_small(BigInt * product, BigInt * multiplicand, BigInt_limb_
   for (i = 0; i < product->internalSize; i++) {
     product->internalRepresentation[i] = 0;
   }
-  BigInt_multiply_small_impl(multiplicand->internalRepresentation, multiplier, product->internalRepresentation, multiplicand->internalSize, product->internalSize);
+  BigInt_multiply_small_impl(multiplicand->internalRepresentation, multiplier, product->internalRepresentation, multiplicand->internalSize, product->internalSize, BIGINT_BASE);
   BigInt_remove_leading_zeroes(product);
 }
 
@@ -1118,7 +1118,7 @@ void BigInt_set_from_string_with_small(BigInt * b, char * str) {
   BigInt_destroy(&temp);
 }
 
-void BigInt_set_from_string_with_small_base_impl(BigInt * b, char * str) {
+void BigInt_set_from_string_2_impl(BigInt * b, char * str) {
   int len = strlen(str);
   int i;
   int firstLen = len % BIGINT_BASE_DIGITS;
@@ -1135,17 +1135,17 @@ void BigInt_set_from_string_with_small_base_impl(BigInt * b, char * str) {
   BigInt_destroy(&out);
 }
 
-void BigInt_set_from_string_with_small_base(BigInt * b, char * str) {
+void BigInt_set_from_string_2(BigInt * b, char * str) {
   BigInt temp;
   BigInt_init(&temp);
 
-  BigInt_set_from_string_with_small_base_impl(&temp, str);
+  BigInt_set_from_string_2_impl(&temp, str);
 
   BigInt_copy(b, &temp);
   BigInt_destroy(&temp);
 }
 
-void BigInt_set_from_string_with_small_base_with_sign(BigInt * b, char * str) {
+void BigInt_set_from_string_2_with_sign(BigInt * b, char * str) {
   BigInt temp;
   int is_negative = 0;
   BigInt_init(&temp);
@@ -1155,7 +1155,7 @@ void BigInt_set_from_string_with_small_base_with_sign(BigInt * b, char * str) {
     is_negative = 1;
   }
 
-  BigInt_set_from_string_with_small_base_impl(&temp, str);
+  BigInt_set_from_string_2_impl(&temp, str);
 
   if (is_negative) {
     temp.sign = -1;
@@ -1395,7 +1395,7 @@ char * BigInt_to_string_with_small_base(BigInt * b) {
   return str_out;
 }
 
-char * BigInt_to_string_with_big_base(BigInt * b) {
+char * BigInt_to_string_2(BigInt * b) {
   int i, j, msl_count, n, count_digits, offset;
   BigInt out1, out2, base, temp;
   char * str_out;
@@ -1439,7 +1439,7 @@ char * BigInt_to_string_with_big_base(BigInt * b) {
         offset++;
       }
     } else {
-      j = 8;
+      j = BIGINT_BASE_DIGITS - 1;
       while(n != 0) {
         str_out[offset + j] = (n % 10) + '0';
         n = n / 10;

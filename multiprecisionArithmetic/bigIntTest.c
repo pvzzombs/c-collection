@@ -395,15 +395,35 @@ void randomizedDivide() {
   BigInt_destroy(&c);
 }
 
+void inputAndOutputTest2() {
+  char buf[1024];
+  char * s;
+  int i;
+  BigInt a;
+  srand(time(NULL));
+  BigInt_init(&a);
+  for (i = 0; i < 100; i++) {
+    generateBigInteger(buf);
+    mpa_removeLeadingZeroes(buf);
+    BigInt_set_from_string_2(&a, buf);
+    s = BigInt_to_string_2(&a);
+    TEST_CHECK(strcmp(buf, s) == 0);
+    TEST_MSG("Expected: %s, Output: %s", buf, s);
+    free(s);
+  }
+  BigInt_destroy(&a);
+}
+
 TEST_LIST = {
   {"addition", additionTest},
   {"subtraction", subtractionTest},
   {"multiplication", multiplicationTest},
   {"division", divisionTest},
-  {"randomized input and outputTest", inputAndOutputTest},
+  {"randomized input and output test", inputAndOutputTest},
   {"randomized positive addition test", randomizedAdd},
   {"randomized positive subtraction test", randomizedSubtract},
   {"randomized positive multiplication test", randomizedMultiply},
   {"randomized positive division test", randomizedDivide},
+  {"randomized fast input and output test", inputAndOutputTest2},
   {NULL, NULL}
 };
