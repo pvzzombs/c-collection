@@ -86,6 +86,7 @@ void BigInt_subtract_ts(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_ts(BigInt *, BigInt *, BigInt *);
 void BigInt_divide_ts(BigInt *, BigInt *, BigInt *);
 char * BigInt_to_string_with_small_base_impl(BigInt *);
+char * BigInt_to_string_with_big_base(BigInt *);
 
 #ifdef BIGINT_IMPL
 

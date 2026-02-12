@@ -1,7 +1,21 @@
+#include "multiprecisionArithmetic.h"
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 #define BIGINT_IMPL
 #define BIGINT_USE_64_BIT
 #include "bigInteger.h"
 #include "../others/acutest.h"
+
+#define DIGIT_COUNT 100
+
+void generateBigInteger(char * dest) {
+  int i;
+  for(i = 0; i < DIGIT_COUNT; i++) {
+    dest[i] = (rand() % 10) + '0';
+  }
+  dest[i] = 0;
+}
 
 void additionTest() {
   char * addends1[] = {
@@ -227,10 +241,169 @@ void divisionTest() {
   BigInt_destroy(&c);
 }
 
+void inputAndOutputTest() {
+  char buf[1024];
+  char * s;
+  int i;
+  BigInt a;
+  srand(time(NULL));
+  BigInt_init(&a);
+  for (i = 0; i < 100; i++) {
+    generateBigInteger(buf);
+    mpa_removeLeadingZeroes(buf);
+    BigInt_set_from_string(&a, buf);
+    s = BigInt_to_string(&a);
+    TEST_CHECK(strcmp(buf, s) == 0);
+    TEST_MSG("Expected: %s, Output: %s", buf, s);
+    free(s);
+  }
+  BigInt_destroy(&a);
+}
+
+void randomizedAdd() {
+  char num1[1024];
+  char num2[1024];
+  char num3[1024];
+  char * s;
+  char * target;
+  int i;
+  BigInt a,b,c;
+  srand(time(NULL));
+  BigInt_init(&a);
+  BigInt_init(&b);
+  BigInt_init(&c);
+  for (i = 0; i < 100; i++) {
+    generateBigInteger(num1);
+    generateBigInteger(num2);
+    mpa_removeLeadingZeroes(num1);
+    mpa_removeLeadingZeroes(num2);
+    target = mpa_add(num1, num2);
+    BigInt_set_from_string(&a, num1);
+    BigInt_set_from_string(&b, num2);
+    BigInt_add(&c, &a, &b);
+    s = BigInt_to_string(&c);
+    TEST_CHECK(strcmp(target, s) == 0);
+    TEST_MSG("Expected: %s, Output: %s, Numbers: %s + %s", target, s, num1, num2);
+    free(target);
+    free(s);
+  }
+  BigInt_destroy(&a);
+  BigInt_destroy(&b);
+  BigInt_destroy(&c);
+}
+
+void randomizedSubtract() {
+  char num1[1024];
+  char num2[1024];
+  char num3[1024];
+  char * s;
+  char * target;
+  int i;
+  BigInt a,b,c;
+  srand(time(NULL));
+  BigInt_init(&a);
+  BigInt_init(&b);
+  BigInt_init(&c);
+  for (i = 0; i < 100; i++) {
+    generateBigInteger(num1);
+    generateBigInteger(num2);
+    mpa_removeLeadingZeroes(num1);
+    mpa_removeLeadingZeroes(num2);
+    if (mpa_bigIntCmp(num1, num2) < 0) {
+      continue;
+    }
+    target = mpa_subtract(num1, num2);
+    BigInt_set_from_string(&a, num1);
+    BigInt_set_from_string(&b, num2);
+    BigInt_subtract(&c, &a, &b);
+    s = BigInt_to_string(&c);
+    TEST_CHECK(strcmp(target, s) == 0);
+    TEST_MSG("Expected: %s, Output: %s, Numbers: %s - %s", target, s, num1, num2);
+    free(target);
+    free(s);
+  }
+  BigInt_destroy(&a);
+  BigInt_destroy(&b);
+  BigInt_destroy(&c);
+}
+
+void randomizedMultiply() {
+  char num1[1024];
+  char num2[1024];
+  char num3[1024];
+  char * s;
+  char * target;
+  int i;
+  BigInt a,b,c;
+  srand(time(NULL));
+  BigInt_init(&a);
+  BigInt_init(&b);
+  BigInt_init(&c);
+  for (i = 0; i < 100; i++) {
+    generateBigInteger(num1);
+    generateBigInteger(num2);
+    mpa_removeLeadingZeroes(num1);
+    mpa_removeLeadingZeroes(num2);
+    target = mpa_multiply(num1, num2);
+    BigInt_set_from_string(&a, num1);
+    BigInt_set_from_string(&b, num2);
+    BigInt_multiply(&c, &a, &b);
+    s = BigInt_to_string(&c);
+    TEST_CHECK(strcmp(target, s) == 0);
+    TEST_MSG("Expected: %s, Output: %s, Numbers: %s * %s", target, s, num1, num2);
+    free(target);
+    free(s);
+  }
+  BigInt_destroy(&a);
+  BigInt_destroy(&b);
+  BigInt_destroy(&c);
+}
+
+void randomizedDivide() {
+  char num1[1024];
+  char num2[1024];
+  char num3[1024];
+  char * s;
+  char * target;
+  int i;
+  BigInt a,b,c;
+  srand(time(NULL));
+  BigInt_init(&a);
+  BigInt_init(&b);
+  BigInt_init(&c);
+  for (i = 0; i < 100; i++) {
+    generateBigInteger(num1);
+    generateBigInteger(num2);
+    mpa_removeLeadingZeroes(num1);
+    mpa_removeLeadingZeroes(num2);
+    if (mpa_bigIntCmp(num1, num2) < 0) {
+      continue;
+    }
+    target = mpa_divide(num1, num2);
+    BigInt_set_from_string(&a, num1);
+    BigInt_set_from_string(&b, num2);
+    BigInt_divide(&c, &a, &b);
+    s = BigInt_to_string(&c);
+    TEST_CHECK(strcmp(target, s) == 0);
+    TEST_MSG("Len is %d %d", strlen(target), strlen(s));
+    TEST_MSG("Expected: %s, Output: %s, Numbers: %s / %s", target, s, num1, num2);
+    free(target);
+    free(s);
+  }
+  BigInt_destroy(&a);
+  BigInt_destroy(&b);
+  BigInt_destroy(&c);
+}
+
 TEST_LIST = {
   {"addition", additionTest},
   {"subtraction", subtractionTest},
   {"multiplication", multiplicationTest},
   {"division", divisionTest},
+  {"randomized input and outputTest", inputAndOutputTest},
+  {"randomized positive addition test", randomizedAdd},
+  {"randomized positive subtraction test", randomizedSubtract},
+  {"randomized positive multiplication test", randomizedMultiply},
+  {"randomized positive division test", randomizedDivide},
   {NULL, NULL}
 };
