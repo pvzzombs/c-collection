@@ -87,6 +87,10 @@ void BigInt_multiply_ts(BigInt *, BigInt *, BigInt *);
 void BigInt_divide_ts(BigInt *, BigInt *, BigInt *);
 char * BigInt_to_string_with_small_base(BigInt *);
 char * BigInt_to_string_2(BigInt *);
+char * BigInt_to_string_2_with_sign(BigInt *);
+void BigInt_print_internal(BigInt *);
+void BigInt_shift_left(BigInt *, int);
+void BigInt_shift_right(BigInt *, int);
 
 #ifdef BIGINT_IMPL
 
@@ -1459,5 +1463,138 @@ char * BigInt_to_string_2(BigInt * b) {
   return str_out;
 }
 
+char * BigInt_to_string_2_with_sign(BigInt * b) {
+  int i, j, msl_count, n, count_digits, offset, hasSign = 0;
+  BigInt out1, out2, base, temp;
+  char * str_out;
+  BigInt_init(&out1);
+  BigInt_init(&out2);
+  BigInt_init(&base);
+  BigInt_init(&temp);
+
+  if (b->sign == -1) {
+    hasSign = 1;
+  }
+
+  BigInt_set_from_limb(&base, BIGINT_BASE, BIGINT_BASE_10);
+
+  for (i = 0; i < b->internalSize; i++) {
+    BigInt_big_multiply(&out2, &out1, &base);
+    BigInt_set_from_limb(&temp, b->internalRepresentation[b->internalSize - 1 - i], BIGINT_BASE_10);
+    BigInt_big_add(&out1, &out2, &temp);
+  }
+
+  n = out1.internalRepresentation[out1.internalSize - 1];
+
+  msl_count = 1;
+  while (n >= 10) {
+    n = n / 10;
+    msl_count++;
+  }
+
+  count_digits = msl_count + ((out1.internalSize - 1) * BIGINT_BASE_DIGITS) + hasSign;
+
+  str_out = malloc((count_digits + 1 + hasSign)* sizeof(char));
+
+  for (i = 0; i < count_digits; i++) {
+    str_out[i] = '0';
+  }
+
+  offset = 0;
+  if (hasSign) {
+    str_out[offset] = '-';
+    offset++;
+  }
+
+  for (i = out1.internalSize - 1; i >= 0; i--) {
+    n = out1.internalRepresentation[i];
+    if (i == out1.internalSize - 1) {
+      j = 0;
+      while (n != 0) {
+        str_out[msl_count - 1 - j + offset] = (n % 10) + '0';
+        n = n / 10;
+        j++;
+      }
+      offset = offset + j;
+    } else {
+      j = BIGINT_BASE_DIGITS - 1;
+      while(n != 0) {
+        str_out[offset + j] = (n % 10) + '0';
+        n = n / 10;
+        j--;
+      }
+      offset = offset + BIGINT_BASE_DIGITS;
+    }
+  }
+
+  str_out[count_digits] = 0;
+
+  BigInt_destroy(&base);
+  BigInt_destroy(&temp);
+  BigInt_destroy(&out2);
+  BigInt_destroy(&out1);
+
+  return str_out;
+}
+
+void BigInt_print_internal(BigInt * b) {
+  int i;
+  printf("[");
+  for (i = 0; i < b->internalSize; i++) {
+    printf("%d", b->internalRepresentation[i]);
+    if (i < b->internalSize - 1) {
+      printf(", ");
+    }
+  }
+  printf("]\n");
+}
+
+void BigInt_shift_left(BigInt * b, int n) {
+  int i, j;
+  BigInt_limb_t * temp = NULL;
+  if (BigInt_is_zero_impl(b->internalRepresentation, b->internalSize) || n == 0) {
+    return;
+  }
+  if (b->allocSize < b->internalSize + n) {
+    temp = malloc(sizeof(BigInt_limb_t) * (b->internalSize + n));
+    for (i = 0; i < b->internalSize; i++) {
+      temp[i] = b->internalRepresentation[i];
+    }
+    free(b->internalRepresentation);
+    b->internalRepresentation = temp;
+    b->allocSize = b->internalSize + n;
+  }
+  b->internalSize = b->internalSize + n;
+  j = b->internalSize - n - 1;
+  i = b->internalSize - 1;
+  for (; j >= 0; j--) {
+    b->internalRepresentation[i] = b->internalRepresentation[j];
+    i--;
+  }
+  for (; i >= 0; i--) {
+    b->internalRepresentation[i] = 0;
+  }
+}
+
+void BigInt_shift_right(BigInt * b, int n) {
+  int i, j;
+  if (n >= b->internalSize) {
+    b->internalRepresentation[0] = 0;
+    b->internalSize = 1;
+    return;
+  }
+  if (BigInt_is_zero_impl(b->internalRepresentation, b->internalSize) || n == 0) {
+    return;
+  }
+  i = 0;
+  for (j = n; j < b->internalSize; j++) {
+    b->internalRepresentation[i] = b->internalRepresentation[j];
+    i++;
+  }
+  for (; i < b->internalSize; i++) {
+    b->internalRepresentation[i] = 0;
+  }
+  BigInt_remove_leading_zeroes(b);
+}
 
 #endif

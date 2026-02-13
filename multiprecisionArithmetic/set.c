@@ -16,7 +16,7 @@ int main() {
 
   //BigInt_copy(&num2, &num1);
   BigInt_set_from_string_2_with_sign(&num2, "-123456789801234567890");
-  s = BigInt_to_string_with_sign(&num2);
+  s = BigInt_to_string_2_with_sign(&num2);
   //printf("Sign is %d\n", num2.sign);
   printf("Num2 is %s\n", s);
   free(s);
