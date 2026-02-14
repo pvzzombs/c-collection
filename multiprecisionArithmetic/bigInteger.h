@@ -1494,7 +1494,7 @@ char * BigInt_to_string_2_with_sign(BigInt * b) {
 
   count_digits = msl_count + ((out1.internalSize - 1) * BIGINT_BASE_DIGITS) + hasSign;
 
-  str_out = malloc((count_digits + 1 + hasSign)* sizeof(char));
+  str_out = malloc((count_digits + 1) * sizeof(char));
 
   for (i = 0; i < count_digits; i++) {
     str_out[i] = '0';
