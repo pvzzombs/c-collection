@@ -359,6 +359,38 @@ void randomizedMultiply() {
   BigInt_destroy(&c);
 }
 
+void randomizedMultiplyKaratsuba() {
+  char num1[1024];
+  char num2[1024];
+  char num3[1024];
+  char * s;
+  char * target;
+  int i;
+  BigInt a,b,c;
+  srand(time(NULL));
+  BigInt_init(&a);
+  BigInt_init(&b);
+  BigInt_init(&c);
+  for (i = 0; i < 100; i++) {
+    generateBigInteger(num1);
+    generateBigInteger(num2);
+    mpa_removeLeadingZeroes(num1);
+    mpa_removeLeadingZeroes(num2);
+    target = mpa_multiply(num1, num2);
+    BigInt_set_from_string(&a, num1);
+    BigInt_set_from_string(&b, num2);
+    BigInt_multiply_karatsuba(&c, &a, &b);
+    s = BigInt_to_string(&c);
+    TEST_CHECK(strcmp(target, s) == 0);
+    TEST_MSG("Expected: %s, Output: %s, Numbers: %s * %s", target, s, num1, num2);
+    free(target);
+    free(s);
+  }
+  BigInt_destroy(&a);
+  BigInt_destroy(&b);
+  BigInt_destroy(&c);
+}
+
 void randomizedDivide() {
   char num1[1024];
   char num2[1024];
@@ -423,6 +455,7 @@ TEST_LIST = {
   {"randomized positive addition test", randomizedAdd},
   {"randomized positive subtraction test", randomizedSubtract},
   {"randomized positive multiplication test", randomizedMultiply},
+  {"randomized positive multiplication karatsuba test", randomizedMultiplyKaratsuba},
   {"randomized positive division test", randomizedDivide},
   {"randomized fast input and output test", inputAndOutputTest2},
   {NULL, NULL}

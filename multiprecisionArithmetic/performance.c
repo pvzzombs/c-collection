@@ -117,6 +117,32 @@ int main() {
   printf("Average: %d per second.\n", totalIteratons / ITERATIONS_COUNT);
 
   totalIteratons = 0;
+  printf("Multiplication karatsuba performance test...\n");
+
+  for (i = 0; i < ITERATIONS_COUNT; i++) {
+    iterations = 0;
+    generateBigInteger(bigNum1);
+    generateBigInteger(bigNum2);
+    mpa_removeLeadingZeroes(bigNum1);
+    mpa_removeLeadingZeroes(bigNum2);
+    BigInt_set_from_string(&a, bigNum1);
+    BigInt_set_from_string(&b, bigNum2);
+    BigInt_set_from_string(&c, "0");
+    printf("Processing number/s done...\n");
+    startTime = get_time();
+    endTime = startTime;
+    do {
+      BigInt_multiply_karatsuba(&c, &a, &b);
+      ++iterations;
+      endTime = get_time();
+    } while(endTime - startTime < 1.0);
+    totalIteratons += iterations;
+    printf("Iterations executed: %d\n", iterations);
+  }
+
+  printf("Average: %d per second.\n", totalIteratons / ITERATIONS_COUNT);
+
+  totalIteratons = 0;
   printf("Subtraction performance test...\n");
 
   for (i = 0; i < ITERATIONS_COUNT; i++) {
@@ -195,7 +221,7 @@ int main() {
   printf("Average: %d per second.\n", totalIteratons / ITERATIONS_COUNT);
 
   totalIteratons = 0;
-  printf("BigInt set_from_string_with_small_base performance test...\n");
+  printf("BigInt set_from_string_2 performance test...\n");
 
   for (i = 0; i < ITERATIONS_COUNT; i++) {
     iterations = 0;
@@ -238,7 +264,7 @@ int main() {
   printf("Average: %d per second.\n", totalIteratons / ITERATIONS_COUNT);
 
   totalIteratons = 0;
-  printf("BigInt_to_string_with_big_base performance test...\n");
+  printf("BigInt_to_string_2 performance test...\n");
 
   for (i = 0; i < ITERATIONS_COUNT; i++) {
     char * str_out = NULL;

@@ -18,6 +18,7 @@ int main() {
   s = BigInt_to_string_2(&fact);
   printf("Factorial is %s.\n", s);
   free(s);
+  /* BigInt_print_internal(&fact); */
 
   BigInt_destroy(&fact);
   BigInt_destroy(&i);

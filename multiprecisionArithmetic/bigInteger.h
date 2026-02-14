@@ -93,6 +93,10 @@ char * BigInt_to_string_2_with_sign(BigInt *);
 void BigInt_print_internal(BigInt *);
 void BigInt_shift_left(BigInt *, int);
 void BigInt_shift_right(BigInt *, int);
+void BigInt_add_leading_zeroes(BigInt *, int);
+void BigInt_multiply_karatsuba_impl(BigInt *, BigInt *, BigInt *);
+void BigInt_multiply_karatsuba(BigInt *, BigInt *, BigInt *);
+void BigInt_multiply_karatsuba_t(BigInt *, BigInt *, BigInt *);
 
 #ifdef BIGINT_IMPL
 
@@ -1590,7 +1594,7 @@ void BigInt_print_internal(BigInt * b) {
 void BigInt_shift_left(BigInt * b, int n) {
   int i, j;
   BigInt_limb_t * temp = NULL;
-  if (BigInt_is_zero_impl(b->internalRepresentation, b->internalSize) || n == 0) {
+  if (BigInt_is_zero_impl(b->internalRepresentation, b->internalSize) || n <= 0) {
     return;
   }
   if (b->allocSize < b->internalSize + n) {
@@ -1621,7 +1625,7 @@ void BigInt_shift_right(BigInt * b, int n) {
     b->internalSize = 1;
     return;
   }
-  if (BigInt_is_zero_impl(b->internalRepresentation, b->internalSize) || n == 0) {
+  if (BigInt_is_zero_impl(b->internalRepresentation, b->internalSize) || n <= 0) {
     return;
   }
   i = 0;
@@ -1633,6 +1637,143 @@ void BigInt_shift_right(BigInt * b, int n) {
     b->internalRepresentation[i] = 0;
   }
   BigInt_remove_leading_zeroes(b);
+}
+
+void BigInt_add_leading_zeroes(BigInt * b, int n) {
+  int i;
+  BigInt_limb_t * newInts = NULL;
+
+  if (n <= 0) {
+    return;
+  }
+
+  if (b->allocSize < b->internalSize + n) {
+    newInts = malloc(sizeof(BigInt_limb_t) * (b->internalSize + n));
+    for (i = 0; i < b->internalSize; i++) {
+      newInts[i] = b->internalRepresentation[i];
+    }
+    free(b->internalRepresentation);
+    b->internalRepresentation = newInts;
+    b->allocSize = b->internalSize + n;
+  }
+  b->internalSize = b->internalSize + n;
+  for (i = 0; i < n; i++) {
+    b->internalRepresentation[b->internalSize - 1 - i] = 0;
+  }
+}
+
+void BigInt_set_from_view(BigInt * dest, BigInt * source, int start, int end) {
+  int i, j;
+  BigInt_limb_t * limbs = NULL;
+  if (dest->allocSize < (end - start + 1)) {
+    limbs = malloc(sizeof(BigInt_limb_t) * (end - start + 1));
+    free(dest->internalRepresentation);
+    dest->internalRepresentation = limbs;
+    dest->allocSize = (end - start + 1);
+  }
+  dest->internalSize = end - start + 1;
+  j = 0;
+  for (i = start; i <= end; i++) {
+    dest->internalRepresentation[j] = source->internalRepresentation[i];
+    j++;
+  }
+}
+
+void BigInt_multiply_karatsuba_impl(BigInt * multiplicand, BigInt * multiplier, BigInt * product) {
+  if (multiplicand->internalSize < 2 || multiplier->internalSize < 2) {
+    BigInt_multiply(product, multiplicand, multiplier);
+  } else {
+    BigInt low1, low2, high1, high2;
+    BigInt z0, z1, z2;
+    BigInt sum1, sum2;
+    int l = multiplicand->internalSize;
+    int m = l / 2;
+    int len1, len2, lenMax;
+    BigInt_init(&low1);
+    BigInt_init(&low2);
+    BigInt_init(&high1);
+    BigInt_init(&high2);
+
+    BigInt_init(&z0);
+    BigInt_init(&z1);
+    BigInt_init(&z2);
+
+
+    BigInt_init(&sum1);
+    BigInt_init(&sum2);
+
+    BigInt_set_from_view(&low1, multiplicand, 0, m - 1);
+    BigInt_set_from_view(&low2, multiplier, 0, m - 1);
+    BigInt_set_from_view(&high1, multiplicand, m, l - 1);
+    BigInt_set_from_view(&high2, multiplier, m, l - 1);
+
+    BigInt_multiply_karatsuba_impl(&low1, &low2, &z0);
+    BigInt_multiply_karatsuba_impl(&high1, &high2, &z2);
+
+    BigInt_add(&sum1, &low1, &high1);
+    BigInt_add(&sum2, &low2, &high2);
+
+    len1 = sum1.internalSize;
+    len2 = sum2.internalSize;
+    lenMax = len1;
+
+    if (len2 > len1) {
+      lenMax = len2;
+    }
+
+    BigInt_add_leading_zeroes(&sum1, lenMax - len1);
+    BigInt_add_leading_zeroes(&sum2, lenMax - len2);
+    
+    BigInt_multiply_karatsuba_impl(&sum1, &sum2, &z1);
+    BigInt_subtract_t(&z1, &z1, &z0);
+    BigInt_subtract_t(&z1, &z1, &z2);
+
+    BigInt_shift_left(&z2, 2 * m);
+    BigInt_shift_left(&z1, m);
+    BigInt_add(&sum1, &z2, &z1);
+    BigInt_add(product, &sum1, &z0);
+
+    BigInt_destroy(&sum1);
+    BigInt_destroy(&sum2);
+
+    BigInt_destroy(&z0);
+    BigInt_destroy(&z1);
+    BigInt_destroy(&z2);
+
+    BigInt_destroy(&low1);
+    BigInt_destroy(&low2);
+    BigInt_destroy(&high1);
+    BigInt_destroy(&high2);
+  }
+}
+
+void BigInt_multiply_karatsuba(BigInt * product, BigInt * multiplicand, BigInt * multiplier) {
+  int i, m1_len, m2_len, mlen_max;
+  BigInt m1, m2;
+  BigInt_copy_to_no_init(&m1, multiplicand, 0, 0);
+  BigInt_copy_to_no_init(&m2, multiplier, 0, 0);
+  m1_len = m1.internalSize;
+  m2_len = m2.internalSize;
+  mlen_max = m1_len;
+  if (m2_len > m1_len) {
+    mlen_max = m2_len;
+  }
+  BigInt_add_leading_zeroes(&m1, mlen_max - m1_len);
+  BigInt_add_leading_zeroes(&m2, mlen_max - m2_len);
+  BigInt_multiply_karatsuba_impl(&m1, &m2, product);
+  BigInt_destroy(&m1);
+  BigInt_destroy(&m2);
+  BigInt_remove_leading_zeroes(product);
+}
+
+void BigInt_multiply_karatsuba_t(BigInt * out, BigInt * a, BigInt * b) {
+  BigInt temp;
+  BigInt_init(&temp);
+
+  BigInt_multiply_karatsuba(&temp, a, b);
+  
+  BigInt_copy(out, &temp);
+  BigInt_destroy(&temp);
 }
 
 #endif
