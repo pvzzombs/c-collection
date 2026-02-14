@@ -77,6 +77,8 @@ void BigInt_set_from_string_with_small(BigInt *, char *);
 void BigInt_set_from_string_2_impl(BigInt *, char *);
 void BigInt_set_from_string_2(BigInt *, char *);
 void BigInt_set_from_string_2_with_sign(BigInt *, char *);
+void BigInt_init_from_string_2(BigInt *, char *);
+void BigInt_init_from_string_2_with_sign(BigInt *, char *);
 void BigInt_add_t(BigInt *, BigInt *, BigInt *);
 void BigInt_subtract_t(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_t(BigInt *, BigInt *, BigInt *);
@@ -1172,6 +1174,42 @@ void BigInt_set_from_string_2_with_sign(BigInt * b, char * str) {
   }
 
   BigInt_copy(b, &temp);
+  BigInt_destroy(&temp);
+}
+
+void BigInt_init_from_string_2(BigInt * b, char * str) {
+  BigInt temp;
+  BigInt_init(&temp);
+
+  BigInt_set_from_string_2_impl(&temp, str);
+
+  BigInt_copy_to_no_init(b, &temp, 0, 0);
+  BigInt_destroy(&temp);
+}
+
+void BigInt_init_from_string_2_with_sign(BigInt * b, char * str) {
+  BigInt temp;
+  int is_negative = 0;
+  BigInt_init(&temp);
+
+  if (str[0] == '-') {
+    str = str + 1;
+    is_negative = 1;
+  }
+
+  BigInt_set_from_string_2_impl(&temp, str);
+
+  if (is_negative) {
+    temp.sign = -1;
+  } else {
+    temp.sign = 1;
+  }
+
+  if (BigInt_is_zero_impl(temp.internalRepresentation, temp.internalSize)) {
+    temp.sign = 0;
+  }
+
+  BigInt_copy_to_no_init(b, &temp, 0, 0);
   BigInt_destroy(&temp);
 }
 

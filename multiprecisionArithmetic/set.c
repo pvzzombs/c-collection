@@ -37,8 +37,8 @@ int main() {
 
   BigInt_destroy(&num1);
 
-  BigInt_init_from_string_with_sign(&num1, "-123");
-  s = BigInt_to_string_with_sign(&num1);
+  BigInt_init_from_string_2_with_sign(&num1, "-123");
+  s = BigInt_to_string_2_with_sign(&num1);
   printf("Number init is %s\n", s);
   free(s);
   
