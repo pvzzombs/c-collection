@@ -29,7 +29,7 @@ int main() {
       BigInt_copy(&a, &b);
       BigInt_copy(&b, &temp);
       index++;
-      s = BigInt_to_string(&a);
+      s = BigInt_to_string_2(&a);
       fprintf(file, s);
       fprintf(file, "\n");
       free(s);

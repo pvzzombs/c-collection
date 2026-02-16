@@ -3,8 +3,8 @@
 #ifdef BIGINT_USE_64_BIT
 
 #include <stdint.h>
-#define BIGINT_BASE 1073741824LL
-#define BIGINT_BASE_STRING "1073741824"
+#define BIGINT_BASE 2147483648LL
+#define BIGINT_BASE_STRING "2147483648"
 #define BIGINT_BASE_DIGITS 9
 #define BIGINT_BASE_10 1000000000LL
 typedef int64_t BigInt_limb_t;
@@ -88,6 +88,7 @@ void BigInt_subtract_ts(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_ts(BigInt *, BigInt *, BigInt *);
 void BigInt_divide_ts(BigInt *, BigInt *, BigInt *);
 char * BigInt_to_string_with_small_base(BigInt *);
+int BigInt_count_digits_base_10_2(BigInt *);
 char * BigInt_to_string_2(BigInt *);
 char * BigInt_to_string_2_with_sign(BigInt *);
 void BigInt_print_internal(BigInt *);
@@ -604,6 +605,7 @@ void BigInt_add(BigInt * sum, BigInt * addend1, BigInt * addend2) {
   }
   if (sum->allocSize > addend1->internalSize) {
     sum->internalSize = addend1->internalSize + 1;
+    sum->internalRepresentation[addend1->internalSize] = 0;
   } else {
     free(sum->internalRepresentation);
     sum->internalRepresentation = malloc((addend1->internalSize + 1) * sizeof(BigInt_limb_t));
@@ -898,7 +900,7 @@ void BigInt_divide_impl(BigInt_limb_t * dividend, BigInt_limb_t * divisor, BigIn
   BigInt_limb_t * tempHolder = malloc((remainderLen) * sizeof(BigInt_limb_t));
   int i, j;
   BigInt_limb_t qDigit1, qDigit2, dvsrDigit, qhat;
-  BigInt_limb_t * qDigit = malloc(1 * sizeof(int));
+  BigInt_limb_t * qDigit = malloc(1 * sizeof(BigInt_limb_t));
 
   for (i = 0; i < remainderLen; i++) {
     remainder[remainderLen - i - 1] = dividend[dividendLen - i - 1];
@@ -1300,7 +1302,7 @@ void BigInt_divide_ts(BigInt * out, BigInt * a, BigInt * b) {
 void BigInt_set_from_limb(BigInt * b, BigInt_limb_t num, BigInt_limb_t limb_base) {
   int len = 1;
   int i = 0;
-  int n = num;
+  BigInt_limb_t n = num;
   if (num == 0) {
     b->internalRepresentation[0] = 0;
     b->internalSize = 1;
@@ -1331,6 +1333,7 @@ void BigInt_big_add(BigInt * sum, BigInt * addend1, BigInt * addend2) {
   }
   if (sum->allocSize > addend1->internalSize) {
     sum->internalSize = addend1->internalSize + 1;
+    sum->internalRepresentation[addend1->internalSize] = 0;
   } else {
     free(sum->internalRepresentation);
     sum->internalRepresentation = malloc((addend1->internalSize + 1) * sizeof(BigInt_limb_t));
@@ -1374,6 +1377,7 @@ void BigInt_B10_add(BigInt * sum, BigInt * addend1, BigInt * addend2) {
   }
   if (sum->allocSize > addend1->internalSize) {
     sum->internalSize = addend1->internalSize + 1;
+    sum->internalRepresentation[addend1->internalSize] = 0;
   } else {
     free(sum->internalRepresentation);
     sum->internalRepresentation = malloc((addend1->internalSize + 1) * sizeof(BigInt_limb_t));
@@ -1440,6 +1444,44 @@ char * BigInt_to_string_with_small_base(BigInt * b) {
 
   return str_out;
 }
+
+int BigInt_count_digits_base_10_2(BigInt * b) {
+  int i, msl_count, n, count_digits;
+  BigInt out1, out2, base, temp;
+  char * str_out;
+  BigInt_init(&out1);
+  BigInt_init(&out2);
+  BigInt_init(&base);
+  BigInt_init(&temp);
+
+  BigInt_set_from_limb(&base, BIGINT_BASE, BIGINT_BASE_10);
+
+  for (i = 0; i < b->internalSize; i++) {
+    BigInt_big_multiply(&out2, &out1, &base);
+    BigInt_set_from_limb(&temp, b->internalRepresentation[b->internalSize - 1 - i], BIGINT_BASE_10);
+    BigInt_big_add(&out1, &out2, &temp);
+  }
+
+  n = out1.internalRepresentation[out1.internalSize - 1];
+
+  msl_count = 1;
+  while (n >= 10) {
+    n = n / 10;
+    msl_count++;
+  }
+
+  count_digits = msl_count + ((out1.internalSize - 1) * BIGINT_BASE_DIGITS);
+
+  
+
+  BigInt_destroy(&base);
+  BigInt_destroy(&temp);
+  BigInt_destroy(&out2);
+  BigInt_destroy(&out1);
+
+  return count_digits;
+}
+
 
 char * BigInt_to_string_2(BigInt * b) {
   int i, j, msl_count, n, count_digits, offset;

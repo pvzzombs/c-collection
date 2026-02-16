@@ -286,6 +286,50 @@ int main() {
 
   printf("Average: %d per second.\n", totalIteratons / ITERATIONS_COUNT);
 
+  totalIteratons = 0;
+  printf("BigInt_count_digits_base_10 performance test...\n");
+
+  for (i = 0; i < ITERATIONS_COUNT; i++) {
+    char * str_out = NULL;
+    iterations = 0;
+    generateBigInteger(bigNum1);
+    mpa_removeLeadingZeroes(bigNum1);
+    BigInt_set_from_string(&a, bigNum1);
+    startTime = get_time();
+    endTime = startTime;
+    do {
+      BigInt_count_digits_base_10(&a); 
+      ++iterations;
+      endTime = get_time();
+    } while(endTime - startTime < 1.0);
+    totalIteratons += iterations;
+    printf("Iterations executed: %d\n", iterations);
+  }
+
+  printf("Average: %d per second.\n", totalIteratons / ITERATIONS_COUNT);
+
+  totalIteratons = 0;
+  printf("BigInt_count_digits_base_10_2 performance test...\n");
+
+  for (i = 0; i < ITERATIONS_COUNT; i++) {
+    char * str_out = NULL;
+    iterations = 0;
+    generateBigInteger(bigNum1);
+    mpa_removeLeadingZeroes(bigNum1);
+    BigInt_set_from_string(&a, bigNum1);
+    startTime = get_time();
+    endTime = startTime;
+    do {
+      BigInt_count_digits_base_10_2(&a);
+      ++iterations;
+      endTime = get_time();
+    } while(endTime - startTime < 1.0);
+    totalIteratons += iterations;
+    printf("Iterations executed: %d\n", iterations);
+  }
+
+  printf("Average: %d per second.\n", totalIteratons / ITERATIONS_COUNT);
+
   free(bigNum1);
   free(bigNum2);
 

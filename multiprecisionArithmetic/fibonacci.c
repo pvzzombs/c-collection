@@ -15,24 +15,26 @@ int main() {
   int index = 1;
   char * s = NULL;
 
-  BigInt_init_from_string(&a, "1");
-  BigInt_init_from_string(&b, "1");
+  BigInt_init_from_string_2(&a, "1");
+  BigInt_init_from_string_2(&b, "1");
   BigInt_init(&temp);
 
-  while(BigInt_count_digits_base_10(&a) < 1000) {
+  while(BigInt_count_digits_base_10_2(&a) < 1000) {
     BigInt_add(&temp, &a, &b);
     BigInt_copy(&a, &b);
     BigInt_copy(&b, &temp);
     index++;
-    // s = BigInt_to_string(&a);
-    // printf("Index is %d, digits are %s.\n", index, s);
-    // free(s);
+    /*s = BigInt_to_string_2(&a);
+    printf("Index is %d, digits are %s.\n", index, s);
+    free(s);*/
   }
   
-  s = BigInt_to_string(&a);
+  s = BigInt_to_string_2(&a);
   printf("Index is %d, digits are %s.\n", index, s);
 
   free(s);
+
+  /* BigInt_print_internal(&a); */
 
   BigInt_destroy(&a);
   BigInt_destroy(&b);
