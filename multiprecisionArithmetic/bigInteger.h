@@ -32,17 +32,6 @@ void BigInt_itoa_impl(BigInt_limb_t, char *);
 void BigInt_zero_all_impl(BigInt_limb_t *, int);
 int BigInt_is_zero_impl(BigInt_limb_t *, int);
 void BigInt_init(BigInt *);
-void BigInt_from_string_impl(char *, BigInt_limb_t *, int *);
-int BigInt_count_digits_to_base_Big(char * );
-void BigInt_init_from_string(BigInt *, char *);
-void BigInt_init_from_string_with_sign(BigInt *, char *);
-void BigInt_set_from_string(BigInt *, char *);
-void BigInt_set_from_string_with_sign(BigInt *, char *);
-void BigInt_to_string_impl(BigInt_limb_t *, char *, int);
-int BigInt_count_digits_to_base_10(int);
-int BigInt_count_digits_base_10(BigInt *);
-char * BigInt_to_string(BigInt *);
-char * BigInt_to_string_with_sign(BigInt *);
 void BigInt_copy(BigInt *, BigInt *);
 void BigInt_copy_to_no_init(BigInt *, BigInt *, int, int);
 void BigInt_swap(BigInt *, BigInt *);
@@ -74,11 +63,11 @@ void BigInt_divide_no_copy(BigInt *, BigInt *, BigInt *);
 void BigInt_divide_with_sign(BigInt *, BigInt *, BigInt *);
 void BigInt_divide_no_copy_with_sign(BigInt *, BigInt *, BigInt *);
 void BigInt_set_from_string_with_small(BigInt *, char *);
-void BigInt_set_from_string_2_impl(BigInt *, char *);
-void BigInt_set_from_string_2(BigInt *, char *);
-void BigInt_set_from_string_2_with_sign(BigInt *, char *);
-void BigInt_init_from_string_2(BigInt *, char *);
-void BigInt_init_from_string_2_with_sign(BigInt *, char *);
+void BigInt_set_from_string_impl(BigInt *, char *);
+void BigInt_set_from_string(BigInt *, char *);
+void BigInt_set_from_string_with_sign(BigInt *, char *);
+void BigInt_init_from_string(BigInt *, char *);
+void BigInt_init_from_string_with_sign(BigInt *, char *);
 void BigInt_add_t(BigInt *, BigInt *, BigInt *);
 void BigInt_subtract_t(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_t(BigInt *, BigInt *, BigInt *);
@@ -88,9 +77,9 @@ void BigInt_subtract_ts(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_ts(BigInt *, BigInt *, BigInt *);
 void BigInt_divide_ts(BigInt *, BigInt *, BigInt *);
 char * BigInt_to_string_with_small_base(BigInt *);
-int BigInt_count_digits_base_10_2(BigInt *);
-char * BigInt_to_string_2(BigInt *);
-char * BigInt_to_string_2_with_sign(BigInt *);
+int BigInt_count_digits_base_10(BigInt *);
+char * BigInt_to_string(BigInt *);
+char * BigInt_to_string_with_sign(BigInt *);
 void BigInt_print_internal(BigInt *);
 void BigInt_shift_left(BigInt *, int);
 void BigInt_shift_right(BigInt *, int);
@@ -103,9 +92,27 @@ void BigInt_multiply_karatsuba_t(BigInt *, BigInt *, BigInt *);
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+#include <string.h>
 
-#include "multiprecisionArithmetic.h"
+/* #include "multiprecisionArithmetic.h" */
+
+void BigInt_reverse_digits_impl(char * arr, int len) {
+  int mid = (len - 1) / 2;
+  int l = 0, r = len - 1;
+  while(l <= mid) {
+    char temp = arr[l];
+    arr[l] = arr[r];
+    arr[r] = temp;
+    l++;
+    r--;
+  }
+}
+
+BigInt_limb_t BigInt_min_int(BigInt_limb_t a, BigInt_limb_t b) {
+  if (a < b) return a;
+  return b;
+}
+
 
 BigInt_limb_t BigInt_atoi_impl (char * src) {
   BigInt_limb_t num = 0;
@@ -139,7 +146,7 @@ void BigInt_itoa_impl (BigInt_limb_t num, char * dest) {
     i++;
   }
   dest[i] = 0;
-  mpa_reverseDigits(dest, i);
+  BigInt_reverse_digits_impl(dest, i);
 }
 
 void BigInt_zero_all_impl(BigInt_limb_t * dest, int len) {
@@ -165,248 +172,6 @@ void BigInt_init (BigInt * b) {
   b->internalRepresentation[0] = 0;
   b->allocSize = 1;
   b->sign = 0;
-}
-
-void BigInt_from_string_impl (char * str, BigInt_limb_t * tempArray, int * i) {
-  char * tmp = NULL;
-  char * rem = NULL;
-  char * mul = NULL;
-  char * str2 = malloc((strlen(str) + 1) * sizeof(char));
-  int clearTemp = 1;
-
-  strcpy(str2, str);
-
-  if (mpa_bigIntCmp(str2, BIGINT_BASE_STRING) < 0) {
-    tempArray[*i] = BigInt_atoi_impl(str2);
-    (*i)++;
-    clearTemp = 0;
-  } else {
-    tmp = mpa_divide(str2, BIGINT_BASE_STRING);
-    while(mpa_bigIntCmp(tmp, "0") > 0) {
-      mul = mpa_multiply(tmp, BIGINT_BASE_STRING);
-      rem = mpa_subtract(str2, mul);
-      tempArray[*i] = BigInt_atoi_impl(rem);
-      (*i)++;
-      free(mul);
-      free(rem);
-      strcpy(str2, tmp);
-      free(tmp);
-      if (mpa_bigIntCmp(str2, BIGINT_BASE_STRING) < 0) {
-        tempArray[*i] = BigInt_atoi_impl(str2);
-        (*i)++;
-        clearTemp = 0;
-        break;
-      } else {
-        tmp = mpa_divide(str2, BIGINT_BASE_STRING);
-      }
-    }
-  }
-
-  if (clearTemp) {
-    free(tmp);
-  }
-  free(str2);
-}
-
-int BigInt_count_digits_to_base_Big(char * str) {
-  /* return (strlen(str) * 8 / BIGINT_BASE_BITS_COUNT) + 1; */
-  double L = strlen(str);
-  double B = BIGINT_BASE;
-  double log10B = log10(B);
-  /* double result = ceil(L / log10B); */
-  double result = (L / log10B) + 1.0;
-  return (int) result;
-}
-
-void BigInt_init_from_string (BigInt * b, char * str) {
-  BigInt_limb_t * tempArray = malloc(BigInt_count_digits_to_base_Big(str) * sizeof(BigInt_limb_t));
-  int i = 0;
-  int x;
-  BigInt_from_string_impl(str, tempArray, &i);
-  b->internalRepresentation = malloc(i * sizeof(BigInt_limb_t));
-  b->allocSize = i;
-  for (x = 0; x < i; x++) {
-    b->internalRepresentation[x] = tempArray[x];
-  }
-  b->internalSize = i;
-  free(tempArray);
-}
-
-void BigInt_init_from_string_with_sign (BigInt * b, char * str) {
-  BigInt_limb_t * tempArray = NULL;
-  int i = 0;
-  int x;
-  char * absnum = str;
-  if (str[0] == '-') {
-    b->sign = -1;
-    absnum = str + 1;
-  } else {
-    b->sign = 1;
-  }
-  tempArray = malloc(BigInt_count_digits_to_base_Big(absnum) * sizeof(BigInt_limb_t));
-  BigInt_from_string_impl(absnum, tempArray, &i);
-
-  if (BigInt_is_zero_impl(tempArray, i)) {
-    b->sign = 0;
-  }
-
-  b->internalRepresentation = malloc(i * sizeof(BigInt_limb_t));
-  b->allocSize = i;
-  for (x = 0; x < i; x++) {
-    b->internalRepresentation[x] = tempArray[x];
-  }
-  b->internalSize = i;
-  free(tempArray);
-}
-
-void BigInt_set_from_string(BigInt * b, char * str) {
-  BigInt_limb_t * tempArray = malloc(BigInt_count_digits_to_base_Big(str) * sizeof(BigInt_limb_t));
-  int i = 0;
-  int x;
-
-  BigInt_from_string_impl(str, tempArray, &i);
-
-  /* printf("Len is %d, I is %d, number is %s\n", BigInt_count_digits_to_base_Big(str), i, str); */
-  
-  if (b->allocSize >= i) {
-    b->internalSize = i;
-    for (x = 0; x < i; x++) {
-      b->internalRepresentation[x] = tempArray[x];
-    }
-  } else {
-    free(b->internalRepresentation);
-    b->internalRepresentation = malloc(i * sizeof(BigInt_limb_t));
-    b->internalSize = i;
-    for (x = 0; x < i; x++) {
-      b->internalRepresentation[x] = tempArray[x];
-    }
-    b->allocSize = i;
-  }
-  free(tempArray);
-}
-
-void BigInt_set_from_string_with_sign(BigInt * b, char * str) {
-  BigInt_limb_t * tempArray = NULL;
-  int i = 0;
-  int x;
-  char * absnum = str;
-
-  if (str[0] == '-') {
-    b->sign = -1;
-    absnum = str + 1;
-  } else {
-    b->sign = 1;
-  }
-
-  tempArray = malloc(BigInt_count_digits_to_base_Big(absnum) * sizeof(BigInt_limb_t));
-  BigInt_from_string_impl(absnum, tempArray, &i);
-
-  if (BigInt_is_zero_impl(tempArray, i)) {
-    b->sign = 0;
-  }
-
-  /* printf("Len is %d, I is %d, number is %s\n", BigInt_count_digits_to_base_Big(str), i, str); */
-  
-  if (b->allocSize >= i) {
-    b->internalSize = i;
-    for (x = 0; x < i; x++) {
-      b->internalRepresentation[x] = tempArray[x];
-    }
-  } else {
-    free(b->internalRepresentation);
-    b->internalRepresentation = malloc(i * sizeof(BigInt_limb_t));
-    b->internalSize = i;
-    for (x = 0; x < i; x++) {
-      b->internalRepresentation[x] = tempArray[x];
-    }
-    b->allocSize = i;
-  }
-  free(tempArray);
-}
-
-void BigInt_to_string_impl(BigInt_limb_t * arr, char * output, int arrLen) {
-  char * tmpMul;
-  char * tmpAdd;
-  int x;
-  if (arrLen == 0) {
-    output[0] = '0';
-    output[1] = 0;
-  } else {
-    BigInt_itoa_impl(arr[arrLen - 1], output);
-    for (x = arrLen - 2; x >= 0; x--) {
-      tmpMul = mpa_multiply(output, BIGINT_BASE_STRING);
-      BigInt_itoa_impl(arr[x], output);
-      tmpAdd = mpa_add(tmpMul, output);
-      free(tmpMul);
-      strcpy(output, tmpAdd);
-      free(tmpAdd);
-    }
-  }
-}
-
-int BigInt_count_digits_to_base_10(int num) {
-  double L = num;
-  double B = BIGINT_BASE;
-  double log10B = log10(B);
-  double result = L * log10B + 1.0;
-  return (int) result;
-}
-
-int BigInt_count_digits_base_10(BigInt * b) {
-  double k = b->internalSize;
-  double f = b->internalRepresentation[b->internalSize - 1];
-  double B = BIGINT_BASE;
-  double log10B = log10(B);
-  double log10f = log10(f);
-  double result = (k - 1) * log10B + log10f;
-
-  if (BigInt_is_zero_impl(b->internalRepresentation, b->internalSize)) {
-    return 1;
-  }
-
-  return (int) result + 1;
-}
-
-char * BigInt_to_string(BigInt * b) {
-  int len = b->internalSize;
-  int charLen = BigInt_count_digits_to_base_10(len);
-  char * output = malloc((charLen + 1) * sizeof(char));
-
-  memset(output, 0, charLen + 1);
-
-  BigInt_to_string_impl(b->internalRepresentation, output, len);
-
-  mpa_removeLeadingZeroes(output);
-
-  return output;
-}
-
-char * BigInt_to_string_with_sign(BigInt * b) {
-  int len = b->internalSize;
-  int charLen = BigInt_count_digits_to_base_10(len);
-  char * output = malloc((charLen + 2) * sizeof(char));
-  int tempLen;
-  int i;
-
-  memset(output, 0, charLen + 2);
-
-  BigInt_to_string_impl(b->internalRepresentation, output, len);
-
-  mpa_removeLeadingZeroes(output);
-
-  if (strcmp(output, "0") == 0) {
-    return output;
-  }
-
-  tempLen = strlen(output);
-  if (b->sign == -1) {
-    for (i = tempLen + 1; i > 0; i--) {
-      output[i] = output[i - 1];
-    }
-    output[0] = '-';
-  }
-
-  return output;
 }
 
 void BigInt_copy(BigInt * to, BigInt * from) {
@@ -912,7 +677,7 @@ void BigInt_divide_impl(BigInt_limb_t * dividend, BigInt_limb_t * divisor, BigIn
     qDigit2 = remainder[remainderLen - 2];
     dvsrDigit = divisor[divisorLen - 1];
     qhat = (qDigit1 * limb_base + qDigit2) / dvsrDigit;
-    qhat = mpa_mininumInt(qhat, limb_base - 1);
+    qhat = BigInt_min_int(qhat, limb_base - 1);
 
     qDigit[0] = qhat;
     for (j = 0; j < remainderLen; j++) {
@@ -1130,7 +895,7 @@ void BigInt_set_from_string_with_small(BigInt * b, char * str) {
   BigInt_destroy(&temp);
 }
 
-void BigInt_set_from_string_2_impl(BigInt * b, char * str) {
+void BigInt_set_from_string_impl(BigInt * b, char * str) {
   int len = strlen(str);
   int i;
   int firstLen = len % BIGINT_BASE_DIGITS;
@@ -1147,17 +912,17 @@ void BigInt_set_from_string_2_impl(BigInt * b, char * str) {
   BigInt_destroy(&out);
 }
 
-void BigInt_set_from_string_2(BigInt * b, char * str) {
+void BigInt_set_from_string(BigInt * b, char * str) {
   BigInt temp;
   BigInt_init(&temp);
 
-  BigInt_set_from_string_2_impl(&temp, str);
+  BigInt_set_from_string_impl(&temp, str);
 
   BigInt_copy(b, &temp);
   BigInt_destroy(&temp);
 }
 
-void BigInt_set_from_string_2_with_sign(BigInt * b, char * str) {
+void BigInt_set_from_string_with_sign(BigInt * b, char * str) {
   BigInt temp;
   int is_negative = 0;
   BigInt_init(&temp);
@@ -1167,7 +932,7 @@ void BigInt_set_from_string_2_with_sign(BigInt * b, char * str) {
     is_negative = 1;
   }
 
-  BigInt_set_from_string_2_impl(&temp, str);
+  BigInt_set_from_string_impl(&temp, str);
 
   if (is_negative) {
     temp.sign = -1;
@@ -1183,17 +948,17 @@ void BigInt_set_from_string_2_with_sign(BigInt * b, char * str) {
   BigInt_destroy(&temp);
 }
 
-void BigInt_init_from_string_2(BigInt * b, char * str) {
+void BigInt_init_from_string(BigInt * b, char * str) {
   BigInt temp;
   BigInt_init(&temp);
 
-  BigInt_set_from_string_2_impl(&temp, str);
+  BigInt_set_from_string_impl(&temp, str);
 
   BigInt_copy_to_no_init(b, &temp, 0, 0);
   BigInt_destroy(&temp);
 }
 
-void BigInt_init_from_string_2_with_sign(BigInt * b, char * str) {
+void BigInt_init_from_string_with_sign(BigInt * b, char * str) {
   BigInt temp;
   int is_negative = 0;
   BigInt_init(&temp);
@@ -1203,7 +968,7 @@ void BigInt_init_from_string_2_with_sign(BigInt * b, char * str) {
     is_negative = 1;
   }
 
-  BigInt_set_from_string_2_impl(&temp, str);
+  BigInt_set_from_string_impl(&temp, str);
 
   if (is_negative) {
     temp.sign = -1;
@@ -1445,7 +1210,7 @@ char * BigInt_to_string_with_small_base(BigInt * b) {
   return str_out;
 }
 
-int BigInt_count_digits_base_10_2(BigInt * b) {
+int BigInt_count_digits_base_10(BigInt * b) {
   int i, msl_count, n, count_digits;
   BigInt out1, out2, base, temp;
   char * str_out;
@@ -1483,7 +1248,7 @@ int BigInt_count_digits_base_10_2(BigInt * b) {
 }
 
 
-char * BigInt_to_string_2(BigInt * b) {
+char * BigInt_to_string(BigInt * b) {
   int i, j, msl_count, n, count_digits, offset;
   BigInt out1, out2, base, temp;
   char * str_out;
@@ -1547,7 +1312,7 @@ char * BigInt_to_string_2(BigInt * b) {
   return str_out;
 }
 
-char * BigInt_to_string_2_with_sign(BigInt * b) {
+char * BigInt_to_string_with_sign(BigInt * b) {
   int i, j, msl_count, n, count_digits, offset, hasSign = 0;
   BigInt out1, out2, base, temp;
   char * str_out;

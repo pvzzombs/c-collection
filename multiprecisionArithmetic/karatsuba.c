@@ -8,8 +8,8 @@ int main() {
   BigInt a, b, c;
   char * s;
 
-  BigInt_init_from_string_2(&a, "1024");
-  BigInt_init_from_string_2(&b, "0");
+  BigInt_init_from_string(&a, "1024");
+  BigInt_init_from_string(&b, "0");
   BigInt_init(&c);
 
   BigInt_multiply(&c, &a, &b);

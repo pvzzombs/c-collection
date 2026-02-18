@@ -33,12 +33,12 @@ int main() {
       printf("Mismatch!\n");
     }
 
-    while(BigInt_count_digits_base_10_2(&a) < 1000) {
+    while(BigInt_count_digits_base_10(&a) < 1000) {
       BigInt_add(&temp, &a, &b);
       BigInt_copy(&a, &b);
       BigInt_copy(&b, &temp);
       index++;
-      s = BigInt_to_string_2(&a);
+      s = BigInt_to_string(&a);
       fgets(buf, 1024, file);
       if (strstr(buf, "\n") != NULL) {
         buf[strstr(buf, "\n") - buf] = 0;

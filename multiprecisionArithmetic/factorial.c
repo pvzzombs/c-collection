@@ -15,7 +15,7 @@ int main() {
     BigInt_add_t(&i, &i, &one); /* i = i + 1; */
   }
 
-  s = BigInt_to_string_2(&fact);
+  s = BigInt_to_string(&fact);
   printf("Factorial is %s.\n", s);
   free(s);
   /* BigInt_print_internal(&fact); */

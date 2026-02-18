@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include "multiprecisionArithmetic.h"
 
 #define BIGINT_IMPL
 #define BIGINT_USE_64_BIT
@@ -220,7 +221,7 @@ int main() {
 
   printf("Average: %d per second.\n", totalIteratons / ITERATIONS_COUNT);
 
-  totalIteratons = 0;
+  /*totalIteratons = 0;
   printf("BigInt set_from_string_2 performance test...\n");
 
   for (i = 0; i < ITERATIONS_COUNT; i++) {
@@ -238,7 +239,7 @@ int main() {
     printf("Iterations executed: %d\n", iterations);
   }
 
-  printf("Average: %d per second.\n", totalIteratons / ITERATIONS_COUNT);
+  printf("Average: %d per second.\n", totalIteratons / ITERATIONS_COUNT);*/
 
   totalIteratons = 0;
   printf("BigInt_to_string performance test...\n");
@@ -263,7 +264,7 @@ int main() {
 
   printf("Average: %d per second.\n", totalIteratons / ITERATIONS_COUNT);
 
-  totalIteratons = 0;
+  /*totalIteratons = 0;
   printf("BigInt_to_string_2 performance test...\n");
 
   for (i = 0; i < ITERATIONS_COUNT; i++) {
@@ -284,7 +285,7 @@ int main() {
     printf("Iterations executed: %d\n", iterations);
   }
 
-  printf("Average: %d per second.\n", totalIteratons / ITERATIONS_COUNT);
+  printf("Average: %d per second.\n", totalIteratons / ITERATIONS_COUNT);*/
 
   totalIteratons = 0;
   printf("BigInt_count_digits_base_10 performance test...\n");
@@ -308,7 +309,7 @@ int main() {
 
   printf("Average: %d per second.\n", totalIteratons / ITERATIONS_COUNT);
 
-  totalIteratons = 0;
+  /*totalIteratons = 0;
   printf("BigInt_count_digits_base_10_2 performance test...\n");
 
   for (i = 0; i < ITERATIONS_COUNT; i++) {
@@ -328,7 +329,7 @@ int main() {
     printf("Iterations executed: %d\n", iterations);
   }
 
-  printf("Average: %d per second.\n", totalIteratons / ITERATIONS_COUNT);
+  printf("Average: %d per second.\n", totalIteratons / ITERATIONS_COUNT);*/
 
   free(bigNum1);
   free(bigNum2);

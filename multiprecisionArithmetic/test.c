@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "multiprecisionArithmetic.h"
 
 #define BIGINT_IMPL
 #include "bigInteger.h"

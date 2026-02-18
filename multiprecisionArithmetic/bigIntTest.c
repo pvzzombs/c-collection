@@ -17,6 +17,14 @@ void generateBigInteger(char * dest) {
   dest[i] = 0;
 }
 
+void generateBigIntegerN(char * dest, int n) {
+  int i;
+  for(i = 0; i < n; i++) {
+    dest[i] = (rand() % 10) + '0';
+  }
+  dest[i] = 0;
+}
+
 void additionTest() {
   char * addends1[] = {
     "12345678901234567890",
@@ -427,7 +435,7 @@ void randomizedDivide() {
   BigInt_destroy(&c);
 }
 
-void inputAndOutputTest2() {
+/*void inputAndOutputTest2() {
   char buf[1024];
   char * s;
   int i;
@@ -444,7 +452,71 @@ void inputAndOutputTest2() {
     free(s);
   }
   BigInt_destroy(&a);
+}*/
+
+void specificDigitCountTest() {
+  char num1[] = "1070066266382758936764980584457396885083683896632151665013235203375314520604694040621889147582489792657804694888177591957484336466672569959512996030461262748092482186144069433051234774442750273781753087579391666192149259186759553966422837148943113074699503439547001985432609723067290192870526447243726117715821825548491120525013201478612965931381792235559657452039506137551467837543229119602129934048260706175397706847068202895486902666185435124521900369480641357447470911707619766945691070098024393439617474103736912503231365532164773697023167755051595173518460579954919410967778373229665796581646513903488154256310184224190259846088000110186255550245493937113651657039447629584714548523425950428582425306083544435428212611008992863795048006894330309773217834864543113205765659868456288616808718693835297350643986297640660000723562917905207051164077614812491885830945940566688339109350944456576357666151619317753792891661581327159616877487983821820492520348473874384736771934512787029218636250627816";
+  int count = strlen(num1);
+  int guess;
+
+  BigInt a;
+
+  BigInt_init(&a);
+
+  BigInt_set_from_string(&a, num1);
+  
+  guess = BigInt_count_digits_base_10(&a);
+  TEST_CHECK(count == guess);
+  TEST_MSG("Expected: %d, Output: %d", count, guess);
+
+  BigInt_destroy(&a);
 }
+
+void digitCountTest() {
+  char buf[10001];
+  char * s;
+  int i;
+  int count, guess;
+  BigInt a;
+  srand(time(NULL));
+  BigInt_init(&a);
+  for (i = 0; i < 100; i++) {
+    count = rand() % 10000;
+    generateBigIntegerN(buf, count);
+    mpa_removeLeadingZeroes(buf);
+    count = strlen(buf);
+    BigInt_set_from_string(&a, buf);
+    guess = BigInt_count_digits_base_10(&a);
+    s = BigInt_to_string(&a);
+    TEST_CHECK(count == guess);
+    TEST_MSG("Expected: %d, Output: %d, Number: %s", count, guess, s);
+    free(s);
+  }
+  BigInt_destroy(&a);
+}
+
+/*void digitCountTest2() {
+  char buf[10001];
+  char * s;
+  int i;
+  int count, guess;
+  BigInt a;
+  srand(time(NULL));
+  BigInt_init(&a);
+  for (i = 0; i < 100; i++) {
+    count = rand() % 10000;
+    generateBigIntegerN(buf, count);
+    mpa_removeLeadingZeroes(buf);
+    count = strlen(buf);
+    BigInt_set_from_string_2(&a, buf);
+    guess = BigInt_count_digits_base_10_2(&a);
+    s = BigInt_to_string_2(&a);
+    TEST_CHECK(count == guess);
+    TEST_MSG("Expected: %d, Output: %d, Number: %s", count, guess, s);
+    free(s);
+  }
+  BigInt_destroy(&a);
+}*/
 
 TEST_LIST = {
   {"addition", additionTest},
@@ -457,6 +529,9 @@ TEST_LIST = {
   {"randomized positive multiplication test", randomizedMultiply},
   {"randomized positive multiplication karatsuba test", randomizedMultiplyKaratsuba},
   {"randomized positive division test", randomizedDivide},
-  {"randomized fast input and output test", inputAndOutputTest2},
+  /*{"randomized fast input and output test", inputAndOutputTest2},*/
+  {"specific digit count test", specificDigitCountTest},
+  {"randomized digit count test", digitCountTest},
+  /*{"randomized digit count test 2", digitCountTest2},*/
   {NULL, NULL}
 };
