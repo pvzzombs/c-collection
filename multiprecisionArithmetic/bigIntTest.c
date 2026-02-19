@@ -435,6 +435,42 @@ void randomizedDivide() {
   BigInt_destroy(&c);
 }
 
+void randomizedDivide100by50() {
+  char num1[1024];
+  char num2[1024];
+  char num3[1024];
+  char * s;
+  char * target;
+  int i;
+  BigInt a,b,c;
+  srand(time(NULL));
+  BigInt_init(&a);
+  BigInt_init(&b);
+  BigInt_init(&c);
+  for (i = 0; i < 100; i++) {
+    generateBigIntegerN(num1, 100);
+    generateBigIntegerN(num2, 50);
+    mpa_removeLeadingZeroes(num1);
+    mpa_removeLeadingZeroes(num2);
+    if (mpa_bigIntCmp(num1, num2) < 0) {
+      continue;
+    }
+    target = mpa_divide(num1, num2);
+    BigInt_set_from_string(&a, num1);
+    BigInt_set_from_string(&b, num2);
+    BigInt_divide(&c, &a, &b);
+    s = BigInt_to_string(&c);
+    TEST_CHECK(strcmp(target, s) == 0);
+    TEST_MSG("Len is %d %d", strlen(target), strlen(s));
+    TEST_MSG("Expected: %s, Output: %s, Numbers: %s / %s", target, s, num1, num2);
+    free(target);
+    free(s);
+  }
+  BigInt_destroy(&a);
+  BigInt_destroy(&b);
+  BigInt_destroy(&c);
+}
+
 /*void inputAndOutputTest2() {
   char buf[1024];
   char * s;
@@ -529,6 +565,7 @@ TEST_LIST = {
   {"randomized positive multiplication test", randomizedMultiply},
   {"randomized positive multiplication karatsuba test", randomizedMultiplyKaratsuba},
   {"randomized positive division test", randomizedDivide},
+  {"randomized positive division test max(100) digits by max(50) digits", randomizedDivide100by50},
   /*{"randomized fast input and output test", inputAndOutputTest2},*/
   {"specific digit count test", specificDigitCountTest},
   {"randomized digit count test", digitCountTest},
