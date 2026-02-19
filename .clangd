@@ -2,3 +2,5 @@ CompileFlags:
   Add:
     - -DBIGINT_IMPL
     - -xc
+    - -std=c89
+    - -pedantic-errors
