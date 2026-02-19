@@ -1,24 +1,44 @@
 #pragma once
 
+#include <stdint.h>
+#if INTPTR_MAX == INT64_MAX
+#define BIGINT_USE_64_BIT
+#elif INTPTR_MAX == INT32_MAX
+#define BIGINT_USE_32_BIT
+#else
+#define BIGINT_USE_16_BIT
+#endif
+
 #ifdef BIGINT_USE_64_BIT
 
-#include <stdint.h>
 #define BIGINT_BASE 2147483648LL
 #define BIGINT_BASE_STRING "2147483648"
 #define BIGINT_BASE_DIGITS 9
 #define BIGINT_BASE_10 1000000000LL
 typedef int64_t BigInt_limb_t;
 
-#else
+#endif
+
+#ifdef BIGINT_USE_32_BIT
 
 #define BIGINT_BASE 32768
 #define BIGINT_BASE_STRING "32768"
 #define BIGINT_BASE_DIGITS 4
 #define BIGINT_BASE_10 10000
-typedef int BigInt_limb_t;
+typedef int32_t BigInt_limb_t;
 
 #endif
 
+
+#ifdef BIGINT_USE_16_BIT
+
+#define BIGINT_BASE 128
+#define BIGINT_BASE_STRING "128"
+#define BIGINT_BASE_DIGITS 2
+#define BIGINT_BASE_10 100
+typedef int BigInt_limb_t;
+
+#endif
 
 #ifdef __cplusplus
 extern "C" {
