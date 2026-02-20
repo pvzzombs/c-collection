@@ -223,6 +223,13 @@ void BigInt_init (BigInt * b) {
   b->sign = 0;
 }
 
+void BigInt_init_none (BigInt * b) {
+  b->internalRepresentation = NULL;
+  b->internalSize = 0;
+  b->allocSize = 0;
+  b->sign = 0;
+}
+
 void BigInt_copy(BigInt * to, BigInt * from) {
   int i;
   if (to->allocSize < from->internalSize) {
@@ -1035,7 +1042,7 @@ void BigInt_init_from_string_with_sign(BigInt * b, char * str) {
 
 void BigInt_add_t(BigInt * out, BigInt * a, BigInt * b) {
   BigInt temp;
-  BigInt_init(&temp);
+  BigInt_init_none(&temp);
 
   BigInt_add(&temp, a, b);
   
@@ -1045,7 +1052,7 @@ void BigInt_add_t(BigInt * out, BigInt * a, BigInt * b) {
 
 void BigInt_subtract_t(BigInt * out, BigInt * a, BigInt * b) {
   BigInt temp;
-  BigInt_init(&temp);
+  BigInt_init_none(&temp);
 
   BigInt_subtract(&temp, a, b);
   
@@ -1055,7 +1062,7 @@ void BigInt_subtract_t(BigInt * out, BigInt * a, BigInt * b) {
 
 void BigInt_multiply_t(BigInt * out, BigInt * a, BigInt * b) {
   BigInt temp;
-  BigInt_init(&temp);
+  BigInt_init_none(&temp);
 
   BigInt_multiply(&temp, a, b);
   
@@ -1065,7 +1072,7 @@ void BigInt_multiply_t(BigInt * out, BigInt * a, BigInt * b) {
 
 void BigInt_divide_t(BigInt * out, BigInt * a, BigInt * b) {
   BigInt temp;
-  BigInt_init(&temp);
+  BigInt_init_none(&temp);
 
   BigInt_divide(&temp, a, b);
   
@@ -1075,7 +1082,7 @@ void BigInt_divide_t(BigInt * out, BigInt * a, BigInt * b) {
 
 void BigInt_add_ts(BigInt * out, BigInt * a, BigInt * b) {
   BigInt temp;
-  BigInt_init(&temp);
+  BigInt_init_none(&temp);
 
   BigInt_add_with_sign(&temp, a, b);
   
@@ -1085,7 +1092,7 @@ void BigInt_add_ts(BigInt * out, BigInt * a, BigInt * b) {
 
 void BigInt_subtract_ts(BigInt * out, BigInt * a, BigInt * b) {
   BigInt temp;
-  BigInt_init(&temp);
+  BigInt_init_none(&temp);
 
   BigInt_subtract_with_sign(&temp, a, b);
   
@@ -1095,7 +1102,7 @@ void BigInt_subtract_ts(BigInt * out, BigInt * a, BigInt * b) {
 
 void BigInt_multiply_ts(BigInt * out, BigInt * a, BigInt * b) {
   BigInt temp;
-  BigInt_init(&temp);
+  BigInt_init_none(&temp);
 
   BigInt_multiply_with_sign(&temp, a, b);
   
@@ -1105,7 +1112,7 @@ void BigInt_multiply_ts(BigInt * out, BigInt * a, BigInt * b) {
 
 void BigInt_divide_ts(BigInt * out, BigInt * a, BigInt * b) {
   BigInt temp;
-  BigInt_init(&temp);
+  BigInt_init_none(&temp);
 
   BigInt_divide_with_sign(&temp, a, b);
   
@@ -1545,18 +1552,18 @@ void BigInt_multiply_karatsuba_impl(BigInt * multiplicand, BigInt * multiplier, 
     int l = multiplicand->internalSize;
     int m = l / 2;
     int len1, len2, lenMax;
-    BigInt_init(&low1);
-    BigInt_init(&low2);
-    BigInt_init(&high1);
-    BigInt_init(&high2);
+    BigInt_init_none(&low1);
+    BigInt_init_none(&low2);
+    BigInt_init_none(&high1);
+    BigInt_init_none(&high2);
 
-    BigInt_init(&z0);
-    BigInt_init(&z1);
-    BigInt_init(&z2);
+    BigInt_init_none(&z0);
+    BigInt_init_none(&z1);
+    BigInt_init_none(&z2);
 
 
-    BigInt_init(&sum1);
-    BigInt_init(&sum2);
+    BigInt_init_none(&sum1);
+    BigInt_init_none(&sum2);
 
     BigInt_set_from_view(&low1, multiplicand, 0, m - 1);
     BigInt_set_from_view(&low2, multiplier, 0, m - 1);
