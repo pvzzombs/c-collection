@@ -25,44 +25,52 @@
 #endif
 
 #if defined(BIGINT_USE_64_BIT)
+
 #if defined(__STDC_VERSION__)
 #define BIGINT_BASE 2147483648LL
 #define BIGINT_BASE_STRING "2147483648"
 #define BIGINT_BASE_DIGITS 9
 #define BIGINT_BASE_10 1000000000LL
-typedef int64_t BigInt_limb_t;
+typedef int32_t BigInt_limb_t;
+typedef int64_t BigInt_limb_wide_t;
 #else
 #define BIGINT_BASE 2147483648L
 #define BIGINT_BASE_STRING "2147483648"
 #define BIGINT_BASE_DIGITS 9
 #define BIGINT_BASE_10 1000000000L
-typedef long BigInt_limb_t;
+typedef int BigInt_limb_t;
+typedef long BigInt_limb_wide_t;
 #endif
 
 #elif defined(BIGINT_USE_32_BIT)
+
+#define BIGINT_BASE 2147483648LL
+#define BIGINT_BASE_STRING "2147483648"
+#define BIGINT_BASE_DIGITS 9
+#define BIGINT_BASE_10 1000000000LL
+#if defined(__STDC_VERSION__)
+typedef int32_t BigInt_limb_t;
+typedef int64_t BigInt_limb_wide_t;
+#else
+typedef int BigInt_limb_t;
+typedef long BigInt_limb_wide_t;
+#endif
+
+#elif defined(BIGINT_USE_16_BIT)
 
 #define BIGINT_BASE 32768
 #define BIGINT_BASE_STRING "32768"
 #define BIGINT_BASE_DIGITS 4
 #define BIGINT_BASE_10 10000
-#if defined(__STDC_VERSION__)
-typedef int32_t BigInt_limb_t;
-#else
-typedef int BigInt_limb_t;
-#endif
-
-#elif defined(BIGINT_USE_16_BIT)
-
-#define BIGINT_BASE 128
-#define BIGINT_BASE_STRING "128"
-#define BIGINT_BASE_DIGITS 2
-#define BIGINT_BASE_10 100
 typedef int BigInt_limb_t;
 #if defined(__STDC_VERSION__)
 typedef int BigInt_limb_t;
+typedef long BigInt_limb_wide_t;
 #else
 typedef int BigInt_limb_t;
+typedef long BigInt_limb_wide_t;
 #endif
+
 #else
 
 #error
@@ -98,20 +106,20 @@ void BigInt_remove_leading_zeroes(BigInt *);
 void BigInt_add_leading_zero(BigInt *);
 void BigInt_print(BigInt *);
 void BigInt_print_s(BigInt *);
-void BigInt_add_impl(BigInt_limb_t *, BigInt_limb_t *, BigInt_limb_t *, int, int, int, BigInt_limb_t);
+void BigInt_add_impl(BigInt_limb_t *, BigInt_limb_t *, BigInt_limb_t *, int, int, int, BigInt_limb_wide_t);
 void BigInt_add(BigInt *, BigInt *, BigInt *);
-void BigInt_add_small_impl(BigInt_limb_t *, BigInt_limb_t, BigInt_limb_t *, int, int, BigInt_limb_t);
+void BigInt_add_small_impl(BigInt_limb_t *, BigInt_limb_t, BigInt_limb_t *, int, int, BigInt_limb_wide_t);
 void BigInt_add_small(BigInt *, BigInt *, BigInt_limb_t);
-void BigInt_subtract_impl(BigInt_limb_t *, BigInt_limb_t *, BigInt_limb_t *, int, int, int, BigInt_limb_t);
+void BigInt_subtract_impl(BigInt_limb_t *, BigInt_limb_t *, BigInt_limb_t *, int, int, int, BigInt_limb_wide_t);
 void BigInt_subtract(BigInt *, BigInt *, BigInt *);
 void BigInt_add_with_sign(BigInt *, BigInt *, BigInt *);
 void BigInt_subtract_with_sign(BigInt *, BigInt *, BigInt *);
-void BigInt_multiply_impl(BigInt_limb_t *, BigInt_limb_t *, BigInt_limb_t *, int, int, int, BigInt_limb_t);
+void BigInt_multiply_impl(BigInt_limb_t *, BigInt_limb_t *, BigInt_limb_t *, int, int, int, BigInt_limb_wide_t);
 void BigInt_multiply(BigInt *, BigInt *, BigInt *);
-void BigInt_multiply_small_impl(BigInt_limb_t *, BigInt_limb_t, BigInt_limb_t *, int, int, BigInt_limb_t);
+void BigInt_multiply_small_impl(BigInt_limb_t *, BigInt_limb_t, BigInt_limb_t *, int, int, BigInt_limb_wide_t);
 void BigInt_multiply_small(BigInt *, BigInt *, BigInt_limb_t);
 void BigInt_multiply_with_sign(BigInt *, BigInt *, BigInt *);
-void BigInt_divide_impl(BigInt_limb_t *, BigInt_limb_t *, BigInt_limb_t *, int, int, int, BigInt_limb_t);
+void BigInt_divide_impl(BigInt_limb_t *, BigInt_limb_t *, BigInt_limb_t *, int, int, int, BigInt_limb_wide_t);
 void BigInt_divide(BigInt *, BigInt *, BigInt *);
 void BigInt_divide_no_copy(BigInt *, BigInt *, BigInt *);
 void BigInt_divide_with_sign(BigInt *, BigInt *, BigInt *);
@@ -166,7 +174,7 @@ void BigInt_reverse_digits_impl(char * arr, int len) {
   }
 }
 
-BigInt_limb_t BigInt_min_int(BigInt_limb_t a, BigInt_limb_t b) {
+BigInt_limb_t BigInt_min_int(BigInt_limb_wide_t a, BigInt_limb_wide_t b) {
   if (a < b) return a;
   return b;
 }
@@ -406,23 +414,23 @@ void BigInt_print_s(BigInt * b) {
   BIGINT_FREE(s);
 }
 
-void BigInt_add_impl(BigInt_limb_t * addend1, BigInt_limb_t * addend2, BigInt_limb_t * sum, int addend1Len, int addend2Len, int sumLen, BigInt_limb_t limb_base) {
+void BigInt_add_impl(BigInt_limb_t * addend1, BigInt_limb_t * addend2, BigInt_limb_t * sum, int addend1Len, int addend2Len, int sumLen, BigInt_limb_wide_t limb_base) {
   int i;
-  BigInt_limb_t digitSum = 0, carry = 0;
+  BigInt_limb_wide_t digitSum = 0, carry = 0;
   for (i = 0; i < addend2Len; i++) {
-    BigInt_limb_t Addend1 = addend1[i];
-    BigInt_limb_t Addend2 = addend2[i];
-    digitSum = (Addend1 + Addend2 + carry) % (BigInt_limb_t)limb_base;
-    carry = (Addend1 + Addend2 + carry) / (BigInt_limb_t)limb_base;
+    BigInt_limb_wide_t Addend1 = addend1[i];
+    BigInt_limb_wide_t Addend2 = addend2[i];
+    digitSum = (Addend1 + Addend2 + carry) % limb_base;
+    carry = (Addend1 + Addend2 + carry) / limb_base;
     sum[i] = digitSum;
   }
   for(; i < sumLen; i++) {
-    BigInt_limb_t num = 0;
+    BigInt_limb_wide_t num = 0;
     if(i < addend1Len) {
       num = addend1[i];
     }
-    digitSum = (num + carry) % (BigInt_limb_t)limb_base;
-    carry = (num + carry) / (BigInt_limb_t)limb_base;
+    digitSum = (num + carry) % limb_base;
+    carry = (num + carry) / limb_base;
     sum[i] = digitSum;
   }
 }
@@ -448,17 +456,17 @@ void BigInt_add(BigInt * sum, BigInt * addend1, BigInt * addend2) {
   BigInt_remove_leading_zeroes(sum);
 }
 
-void BigInt_add_small_impl(BigInt_limb_t * addend1, BigInt_limb_t addend2, BigInt_limb_t * sum, int addend1Len, int sumLen, BigInt_limb_t limb_base) {
+void BigInt_add_small_impl(BigInt_limb_t * addend1, BigInt_limb_t addend2, BigInt_limb_t * sum, int addend1Len, int sumLen, BigInt_limb_wide_t limb_base) {
   int i = 0;
-  BigInt_limb_t digitSum = 0, carry = 0;
-  BigInt_limb_t Addend1 = addend1[i];
-  BigInt_limb_t Addend2 = addend2;
+  BigInt_limb_wide_t digitSum = 0, carry = 0;
+  BigInt_limb_wide_t Addend1 = addend1[i];
+  BigInt_limb_wide_t Addend2 = addend2;
   digitSum = (Addend1 + Addend2 + carry) % limb_base;
   carry = (Addend1 + Addend2 + carry) / limb_base;
   sum[i] = digitSum;
   i++;
   for(; i < sumLen; i++) {
-    BigInt_limb_t num = 0;
+    BigInt_limb_wide_t num = 0;
     if(i < addend1Len) {
       num = addend1[i];
     }
@@ -483,13 +491,13 @@ void BigInt_add_small(BigInt * sum, BigInt * addend1, BigInt_limb_t addend2) {
   BigInt_remove_leading_zeroes(sum);
 }
 
-void BigInt_subtract_impl(BigInt_limb_t * minuend, BigInt_limb_t * subtrahend, BigInt_limb_t * difference, int minuendLen, int subtrahendLen, int differenceLen, BigInt_limb_t limb_base) {
+void BigInt_subtract_impl(BigInt_limb_t * minuend, BigInt_limb_t * subtrahend, BigInt_limb_t * difference, int minuendLen, int subtrahendLen, int differenceLen, BigInt_limb_wide_t limb_base) {
   int i;
   BigInt_limb_t digitDifference = 0, borrow = 0;
   for (i = 0; i < subtrahendLen; i++) {
-    BigInt_limb_t minuendDigit = minuend[i];
-    BigInt_limb_t subtrahendDigit = subtrahend[i];
-    BigInt_limb_t tempBorrow = borrow;
+    BigInt_limb_wide_t minuendDigit = minuend[i];
+    BigInt_limb_wide_t subtrahendDigit = subtrahend[i];
+    BigInt_limb_wide_t tempBorrow = borrow;
 
     if (minuendDigit - tempBorrow < subtrahendDigit) {
       minuendDigit += limb_base;
@@ -502,8 +510,8 @@ void BigInt_subtract_impl(BigInt_limb_t * minuend, BigInt_limb_t * subtrahend, B
   }
 
   for (; i < minuendLen; i++) {
-    BigInt_limb_t minuendDigit = minuend[i];
-    BigInt_limb_t tempBorrow = borrow;
+    BigInt_limb_wide_t minuendDigit = minuend[i];
+    BigInt_limb_wide_t tempBorrow = borrow;
     if (minuendDigit - tempBorrow < 0) {
       minuendDigit += limb_base;
       borrow = 1;
@@ -596,11 +604,11 @@ void BigInt_subtract_with_sign(BigInt * difference, BigInt * minuend, BigInt * s
   BigInt_remove_leading_zeroes(difference);
 }
 
-void BigInt_multiply_impl(BigInt_limb_t * multiplicand, BigInt_limb_t * multiplier, BigInt_limb_t * product, int multiplicandLen, int multiplierLen, int productLen, BigInt_limb_t limb_base) {
-  BigInt_limb_t carryM;
-  BigInt_limb_t carryA;
-  BigInt_limb_t productDigit;
-  BigInt_limb_t sumDigit;
+void BigInt_multiply_impl(BigInt_limb_t * multiplicand, BigInt_limb_t * multiplier, BigInt_limb_t * product, int multiplicandLen, int multiplierLen, int productLen, BigInt_limb_wide_t limb_base) {
+  BigInt_limb_wide_t carryM;
+  BigInt_limb_wide_t carryA;
+  BigInt_limb_wide_t productDigit;
+  BigInt_limb_wide_t sumDigit;
   int pIndex = 0, pIndexTemp;
   int i, j;
   for (j = 0; j < multiplierLen; j++) {
@@ -608,9 +616,9 @@ void BigInt_multiply_impl(BigInt_limb_t * multiplicand, BigInt_limb_t * multipli
     carryM = 0;
     pIndexTemp = pIndex;
     for (i = 0; i < multiplicandLen; i++) {
-      BigInt_limb_t m = multiplicand[i];
-      BigInt_limb_t n = multiplier[j];
-      BigInt_limb_t p = product[pIndex];
+      BigInt_limb_wide_t m = multiplicand[i];
+      BigInt_limb_wide_t n = multiplier[j];
+      BigInt_limb_wide_t p = product[pIndex];
       productDigit = (m * n + carryM) % limb_base;
       carryM = (m * n + carryM) / limb_base;
       sumDigit = (productDigit + carryA + p) % limb_base;
@@ -620,7 +628,7 @@ void BigInt_multiply_impl(BigInt_limb_t * multiplicand, BigInt_limb_t * multipli
     }
 
     for(; pIndex < productLen; pIndex++) {
-      BigInt_limb_t p = product[pIndex];
+      BigInt_limb_wide_t p = product[pIndex];
       sumDigit = (carryM + carryA + p) % limb_base;
       carryA = (carryM + carryA + p) / limb_base;
       product[pIndex] = sumDigit;
@@ -652,20 +660,20 @@ void BigInt_multiply(BigInt * product, BigInt * multiplicand, BigInt * multiplie
   BigInt_remove_leading_zeroes(product);
 }
 
-void BigInt_multiply_small_impl(BigInt_limb_t * multiplicand, BigInt_limb_t multiplier, BigInt_limb_t * product, int multiplicandLen, int productLen, BigInt_limb_t limb_base) {
-  BigInt_limb_t carryM;
-  BigInt_limb_t carryA;
-  BigInt_limb_t productDigit;
-  BigInt_limb_t sumDigit;
+void BigInt_multiply_small_impl(BigInt_limb_t * multiplicand, BigInt_limb_t multiplier, BigInt_limb_t * product, int multiplicandLen, int productLen, BigInt_limb_wide_t limb_base) {
+  BigInt_limb_wide_t carryM;
+  BigInt_limb_wide_t carryA;
+  BigInt_limb_wide_t productDigit;
+  BigInt_limb_wide_t sumDigit;
   int pIndex = 0, pIndexTemp;
   int i, j = 0;
   carryA = 0;
   carryM = 0;
   pIndexTemp = pIndex;
   for (i = 0; i < multiplicandLen; i++) {
-    BigInt_limb_t m = multiplicand[i];
-    BigInt_limb_t n = multiplier;
-    BigInt_limb_t p = product[pIndex];
+    BigInt_limb_wide_t m = multiplicand[i];
+    BigInt_limb_wide_t n = multiplier;
+    BigInt_limb_wide_t p = product[pIndex];
     productDigit = (m * n + carryM) % limb_base;
     carryM = (m * n + carryM) / limb_base;
     sumDigit = (productDigit + carryA + p) % limb_base;
@@ -675,7 +683,7 @@ void BigInt_multiply_small_impl(BigInt_limb_t * multiplicand, BigInt_limb_t mult
   }
 
   for(; pIndex < productLen; pIndex++) {
-    BigInt_limb_t p = product[pIndex];
+    BigInt_limb_wide_t p = product[pIndex];
     sumDigit = (carryM + carryA + p) % limb_base;
     carryA = (carryM + carryA + p) / limb_base;
     product[pIndex] = sumDigit;
@@ -724,13 +732,17 @@ void BigInt_multiply_with_sign(BigInt * product, BigInt * multiplicand, BigInt *
   BigInt_remove_leading_zeroes(product);
 }
 
-void BigInt_divide_impl(BigInt_limb_t * dividend, BigInt_limb_t * divisor, BigInt_limb_t * quotient, int dividendLen, int divisorLen, int quotientLen, BigInt_limb_t limb_base) {
+void BigInt_divide_impl(BigInt_limb_t * dividend, BigInt_limb_t * divisor, BigInt_limb_t * quotient, int dividendLen, int divisorLen, int quotientLen, BigInt_limb_wide_t limb_base) {
   int remainderLen = divisorLen + 1;
-  BigInt_limb_t * remainder = (BigInt_limb_t *)BIGINT_ALLOC((remainderLen) * sizeof(BigInt_limb_t));
-  BigInt_limb_t * tempHolder = (BigInt_limb_t *)BIGINT_ALLOC((remainderLen) * sizeof(BigInt_limb_t));
   int i, j;
-  BigInt_limb_t qDigit1, qDigit2, dvsrDigit, qhat;
-  BigInt_limb_t * qDigit = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
+  BigInt_limb_wide_t qDigit1, qDigit2, dvsrDigit, qhat;
+  BigInt_limb_t * remainder;
+  BigInt_limb_t * tempHolder;
+  BigInt_limb_t * qDigit;
+
+  remainder = (BigInt_limb_t *)BIGINT_ALLOC((remainderLen) * sizeof(BigInt_limb_t));
+  tempHolder = (BigInt_limb_t *)BIGINT_ALLOC((remainderLen) * sizeof(BigInt_limb_t));
+  qDigit = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
 
   for (i = 0; i < remainderLen; i++) {
     remainder[remainderLen - i - 1] = dividend[dividendLen - i - 1];
@@ -767,12 +779,16 @@ void BigInt_divide_impl(BigInt_limb_t * dividend, BigInt_limb_t * divisor, BigIn
 }
 
 void BigInt_divide(BigInt * quotient, BigInt * dividend1, BigInt * divisor) {
-  BigInt_limb_t * d = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
   int i;
-  BigInt_limb_t * newDividend = NULL;
-  BigInt_limb_t * newDivisor = NULL;
-
+  BigInt_limb_t * d;
+  BigInt_limb_t * newDividend;
+  BigInt_limb_t * newDivisor;
   BigInt dividend2;
+
+  d = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
+  newDividend = NULL;
+  newDivisor = NULL;
+
   BigInt_copy_to_no_init(&dividend2, dividend1, 1, 1);
 
   d[0] = BIGINT_BASE / (divisor->internalRepresentation[divisor->internalSize - 1] + 1);
@@ -805,10 +821,14 @@ void BigInt_divide(BigInt * quotient, BigInt * dividend1, BigInt * divisor) {
 }
 
 void BigInt_divide_no_copy(BigInt * quotient, BigInt * dividend, BigInt * divisor) {
-  BigInt_limb_t * d = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
   int i;
-  BigInt_limb_t * newDividend = NULL;
-  BigInt_limb_t * newDivisor = NULL;
+  BigInt_limb_t * d;
+  BigInt_limb_t * newDividend;
+  BigInt_limb_t * newDivisor;
+
+  d = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
+  newDividend = NULL;
+  newDivisor = NULL;
 
   BigInt_add_leading_zero(dividend);
 
@@ -842,12 +862,16 @@ void BigInt_divide_no_copy(BigInt * quotient, BigInt * dividend, BigInt * diviso
 }
 
 void BigInt_divide_with_sign(BigInt * quotient, BigInt * dividend1, BigInt * divisor) {
-  BigInt_limb_t * d = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
   int i;
-  BigInt_limb_t * newDividend = NULL;
-  BigInt_limb_t * newDivisor = NULL;
-
+  BigInt_limb_t * d;
+  BigInt_limb_t * newDividend;
+  BigInt_limb_t * newDivisor;
   BigInt dividend2;
+
+  d = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
+  newDividend = NULL;
+  newDivisor = NULL;
+
   BigInt_copy_to_no_init(&dividend2, dividend1, 1, 1);
 
   d[0] = BIGINT_BASE / (divisor->internalRepresentation[divisor->internalSize - 1] + 1);
@@ -894,10 +918,14 @@ void BigInt_divide_with_sign(BigInt * quotient, BigInt * dividend1, BigInt * div
 }
 
 void BigInt_divide_no_copy_with_sign(BigInt * quotient, BigInt * dividend, BigInt * divisor) {
-  BigInt_limb_t * d = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
   int i;
-  BigInt_limb_t * newDividend = NULL;
-  BigInt_limb_t * newDivisor = NULL;
+  BigInt_limb_t * d;
+  BigInt_limb_t * newDividend;
+  BigInt_limb_t * newDivisor;
+
+  d = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
+  newDividend = NULL;
+  newDivisor = NULL;
 
   BigInt_add_leading_zero(dividend);
 
@@ -1169,10 +1197,10 @@ void BigInt_divide_ts(BigInt * out, BigInt * a, BigInt * b) {
   BigInt_destroy(&temp);
 }
 
-void BigInt_set_from_limb(BigInt * b, BigInt_limb_t num, BigInt_limb_t limb_base) {
+void BigInt_set_from_limb(BigInt * b, BigInt_limb_wide_t num, BigInt_limb_wide_t limb_base) {
   int len = 1;
   int i = 0;
-  BigInt_limb_t n = num;
+  BigInt_limb_wide_t n = num;
   if (num == 0) {
     b->internalRepresentation[0] = 0;
     b->internalSize = 1;
