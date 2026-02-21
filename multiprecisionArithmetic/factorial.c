@@ -8,7 +8,7 @@ int main() {
   BigInt_init_from_string(&fact, "1");
   BigInt_init_from_string(&i, "1");
   BigInt_init_from_string(&one, "1");
-  BigInt_init_from_string(&end, "1000");
+  BigInt_init_from_string(&end, "10000");
 
   while(BigInt_cmp(&i, &end) <= 0) {
     BigInt_multiply_t(&fact, &fact, &i); /* fact = fact * i; */
