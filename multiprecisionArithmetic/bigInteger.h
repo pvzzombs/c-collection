@@ -1,5 +1,10 @@
 #pragma once
 
+#if !defined(BIGINT_USE_CUSTOM_ALLOC)
+#define BIGINT_ALLOC(x) malloc(x);
+#define BIGINT_FREE(x) free(x);
+#endif
+
 #if defined(__STDC_VERSION__)
 #include <stdint.h>
 #if INTPTR_MAX == INT64_MAX
@@ -216,7 +221,7 @@ int BigInt_is_zero_impl(BigInt_limb_t * arr, int len) {
 }
 
 void BigInt_init (BigInt * b) {
-  b->internalRepresentation = (BigInt_limb_t *)malloc(1 * sizeof(BigInt_limb_t));
+  b->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
   b->internalSize = 1;
   b->internalRepresentation[0] = 0;
   b->allocSize = 1;
@@ -233,8 +238,8 @@ void BigInt_init_none (BigInt * b) {
 void BigInt_copy(BigInt * to, BigInt * from) {
   int i;
   if (to->allocSize < from->internalSize) {
-    free(to->internalRepresentation);
-    to->internalRepresentation = (BigInt_limb_t *)malloc(sizeof(BigInt_limb_t) * from->internalSize);
+    BIGINT_FREE(to->internalRepresentation);
+    to->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC(sizeof(BigInt_limb_t) * from->internalSize);
     to->allocSize = from->internalSize;
   }
   for (i = 0; i < from->internalSize; i++) {
@@ -253,7 +258,7 @@ void BigInt_copy_to_no_init(BigInt * dest, BigInt * src, int allowance, int useA
     dest->internalSize = src->internalSize;
   }
   dest->sign = src->sign;
-  dest->internalRepresentation = (BigInt_limb_t *)malloc(dest->allocSize * sizeof(BigInt_limb_t));
+  dest->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC(dest->allocSize * sizeof(BigInt_limb_t));
   for (i = 0; i < dest->allocSize; i++) {
     dest->internalRepresentation[i] = 0;
   }
@@ -280,7 +285,7 @@ void BigInt_swap(BigInt * b1, BigInt * b2) {
 }
 
 void BigInt_destroy(BigInt * b) {
-  free(b->internalRepresentation);
+  BIGINT_FREE(b->internalRepresentation);
   b->internalRepresentation = NULL;
   b->internalSize = 0;
   b->allocSize = 0;
@@ -373,12 +378,12 @@ void BigInt_add_leading_zero(BigInt * b) {
     b->internalRepresentation[bSize] = 0;
     b->internalSize = bSize + 1;
   } else {
-    newInts = (BigInt_limb_t *)malloc((bSize + 1) * sizeof(BigInt_limb_t));
+    newInts = (BigInt_limb_t *)BIGINT_ALLOC((bSize + 1) * sizeof(BigInt_limb_t));
     for (i = 0; i < bSize; i++) {
       newInts[i] = b->internalRepresentation[i];
     }
     newInts[bSize] = 0;
-    free(b->internalRepresentation);
+    BIGINT_FREE(b->internalRepresentation);
     b->internalRepresentation = newInts;
     b->internalSize = bSize + 1;
     b->allocSize = bSize + 1;
@@ -388,13 +393,13 @@ void BigInt_add_leading_zero(BigInt * b) {
 void BigInt_print(BigInt * b) {
   char * s = BigInt_to_string(b);
   printf("%s", s);
-  free(s);
+  BIGINT_FREE(s);
 }
 
 void BigInt_print_s(BigInt * b) {
   char * s = BigInt_to_string_with_sign(b);
   printf("%s", s);
-  free(s);
+  BIGINT_FREE(s);
 }
 
 void BigInt_add_impl(BigInt_limb_t * addend1, BigInt_limb_t * addend2, BigInt_limb_t * sum, int addend1Len, int addend2Len, int sumLen, BigInt_limb_t limb_base) {
@@ -428,8 +433,8 @@ void BigInt_add(BigInt * sum, BigInt * addend1, BigInt * addend2) {
     sum->internalSize = addend1->internalSize + 1;
     sum->internalRepresentation[addend1->internalSize] = 0;
   } else {
-    free(sum->internalRepresentation);
-    sum->internalRepresentation = (BigInt_limb_t *)malloc((addend1->internalSize + 1) * sizeof(BigInt_limb_t));
+    BIGINT_FREE(sum->internalRepresentation);
+    sum->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((addend1->internalSize + 1) * sizeof(BigInt_limb_t));
     sum->internalRepresentation[addend1->internalSize] = 0;
     sum->internalSize = addend1->internalSize + 1;
     sum->allocSize = addend1->internalSize + 1;
@@ -463,8 +468,8 @@ void BigInt_add_small(BigInt * sum, BigInt * addend1, BigInt_limb_t addend2) {
   if (sum->allocSize > addend1->internalSize) {
     sum->internalSize = addend1->internalSize + 1;
   } else {
-    free(sum->internalRepresentation);
-    sum->internalRepresentation = (BigInt_limb_t *)malloc((addend1->internalSize + 1) * sizeof(BigInt_limb_t));
+    BIGINT_FREE(sum->internalRepresentation);
+    sum->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((addend1->internalSize + 1) * sizeof(BigInt_limb_t));
     sum->internalRepresentation[addend1->internalSize] = 0;
     sum->internalSize = addend1->internalSize + 1;
     sum->allocSize = addend1->internalSize + 1;
@@ -510,8 +515,8 @@ void BigInt_subtract(BigInt * difference, BigInt * minuend, BigInt * subtrahend)
   if (difference->allocSize >= minuend->internalSize) {
     difference->internalSize = minuend->internalSize;
   } else {
-    free(difference->internalRepresentation);
-    difference->internalRepresentation = (BigInt_limb_t *)malloc((minuend->internalSize) * sizeof(BigInt_limb_t));
+    BIGINT_FREE(difference->internalRepresentation);
+    difference->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((minuend->internalSize) * sizeof(BigInt_limb_t));
     difference->internalSize = minuend->internalSize;
     difference->allocSize = minuend->internalSize;
   }
@@ -536,8 +541,8 @@ void BigInt_add_with_sign(BigInt * sum, BigInt * addend1, BigInt * addend2) {
   if (sum->allocSize > addend1->internalSize) {
     sum->internalSize = addend1->internalSize + 1;
   } else {
-    free(sum->internalRepresentation);
-    sum->internalRepresentation = (BigInt_limb_t *)malloc((addend1->internalSize + 1) * sizeof(BigInt_limb_t));
+    BIGINT_FREE(sum->internalRepresentation);
+    sum->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((addend1->internalSize + 1) * sizeof(BigInt_limb_t));
     sum->internalRepresentation[addend1->internalSize] = 0;
     sum->internalSize = addend1->internalSize + 1;
     sum->allocSize = addend1->internalSize + 1;
@@ -573,8 +578,8 @@ void BigInt_subtract_with_sign(BigInt * difference, BigInt * minuend, BigInt * s
   if (difference->allocSize >= minuend->internalSize + allowance) {
     difference->internalSize = minuend->internalSize + allowance;
   } else {
-    free(difference->internalRepresentation);
-    difference->internalRepresentation = (BigInt_limb_t *)malloc((minuend->internalSize + allowance) * sizeof(BigInt_limb_t));
+    BIGINT_FREE(difference->internalRepresentation);
+    difference->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((minuend->internalSize + allowance) * sizeof(BigInt_limb_t));
     difference->internalRepresentation[minuend->internalSize + allowance] = 0;
     difference->internalSize = minuend->internalSize + allowance;
     difference->allocSize = minuend->internalSize + allowance;
@@ -631,8 +636,8 @@ void BigInt_multiply(BigInt * product, BigInt * multiplicand, BigInt * multiplie
   if (product->allocSize >= multiplicand->internalSize + multiplier->internalSize) {
     product->internalSize = multiplicand->internalSize + multiplier->internalSize;
   } else {
-    free(product->internalRepresentation);
-    product->internalRepresentation = (BigInt_limb_t *)malloc((multiplicand->internalSize + multiplier->internalSize) * sizeof(BigInt_limb_t));
+    BIGINT_FREE(product->internalRepresentation);
+    product->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((multiplicand->internalSize + multiplier->internalSize) * sizeof(BigInt_limb_t));
     product->internalSize = multiplicand->internalSize + multiplier->internalSize;
     product->allocSize = multiplicand->internalSize + multiplier->internalSize;
   }
@@ -680,8 +685,8 @@ void BigInt_multiply_small(BigInt * product, BigInt * multiplicand, BigInt_limb_
   if (product->allocSize >= multiplicand->internalSize + 1) {
     product->internalSize = multiplicand->internalSize + 1;
   } else {
-    free(product->internalRepresentation);
-    product->internalRepresentation = (BigInt_limb_t *)malloc((multiplicand->internalSize + 1) * sizeof(BigInt_limb_t));
+    BIGINT_FREE(product->internalRepresentation);
+    product->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((multiplicand->internalSize + 1) * sizeof(BigInt_limb_t));
     product->internalSize = multiplicand->internalSize + 1;
     product->allocSize = multiplicand->internalSize + 1;
   }
@@ -703,8 +708,8 @@ void BigInt_multiply_with_sign(BigInt * product, BigInt * multiplicand, BigInt *
   if (product->allocSize >= multiplicand->internalSize + multiplier->internalSize) {
     product->internalSize = multiplicand->internalSize + multiplier->internalSize;
   } else {
-    free(product->internalRepresentation);
-    product->internalRepresentation = (BigInt_limb_t *)malloc((multiplicand->internalSize + multiplier->internalSize) * sizeof(BigInt_limb_t));
+    BIGINT_FREE(product->internalRepresentation);
+    product->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((multiplicand->internalSize + multiplier->internalSize) * sizeof(BigInt_limb_t));
     product->internalSize = multiplicand->internalSize + multiplier->internalSize;
     product->allocSize = multiplicand->internalSize + multiplier->internalSize;
   }
@@ -717,11 +722,11 @@ void BigInt_multiply_with_sign(BigInt * product, BigInt * multiplicand, BigInt *
 
 void BigInt_divide_impl(BigInt_limb_t * dividend, BigInt_limb_t * divisor, BigInt_limb_t * quotient, int dividendLen, int divisorLen, int quotientLen, BigInt_limb_t limb_base) {
   int remainderLen = divisorLen + 1;
-  BigInt_limb_t * remainder = (BigInt_limb_t *)malloc((remainderLen) * sizeof(BigInt_limb_t));
-  BigInt_limb_t * tempHolder = (BigInt_limb_t *)malloc((remainderLen) * sizeof(BigInt_limb_t));
+  BigInt_limb_t * remainder = (BigInt_limb_t *)BIGINT_ALLOC((remainderLen) * sizeof(BigInt_limb_t));
+  BigInt_limb_t * tempHolder = (BigInt_limb_t *)BIGINT_ALLOC((remainderLen) * sizeof(BigInt_limb_t));
   int i, j;
   BigInt_limb_t qDigit1, qDigit2, dvsrDigit, qhat;
-  BigInt_limb_t * qDigit = (BigInt_limb_t *)malloc(1 * sizeof(BigInt_limb_t));
+  BigInt_limb_t * qDigit = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
 
   for (i = 0; i < remainderLen; i++) {
     remainder[remainderLen - i - 1] = dividend[dividendLen - i - 1];
@@ -752,13 +757,13 @@ void BigInt_divide_impl(BigInt_limb_t * dividend, BigInt_limb_t * divisor, BigIn
     BigInt_internal_shift_towards_front_by_one(remainder, remainderLen);
   }
 
-  free(remainder);
-  free(tempHolder);
-  free(qDigit);
+  BIGINT_FREE(remainder);
+  BIGINT_FREE(tempHolder);
+  BIGINT_FREE(qDigit);
 }
 
 void BigInt_divide(BigInt * quotient, BigInt * dividend1, BigInt * divisor) {
-  BigInt_limb_t * d = (BigInt_limb_t *)malloc(1 * sizeof(BigInt_limb_t));
+  BigInt_limb_t * d = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
   int i;
   BigInt_limb_t * newDividend = NULL;
   BigInt_limb_t * newDivisor = NULL;
@@ -767,8 +772,8 @@ void BigInt_divide(BigInt * quotient, BigInt * dividend1, BigInt * divisor) {
   BigInt_copy_to_no_init(&dividend2, dividend1, 1, 1);
 
   d[0] = BIGINT_BASE / (divisor->internalRepresentation[divisor->internalSize - 1] + 1);
-  newDividend = (BigInt_limb_t *)malloc((dividend2.internalSize) * sizeof(BigInt_limb_t));
-  newDivisor = (BigInt_limb_t *)malloc((divisor->internalSize) * sizeof(BigInt_limb_t));
+  newDividend = (BigInt_limb_t *)BIGINT_ALLOC((dividend2.internalSize) * sizeof(BigInt_limb_t));
+  newDivisor = (BigInt_limb_t *)BIGINT_ALLOC((divisor->internalSize) * sizeof(BigInt_limb_t));
   for (i = 0; i < dividend2.internalSize; i++) {
     newDividend[i] = 0;
   }
@@ -779,8 +784,8 @@ void BigInt_divide(BigInt * quotient, BigInt * dividend1, BigInt * divisor) {
   if (quotient->allocSize >= dividend2.internalSize - divisor->internalSize) {
     quotient->internalSize = dividend2.internalSize - divisor->internalSize;
   } else {
-    free(quotient->internalRepresentation);
-    quotient->internalRepresentation = (BigInt_limb_t *)malloc((dividend2.internalSize - divisor->internalSize) * sizeof(BigInt_limb_t));
+    BIGINT_FREE(quotient->internalRepresentation);
+    quotient->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((dividend2.internalSize - divisor->internalSize) * sizeof(BigInt_limb_t));
     quotient->internalSize = dividend2.internalSize - divisor->internalSize;
     quotient->allocSize = dividend2.internalSize - divisor->internalSize;
   }
@@ -790,13 +795,13 @@ void BigInt_divide(BigInt * quotient, BigInt * dividend1, BigInt * divisor) {
   BigInt_remove_leading_zeroes(quotient);
 
   BigInt_destroy(&dividend2);
-  free(newDividend);
-  free(newDivisor);
-  free(d);
+  BIGINT_FREE(newDividend);
+  BIGINT_FREE(newDivisor);
+  BIGINT_FREE(d);
 }
 
 void BigInt_divide_no_copy(BigInt * quotient, BigInt * dividend, BigInt * divisor) {
-  BigInt_limb_t * d = (BigInt_limb_t *)malloc(1 * sizeof(BigInt_limb_t));
+  BigInt_limb_t * d = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
   int i;
   BigInt_limb_t * newDividend = NULL;
   BigInt_limb_t * newDivisor = NULL;
@@ -804,8 +809,8 @@ void BigInt_divide_no_copy(BigInt * quotient, BigInt * dividend, BigInt * diviso
   BigInt_add_leading_zero(dividend);
 
   d[0] = BIGINT_BASE / (divisor->internalRepresentation[divisor->internalSize - 1] + 1);
-  newDividend = (BigInt_limb_t *)malloc((dividend->internalSize) * sizeof(BigInt_limb_t));
-  newDivisor = (BigInt_limb_t *)malloc((divisor->internalSize) * sizeof(BigInt_limb_t));
+  newDividend = (BigInt_limb_t *)BIGINT_ALLOC((dividend->internalSize) * sizeof(BigInt_limb_t));
+  newDivisor = (BigInt_limb_t *)BIGINT_ALLOC((divisor->internalSize) * sizeof(BigInt_limb_t));
   for (i = 0; i < dividend->internalSize; i++) {
     newDividend[i] = 0;
   }
@@ -816,8 +821,8 @@ void BigInt_divide_no_copy(BigInt * quotient, BigInt * dividend, BigInt * diviso
   if (quotient->allocSize >= dividend->internalSize - divisor->internalSize) {
     quotient->internalSize = dividend->internalSize - divisor->internalSize;
   } else {
-    free(quotient->internalRepresentation);
-    quotient->internalRepresentation = (BigInt_limb_t *)malloc((dividend->internalSize - divisor->internalSize) * sizeof(BigInt_limb_t));
+    BIGINT_FREE(quotient->internalRepresentation);
+    quotient->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((dividend->internalSize - divisor->internalSize) * sizeof(BigInt_limb_t));
     quotient->internalSize = dividend->internalSize - divisor->internalSize;
     quotient->allocSize = dividend->internalSize - divisor->internalSize;
   }
@@ -827,13 +832,13 @@ void BigInt_divide_no_copy(BigInt * quotient, BigInt * dividend, BigInt * diviso
   BigInt_remove_leading_zeroes(quotient);
   BigInt_remove_leading_zeroes(dividend);
 
-  free(newDividend);
-  free(newDivisor);
-  free(d);
+  BIGINT_FREE(newDividend);
+  BIGINT_FREE(newDivisor);
+  BIGINT_FREE(d);
 }
 
 void BigInt_divide_with_sign(BigInt * quotient, BigInt * dividend1, BigInt * divisor) {
-  BigInt_limb_t * d = (BigInt_limb_t *)malloc(1 * sizeof(BigInt_limb_t));
+  BigInt_limb_t * d = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
   int i;
   BigInt_limb_t * newDividend = NULL;
   BigInt_limb_t * newDivisor = NULL;
@@ -842,8 +847,8 @@ void BigInt_divide_with_sign(BigInt * quotient, BigInt * dividend1, BigInt * div
   BigInt_copy_to_no_init(&dividend2, dividend1, 1, 1);
 
   d[0] = BIGINT_BASE / (divisor->internalRepresentation[divisor->internalSize - 1] + 1);
-  newDividend = (BigInt_limb_t *)malloc((dividend2.internalSize) * sizeof(BigInt_limb_t));
-  newDivisor = (BigInt_limb_t *)malloc((divisor->internalSize) * sizeof(BigInt_limb_t));
+  newDividend = (BigInt_limb_t *)BIGINT_ALLOC((dividend2.internalSize) * sizeof(BigInt_limb_t));
+  newDivisor = (BigInt_limb_t *)BIGINT_ALLOC((divisor->internalSize) * sizeof(BigInt_limb_t));
   for (i = 0; i < dividend2.internalSize; i++) {
     newDividend[i] = 0;
   }
@@ -857,8 +862,8 @@ void BigInt_divide_with_sign(BigInt * quotient, BigInt * dividend1, BigInt * div
       quotient->internalRepresentation[0] = 0;
       quotient->internalSize = 1;
     } else {
-      free(quotient->internalRepresentation);
-      quotient->internalRepresentation = (BigInt_limb_t *)malloc(1 * sizeof(BigInt_limb_t));
+      BIGINT_FREE(quotient->internalRepresentation);
+      quotient->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
       quotient->internalRepresentation[0] = 0;
       quotient->internalSize = 1;
       quotient->allocSize = 1;
@@ -867,8 +872,8 @@ void BigInt_divide_with_sign(BigInt * quotient, BigInt * dividend1, BigInt * div
     if (quotient->allocSize >= dividend2.internalSize - divisor->internalSize) {
       quotient->internalSize = dividend2.internalSize - divisor->internalSize;
     } else {
-      free(quotient->internalRepresentation);
-      quotient->internalRepresentation = (BigInt_limb_t *)malloc((dividend2.internalSize - divisor->internalSize) * sizeof(BigInt_limb_t));
+      BIGINT_FREE(quotient->internalRepresentation);
+      quotient->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((dividend2.internalSize - divisor->internalSize) * sizeof(BigInt_limb_t));
       quotient->internalSize = dividend2.internalSize - divisor->internalSize;
       quotient->allocSize = dividend2.internalSize - divisor->internalSize;
     }
@@ -879,13 +884,13 @@ void BigInt_divide_with_sign(BigInt * quotient, BigInt * dividend1, BigInt * div
   }
   
   BigInt_destroy(&dividend2);
-  free(newDividend);
-  free(newDivisor);
-  free(d);
+  BIGINT_FREE(newDividend);
+  BIGINT_FREE(newDivisor);
+  BIGINT_FREE(d);
 }
 
 void BigInt_divide_no_copy_with_sign(BigInt * quotient, BigInt * dividend, BigInt * divisor) {
-  BigInt_limb_t * d = (BigInt_limb_t *)malloc(1 * sizeof(BigInt_limb_t));
+  BigInt_limb_t * d = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
   int i;
   BigInt_limb_t * newDividend = NULL;
   BigInt_limb_t * newDivisor = NULL;
@@ -893,8 +898,8 @@ void BigInt_divide_no_copy_with_sign(BigInt * quotient, BigInt * dividend, BigIn
   BigInt_add_leading_zero(dividend);
 
   d[0] = BIGINT_BASE / (divisor->internalRepresentation[divisor->internalSize - 1] + 1);
-  newDividend = (BigInt_limb_t *)malloc((dividend->internalSize) * sizeof(BigInt_limb_t));
-  newDivisor = (BigInt_limb_t *)malloc((divisor->internalSize) * sizeof(BigInt_limb_t));
+  newDividend = (BigInt_limb_t *)BIGINT_ALLOC((dividend->internalSize) * sizeof(BigInt_limb_t));
+  newDivisor = (BigInt_limb_t *)BIGINT_ALLOC((divisor->internalSize) * sizeof(BigInt_limb_t));
   for (i = 0; i < dividend->internalSize; i++) {
     newDividend[i] = 0;
   }
@@ -909,8 +914,8 @@ void BigInt_divide_no_copy_with_sign(BigInt * quotient, BigInt * dividend, BigIn
       quotient->internalRepresentation[0] = 0;
       quotient->internalSize = 1;
     } else {
-      free(quotient->internalRepresentation);
-      quotient->internalRepresentation = (BigInt_limb_t *)malloc(1 * sizeof(BigInt_limb_t));
+      BIGINT_FREE(quotient->internalRepresentation);
+      quotient->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
       quotient->internalRepresentation[0] = 0;
       quotient->internalSize = 1;
       quotient->allocSize = 1;
@@ -919,8 +924,8 @@ void BigInt_divide_no_copy_with_sign(BigInt * quotient, BigInt * dividend, BigIn
     if (quotient->allocSize >= dividend->internalSize - divisor->internalSize) {
       quotient->internalSize = dividend->internalSize - divisor->internalSize;
     } else {
-      free(quotient->internalRepresentation);
-      quotient->internalRepresentation = (BigInt_limb_t *)malloc((dividend->internalSize - divisor->internalSize) * sizeof(BigInt_limb_t));
+      BIGINT_FREE(quotient->internalRepresentation);
+      quotient->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((dividend->internalSize - divisor->internalSize) * sizeof(BigInt_limb_t));
       quotient->internalSize = dividend->internalSize - divisor->internalSize;
       quotient->allocSize = dividend->internalSize - divisor->internalSize;
     }
@@ -931,9 +936,9 @@ void BigInt_divide_no_copy_with_sign(BigInt * quotient, BigInt * dividend, BigIn
     BigInt_remove_leading_zeroes(dividend);
   }
 
-  free(newDividend);
-  free(newDivisor);
-  free(d);
+  BIGINT_FREE(newDividend);
+  BIGINT_FREE(newDivisor);
+  BIGINT_FREE(d);
 }
 
 void BigInt_set_from_string_with_small(BigInt * b, char * str) {
@@ -1134,8 +1139,8 @@ void BigInt_set_from_limb(BigInt * b, BigInt_limb_t num, BigInt_limb_t limb_base
     len++;
   }
   if (b->allocSize < len) {
-    free(b->internalRepresentation);
-    b->internalRepresentation = (BigInt_limb_t *)malloc(len * sizeof(BigInt_limb_t));
+    BIGINT_FREE(b->internalRepresentation);
+    b->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC(len * sizeof(BigInt_limb_t));
     b->allocSize = len;
   }
   b->internalSize = len;
@@ -1156,8 +1161,8 @@ void BigInt_big_add(BigInt * sum, BigInt * addend1, BigInt * addend2) {
     sum->internalSize = addend1->internalSize + 1;
     sum->internalRepresentation[addend1->internalSize] = 0;
   } else {
-    free(sum->internalRepresentation);
-    sum->internalRepresentation = (BigInt_limb_t *)malloc((addend1->internalSize + 1) * sizeof(BigInt_limb_t));
+    BIGINT_FREE(sum->internalRepresentation);
+    sum->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((addend1->internalSize + 1) * sizeof(BigInt_limb_t));
     sum->internalRepresentation[addend1->internalSize] = 0;
     sum->internalSize = addend1->internalSize + 1;
     sum->allocSize = addend1->internalSize + 1;
@@ -1177,8 +1182,8 @@ void BigInt_big_multiply(BigInt * product, BigInt * multiplicand, BigInt * multi
   if (product->allocSize >= multiplicand->internalSize + multiplier->internalSize) {
     product->internalSize = multiplicand->internalSize + multiplier->internalSize;
   } else {
-    free(product->internalRepresentation);
-    product->internalRepresentation = (BigInt_limb_t *)malloc((multiplicand->internalSize + multiplier->internalSize) * sizeof(BigInt_limb_t));
+    BIGINT_FREE(product->internalRepresentation);
+    product->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((multiplicand->internalSize + multiplier->internalSize) * sizeof(BigInt_limb_t));
     product->internalSize = multiplicand->internalSize + multiplier->internalSize;
     product->allocSize = multiplicand->internalSize + multiplier->internalSize;
   }
@@ -1200,8 +1205,8 @@ void BigInt_B10_add(BigInt * sum, BigInt * addend1, BigInt * addend2) {
     sum->internalSize = addend1->internalSize + 1;
     sum->internalRepresentation[addend1->internalSize] = 0;
   } else {
-    free(sum->internalRepresentation);
-    sum->internalRepresentation = (BigInt_limb_t *)malloc((addend1->internalSize + 1) * sizeof(BigInt_limb_t));
+    BIGINT_FREE(sum->internalRepresentation);
+    sum->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((addend1->internalSize + 1) * sizeof(BigInt_limb_t));
     sum->internalRepresentation[addend1->internalSize] = 0;
     sum->internalSize = addend1->internalSize + 1;
     sum->allocSize = addend1->internalSize + 1;
@@ -1221,8 +1226,8 @@ void BigInt_B10_multiply(BigInt * product, BigInt * multiplicand, BigInt * multi
   if (product->allocSize >= multiplicand->internalSize + multiplier->internalSize) {
     product->internalSize = multiplicand->internalSize + multiplier->internalSize;
   } else {
-    free(product->internalRepresentation);
-    product->internalRepresentation = (BigInt_limb_t *)malloc((multiplicand->internalSize + multiplier->internalSize) * sizeof(BigInt_limb_t));
+    BIGINT_FREE(product->internalRepresentation);
+    product->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((multiplicand->internalSize + multiplier->internalSize) * sizeof(BigInt_limb_t));
     product->internalSize = multiplicand->internalSize + multiplier->internalSize;
     product->allocSize = multiplicand->internalSize + multiplier->internalSize;
   }
@@ -1250,7 +1255,7 @@ char * BigInt_to_string_with_small_base(BigInt * b) {
     BigInt_B10_add(&out1, &out2, &temp);
   }
 
-  str_out = (char *)malloc((out1.internalSize + 1) * sizeof(char));
+  str_out = (char *)BIGINT_ALLOC((out1.internalSize + 1) * sizeof(char));
 
   for (i = 0; i < out1.internalSize; i++) {
     str_out[i] = out1.internalRepresentation[out1.internalSize - 1 - i] + '0';
@@ -1331,7 +1336,7 @@ char * BigInt_to_string(BigInt * b) {
 
   count_digits = msl_count + ((out1.internalSize - 1) * BIGINT_BASE_DIGITS);
 
-  str_out = (char *)malloc((count_digits + 1)* sizeof(char));
+  str_out = (char *)BIGINT_ALLOC((count_digits + 1)* sizeof(char));
 
   for (i = 0; i < count_digits; i++) {
     str_out[i] = '0';
@@ -1399,7 +1404,7 @@ char * BigInt_to_string_with_sign(BigInt * b) {
 
   count_digits = msl_count + ((out1.internalSize - 1) * BIGINT_BASE_DIGITS) + hasSign;
 
-  str_out = (char *)malloc((count_digits + 1) * sizeof(char));
+  str_out = (char *)BIGINT_ALLOC((count_digits + 1) * sizeof(char));
 
   for (i = 0; i < count_digits; i++) {
     str_out[i] = '0';
@@ -1461,11 +1466,11 @@ void BigInt_shift_left(BigInt * b, int n) {
     return;
   }
   if (b->allocSize < b->internalSize + n) {
-    temp = (BigInt_limb_t *)malloc(sizeof(BigInt_limb_t) * (b->internalSize + n));
+    temp = (BigInt_limb_t *)BIGINT_ALLOC(sizeof(BigInt_limb_t) * (b->internalSize + n));
     for (i = 0; i < b->internalSize; i++) {
       temp[i] = b->internalRepresentation[i];
     }
-    free(b->internalRepresentation);
+    BIGINT_FREE(b->internalRepresentation);
     b->internalRepresentation = temp;
     b->allocSize = b->internalSize + n;
   }
@@ -1511,11 +1516,11 @@ void BigInt_add_leading_zeroes(BigInt * b, int n) {
   }
 
   if (b->allocSize < b->internalSize + n) {
-    newInts = (BigInt_limb_t *)malloc(sizeof(BigInt_limb_t) * (b->internalSize + n));
+    newInts = (BigInt_limb_t *)BIGINT_ALLOC(sizeof(BigInt_limb_t) * (b->internalSize + n));
     for (i = 0; i < b->internalSize; i++) {
       newInts[i] = b->internalRepresentation[i];
     }
-    free(b->internalRepresentation);
+    BIGINT_FREE(b->internalRepresentation);
     b->internalRepresentation = newInts;
     b->allocSize = b->internalSize + n;
   }
@@ -1529,8 +1534,8 @@ void BigInt_set_from_view(BigInt * dest, BigInt * source, int start, int end) {
   int i, j;
   BigInt_limb_t * limbs = NULL;
   if (dest->allocSize < (end - start + 1)) {
-    limbs = (BigInt_limb_t *)malloc(sizeof(BigInt_limb_t) * (end - start + 1));
-    free(dest->internalRepresentation);
+    limbs = (BigInt_limb_t *)BIGINT_ALLOC(sizeof(BigInt_limb_t) * (end - start + 1));
+    BIGINT_FREE(dest->internalRepresentation);
     dest->internalRepresentation = limbs;
     dest->allocSize = (end - start + 1);
   }

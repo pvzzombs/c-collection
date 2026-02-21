@@ -1,6 +1,7 @@
 CompileFlags:
   Add:
     - -DBIGINT_IMPL
+    - -DMEMORY_POOL_IMPL
     - -xc
     - -std=c89
     - -pedantic-errors
