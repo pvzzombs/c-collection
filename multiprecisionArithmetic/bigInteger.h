@@ -126,6 +126,10 @@ void BigInt_add_t(BigInt *, BigInt *, BigInt *);
 void BigInt_subtract_t(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_t(BigInt *, BigInt *, BigInt *);
 void BigInt_divide_t(BigInt *, BigInt *, BigInt *);
+void BigInt_add_assign(BigInt *, BigInt *);
+void BigInt_subtract_assign(BigInt *, BigInt *);
+void BigInt_multiply_assign(BigInt *, BigInt *);
+void BigInt_divide_assign(BigInt *, BigInt *);
 void BigInt_add_ts(BigInt *, BigInt *, BigInt *);
 void BigInt_subtract_ts(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_ts(BigInt *, BigInt *, BigInt *);
@@ -1082,6 +1086,46 @@ void BigInt_divide_t(BigInt * out, BigInt * a, BigInt * b) {
   BigInt_divide(&temp, a, b);
   
   BigInt_copy(out, &temp);
+  BigInt_destroy(&temp);
+}
+
+void BigInt_add_assign(BigInt * a, BigInt * b) {
+  BigInt temp;
+  BigInt_init_none(&temp);
+
+  BigInt_add(&temp, a, b);
+  
+  BigInt_swap(a, &temp);
+  BigInt_destroy(&temp);
+}
+
+void BigInt_subtract_assign(BigInt * a, BigInt * b) {
+  BigInt temp;
+  BigInt_init_none(&temp);
+
+  BigInt_subtract(&temp, a, b);
+  
+  BigInt_swap(a, &temp);
+  BigInt_destroy(&temp);
+}
+
+void BigInt_multiply_assign(BigInt * a, BigInt * b) {
+  BigInt temp;
+  BigInt_init_none(&temp);
+
+  BigInt_multiply(&temp, a, b);
+  
+  BigInt_swap(a, &temp);
+  BigInt_destroy(&temp);
+}
+
+void BigInt_divide_assign(BigInt * a, BigInt * b) {
+  BigInt temp;
+  BigInt_init_none(&temp);
+
+  BigInt_divide(&temp, a, b);
+  
+  BigInt_swap(a, &temp);
   BigInt_destroy(&temp);
 }
 
