@@ -1,6 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct MemoryPoolDetail_ {
   unsigned int is_free;
   unsigned int size;
@@ -37,7 +41,7 @@ void MP_init(MemoryPool * pool, int m, int n) {
   pool->elem_max_size = m;
   pool->details_size = n;
   pool->index = 0;
-  pool->details = malloc(sizeof(MemoryPoolDetail) * n);
+  pool->details = (MemoryPoolDetail *)malloc(sizeof(MemoryPoolDetail) * n);
 }
 
 void MP_add(MemoryPool * pool, int bs) {
@@ -61,7 +65,7 @@ void MP_start(MemoryPool * pool) {
     total_size += elem_size;
   }
   pool->total_size = total_size;
-  pool->mem = malloc(total_size);
+  pool->mem = (unsigned char *)malloc(total_size);
   mem = pool->mem;
   for(i = 0; i < pool->index; i++) {
     pool->details[i].start = mem;
@@ -110,6 +114,10 @@ void MP_destroy(MemoryPool * pool) {
   free(pool->details);
 }
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #define BIGINT_USE_CUSTOM_ALLOC
