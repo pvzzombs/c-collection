@@ -1,5 +1,5 @@
 #define BIGINT_IMPL
-#define BIGINT_USE_64_BIT
+/*#define BIGINT_USE_64_BIT*/
 #include "bigInteger.h"
 
 int main() {

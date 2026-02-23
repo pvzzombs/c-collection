@@ -1,8 +1,8 @@
 #pragma once
 
 #if !defined(BIGINT_USE_CUSTOM_ALLOC)
-#define BIGINT_ALLOC(x) malloc(x);
-#define BIGINT_FREE(x) free(x);
+#define BIGINT_ALLOC(x) malloc(x)
+#define BIGINT_FREE(x) free(x)
 #endif
 
 #if defined(__STDC_VERSION__)
@@ -44,16 +44,32 @@ typedef long BigInt_limb_wide_t;
 
 #elif defined(BIGINT_USE_32_BIT)
 
+#if defined(__STDC_VERSION__)
 #define BIGINT_BASE 2147483648LL
 #define BIGINT_BASE_STRING "2147483648"
 #define BIGINT_BASE_DIGITS 9
 #define BIGINT_BASE_10 1000000000LL
-#if defined(__STDC_VERSION__)
 typedef int32_t BigInt_limb_t;
 typedef int64_t BigInt_limb_wide_t;
 #else
+#if defined(_MSC_VER)
+#define BIGINT_BASE 2147483648i64
+#define BIGINT_BASE_STRING "2147483648"
+#define BIGINT_BASE_DIGITS 9
+#define BIGINT_BASE_10 1000000000i64
 typedef int BigInt_limb_t;
-typedef long BigInt_limb_wide_t;
+typedef __int64 BigInt_limb_wide_t;
+#elif defined(__GNUC__)
+#define BIGINT_BASE 2147483648LL
+#define BIGINT_BASE_STRING "2147483648"
+#define BIGINT_BASE_DIGITS 9
+#define BIGINT_BASE_10 1000000000LL
+typedef int BigInt_limb_t;
+typedef long long BigInt_limb_wide_t;
+#else
+#error
+#endif
+
 #endif
 
 #elif defined(BIGINT_USE_16_BIT)
@@ -1366,7 +1382,8 @@ char * BigInt_to_string_with_small_base(BigInt * b) {
 }
 
 int BigInt_count_digits_base_10(BigInt * b) {
-  int i, msl_count, n, count_digits;
+  BigInt_limb_t n;
+  int i, msl_count, count_digits;
   BigInt out1, out2, base, temp;
   char * str_out;
   BigInt_init(&out1);
@@ -1404,7 +1421,8 @@ int BigInt_count_digits_base_10(BigInt * b) {
 
 
 char * BigInt_to_string(BigInt * b) {
-  int i, j, msl_count, n, count_digits, offset;
+  BigInt_limb_t n;
+  int i, j, msl_count, count_digits, offset;
   BigInt out1, out2, base, temp;
   char * str_out;
   BigInt_init(&out1);
@@ -1468,7 +1486,8 @@ char * BigInt_to_string(BigInt * b) {
 }
 
 char * BigInt_to_string_with_sign(BigInt * b) {
-  int i, j, msl_count, n, count_digits, offset, hasSign = 0;
+  BigInt_limb_t n;
+  int i, j, msl_count, count_digits, offset, hasSign = 0;
   BigInt out1, out2, base, temp;
   char * str_out;
   BigInt_init(&out1);
