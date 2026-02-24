@@ -17,7 +17,7 @@
 #else
 #if defined(_WIN64) || defined(__x86_64__)
 #define BIGINT_USE_64_BIT
-#elif defined(_WIN32)
+#elif defined(_WIN32) || defined(__i386__)
 #define BIGINT_USE_32_BIT
 #else
 #define BIGINT_USE_16_BIT
@@ -78,7 +78,6 @@ typedef long long BigInt_limb_wide_t;
 #define BIGINT_BASE_STRING "32768"
 #define BIGINT_BASE_DIGITS 4
 #define BIGINT_BASE_10 10000
-typedef int BigInt_limb_t;
 #if defined(__STDC_VERSION__)
 typedef int BigInt_limb_t;
 typedef long BigInt_limb_wide_t;
