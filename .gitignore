@@ -1,5 +1,7 @@
 .vscode
 .vscode/
+_build
+_build/
 build
 build/
 buildWindows
