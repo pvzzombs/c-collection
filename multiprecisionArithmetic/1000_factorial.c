@@ -21,7 +21,7 @@ int main() {
   MP_add(&default_pool, sizeof(BigInt_limb_t) * 1000);
   MP_start(&default_pool);
 
-  BigInt_init_from_string(&fact, "1");
+  BigInt_init_one(&fact);
   /*BigInt_init_from_string(&i, "1");
   BigInt_init_from_string(&one, "1");
   BigInt_init_from_string(&end, "1000");*/

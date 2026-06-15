@@ -15,8 +15,8 @@ int main() {
   int index = 1;
   char * s = NULL;
 
-  BigInt_init_from_string(&a, "1");
-  BigInt_init_from_string(&b, "1");
+  BigInt_init_one(&a);
+  BigInt_init_one(&b);
   BigInt_init(&temp);
 
   while(BigInt_count_digits_base_10(&a) < 1000) {

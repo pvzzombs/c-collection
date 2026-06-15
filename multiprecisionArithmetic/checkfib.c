@@ -21,8 +21,8 @@ int main() {
   file = fopen("fib.bin", "r");
 
   if (file != NULL) {
-    BigInt_init_from_string(&a, "1");
-    BigInt_init_from_string(&b, "1");
+    BigInt_init_one(&a);
+    BigInt_init_one(&b);
     BigInt_init(&temp);
     fgets(buf, 1024, file);
     if (strstr(buf, "\n") != NULL) {

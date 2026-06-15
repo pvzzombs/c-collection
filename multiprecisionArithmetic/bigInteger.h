@@ -109,6 +109,11 @@ void BigInt_itoa_impl(BigInt_limb_t, char *);
 void BigInt_zero_all_impl(BigInt_limb_t *, int);
 int BigInt_is_zero_impl(BigInt_limb_t *, int);
 void BigInt_init(BigInt *);
+void BigInt_init_none(BigInt *);
+void BigInt_init_zero(BigInt *);
+void BigInt_init_one(BigInt *);
+void BigInt_init_two(BigInt *);
+void BigInt_init_negative_one(BigInt *);
 void BigInt_copy(BigInt *, BigInt *);
 void BigInt_copy_to_no_init(BigInt *, BigInt *, int, int);
 void BigInt_swap(BigInt *, BigInt *);
@@ -262,6 +267,38 @@ void BigInt_init_none (BigInt * b) {
   b->internalSize = 0;
   b->allocSize = 0;
   b->sign = 0;
+}
+
+void BigInt_init_zero(BigInt * b) {
+  b->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
+  b->internalSize = 1;
+  b->internalRepresentation[0] = 0;
+  b->allocSize = 1;
+  b->sign = 0;
+}
+
+void BigInt_init_one(BigInt * b) {
+  b->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
+  b->internalSize = 1;
+  b->internalRepresentation[0] = 1;
+  b->allocSize = 1;
+  b->sign = 1;
+}
+
+void BigInt_init_two(BigInt * b) {
+  b->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
+  b->internalSize = 1;
+  b->internalRepresentation[0] = 2;
+  b->allocSize = 1;
+  b->sign = 1;
+}
+
+void BigInt_init_negative_one(BigInt * b) {
+  b->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
+  b->internalSize = 1;
+  b->internalRepresentation[0] = 1;
+  b->allocSize = 1;
+  b->sign = -1;
 }
 
 void BigInt_copy(BigInt * to, BigInt * from) {
