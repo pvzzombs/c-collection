@@ -4,7 +4,6 @@
 #include "multiprecisionArithmetic.h"
 
 #define BIGINT_IMPL
-#define BIGINT_USE_64_BIT
 #include "bigInteger.h"
 
 #define ITERATIONS_COUNT 10
