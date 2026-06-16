@@ -177,6 +177,7 @@ void BigInt_multiply_karatsuba(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_karatsuba_t(BigInt *, BigInt *, BigInt *);
 
 #ifdef BIGINT_IMPL
+#ifdef MPA_IMPL
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1793,6 +1794,7 @@ void BigInt_multiply_karatsuba_t(BigInt * out, BigInt * a, BigInt * b) {
   BigInt_destroy(&temp);
 }
 
+#endif
 #endif
 
 #ifdef __cplusplus
