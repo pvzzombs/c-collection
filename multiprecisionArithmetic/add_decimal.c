@@ -1,5 +1,4 @@
-#define BIGDEC_IMPL
-#define BIGINT_IMPL
+#define MPA_IMPL
 #include "bigDecimal.h"
 
 int main() {

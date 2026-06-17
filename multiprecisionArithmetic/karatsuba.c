@@ -1,12 +1,10 @@
 #include <stdio.h>
 
 #define BIGINT_IMPL
-#define BIGINT_USE_64_BIT
 #include "bigInteger.h"
 
 int main() {
   BigInt a, b, c;
-  char * s;
 
   BigInt_init_from_string(&a, "1024");
   BigInt_init_from_string(&b, "0");

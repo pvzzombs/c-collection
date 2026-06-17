@@ -30,6 +30,7 @@ void MP_add(MemoryPool *, int);
 void MP_start(MemoryPool *);
 unsigned char * MP_alloc(MemoryPool * pool, int);
 void MP_free(MemoryPool *, unsigned char *);
+void MP_free_void(MemoryPool *, void *);
 void MP_destroy(MemoryPool *);
 extern MemoryPool default_pool;
 
@@ -78,7 +79,6 @@ unsigned char * MP_alloc(MemoryPool * pool, int s) {
   int best_index = -1;
   int min_size = pool->total_size;
   int has_free = 0;
-  unsigned char * output = NULL;
   for (i = 0; i < pool->index; i++) {
     if (pool->details[i].is_free) {
       has_free = 1;
@@ -109,6 +109,10 @@ void MP_free(MemoryPool * pool, unsigned char * a) {
   }
 }
 
+void MP_free_void(MemoryPool * pool, void * a) {
+  MP_free(pool, a);
+}
+
 void MP_destroy(MemoryPool * pool) {
   free(pool->mem);
   free(pool->details);
@@ -123,4 +127,4 @@ void MP_destroy(MemoryPool * pool) {
 #define BIGINT_USE_CUSTOM_ALLOC
 
 #define BIGINT_ALLOC(x) MP_alloc(&default_pool, x);
-#define BIGINT_FREE(x) MP_free(&default_pool, x);
+#define BIGINT_FREE(x) MP_free_void(&default_pool, x);

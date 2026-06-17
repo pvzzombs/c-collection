@@ -21,8 +21,7 @@ void BigDec_init(BigDec * b);
 void BigDec_destroy(BigDec * b);
 void BigDec_add(BigDec * sum, BigDec * addend1, BigDec * addend2);
 
-#ifdef BIGDEC_IMPL
-#ifdef MPA_IMPL
+#if defined(BIGDEC_IMPL) || defined(MPA_IMPL)
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,7 +44,6 @@ void BigDec_add(BigDec * sum, BigDec * addend1, BigDec * addend2) {
   BigInt_add_t(sum->value, addend1->value, addend2->value);
 }
 
-#endif
 #endif
 
 #ifdef __cplusplus

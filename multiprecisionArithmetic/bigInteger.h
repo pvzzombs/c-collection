@@ -176,8 +176,7 @@ void BigInt_multiply_karatsuba_impl(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_karatsuba(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_karatsuba_t(BigInt *, BigInt *, BigInt *);
 
-#ifdef BIGINT_IMPL
-#ifdef MPA_IMPL
+#if defined(BIGINT_IMPL) || defined(MPA_IMPL)
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -721,7 +720,7 @@ void BigInt_multiply_small_impl(BigInt_limb_t * multiplicand, BigInt_limb_t mult
   BigInt_limb_wide_t productDigit;
   BigInt_limb_wide_t sumDigit;
   int pIndex = 0, pIndexTemp;
-  int i, j = 0;
+  int i;
   carryA = 0;
   carryM = 0;
   pIndexTemp = pIndex;
@@ -1422,7 +1421,6 @@ int BigInt_count_digits_base_10(BigInt * b) {
   BigInt_limb_t n;
   int i, msl_count, count_digits;
   BigInt out1, out2, base, temp;
-  char * str_out;
   BigInt_init(&out1);
   BigInt_init(&out2);
   BigInt_init(&base);
@@ -1766,7 +1764,7 @@ void BigInt_multiply_karatsuba_impl(BigInt * multiplicand, BigInt * multiplier, 
 }
 
 void BigInt_multiply_karatsuba(BigInt * product, BigInt * multiplicand, BigInt * multiplier) {
-  int i, m1_len, m2_len, mlen_max;
+  int m1_len, m2_len, mlen_max;
   BigInt m1, m2;
   BigInt_copy_to_no_init(&m1, multiplicand, 0, 0);
   BigInt_copy_to_no_init(&m2, multiplier, 0, 0);
@@ -1794,7 +1792,6 @@ void BigInt_multiply_karatsuba_t(BigInt * out, BigInt * a, BigInt * b) {
   BigInt_destroy(&temp);
 }
 
-#endif
 #endif
 
 #ifdef __cplusplus

@@ -6,7 +6,7 @@
 int main() {
   BigInt fact;
   char * s = NULL;
-  int i = 1, one = 1, end = 1000;
+  int i = 1, end = 1000;
 
   MP_init(&default_pool, sizeof(BigInt_limb_t), 10);
   MP_add(&default_pool, sizeof(BigInt_limb_t) * 1000);
