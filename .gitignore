@@ -13,6 +13,7 @@ bin/
 obj
 obj/
 *.bin
+*.csv
 *.o
 *.obj
 *.exe

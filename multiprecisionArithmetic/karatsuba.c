@@ -6,8 +6,8 @@
 int main() {
   BigInt a, b, c;
 
-  BigInt_init_from_string(&a, "1024");
-  BigInt_init_from_string(&b, "0");
+  BigInt_init_random_limb(&a, 512);
+  BigInt_init_random_limb(&b, 512);
   BigInt_init(&c);
 
   BigInt_multiply(&c, &a, &b);
