@@ -9,6 +9,8 @@
 #define BIGINT_RAND() rand()
 #endif
 
+#define BIGINT_KARATSUBA_THRESHOLD 64
+
 #if defined(__STDC_VERSION__)
 #include <stdint.h>
 #if INTPTR_MAX == INT64_MAX
@@ -119,6 +121,7 @@ void BigInt_init_one(BigInt *);
 void BigInt_init_two(BigInt *);
 void BigInt_init_negative_one(BigInt *);
 void BigInt_init_random_limb(BigInt *, int);
+void BigInt_init_zero_limb(BigInt *, int);
 void BigInt_copy(BigInt *, BigInt *);
 void BigInt_copy_to_no_init(BigInt *, BigInt *, int, int);
 void BigInt_swap(BigInt *, BigInt *);
@@ -314,6 +317,20 @@ void BigInt_init_random_limb(BigInt * b, int limb_count) {
   b->sign = 1;
   for (i = 0; i < limb_count; i++) {
     b->internalRepresentation[i] = BIGINT_RAND() % BIGINT_BASE;
+  }
+  if (b->internalRepresentation[limb_count - 1] == 0) {
+    b->internalRepresentation[limb_count - 1] = 1;
+  }
+}
+
+void BigInt_init_zero_limb(BigInt * b, int limb_count) {
+  int i;
+  b->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC(limb_count * sizeof(BigInt_limb_t));
+  b->internalSize = 1;
+  b->allocSize = limb_count;
+  b->sign = 0;
+  for (i = 0; i < limb_count; i++) {
+    b->internalRepresentation[i] = 0;
   }
 }
 
@@ -1712,7 +1729,7 @@ void BigInt_set_from_view(BigInt * dest, BigInt * source, int start, int end) {
 }
 
 void BigInt_multiply_karatsuba_impl(BigInt * multiplicand, BigInt * multiplier, BigInt * product) {
-  if (multiplicand->internalSize < 64 || multiplier->internalSize < 64) {
+  if (multiplicand->internalSize < BIGINT_KARATSUBA_THRESHOLD && multiplier->internalSize < BIGINT_KARATSUBA_THRESHOLD) {
     BigInt_multiply(product, multiplicand, multiplier);
   } else {
     BigInt low1, low2, high1, high2;

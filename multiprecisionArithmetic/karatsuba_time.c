@@ -30,33 +30,28 @@ double get_time() {
 
 int main() {
   float start_time, end_time;
-  int iterations_a, iterations_b;
+  float schoolbook = 0, karatsuba = 0;
   BigInt a, b, c;
 
-  BigInt_init_random_limb(&a, 512);
-  BigInt_init_random_limb(&b, 512);
-  BigInt_init(&c);
+  BigInt_init_random_limb(&a, 131072);
+  BigInt_init_random_limb(&b, 131072);
+  BigInt_init_zero_limb(&c, 131072 + 131072);
 
   start_time = get_time();
-  iterations_a = 0;
-  do {
-    BigInt_multiply(&c, &a, &b);
-    end_time = get_time();
-    ++iterations_a;
-  } while (end_time - start_time < 1.0f);
-  BigInt_print_internal(&c);
+  BigInt_multiply(&c, &a, &b);
+  end_time = get_time();
+  schoolbook = end_time - start_time;
+  
+  BigInt_destroy(&c);
+  BigInt_init_zero_limb(&c, 131072 + 131072);
   
   start_time = get_time();
-  iterations_b = 0;
-  do {
-    BigInt_multiply_karatsuba(&c, &a, &b);
-    end_time = get_time();
-    ++iterations_b;
-  } while (end_time - start_time < 1.0f);
-  BigInt_print_internal(&c);
+  BigInt_multiply_karatsuba(&c, &a, &b);
+  end_time = get_time();
+  karatsuba = end_time - start_time;
   
-  printf("School book multiplication: %d\n", iterations_a);
-  printf("Karatsuba multiplication: %d\n", iterations_b);
+  printf("School book multiplication: %f\n", schoolbook);
+  printf("Karatsuba multiplication: %f\n", karatsuba);
   
   BigInt_destroy(&a);
   BigInt_destroy(&b);
