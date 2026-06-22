@@ -182,7 +182,14 @@ void BigInt_shift_right(BigInt *, int);
 void BigInt_add_leading_zeroes(BigInt *, int);
 void BigInt_multiply_karatsuba_impl(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_karatsuba(BigInt *, BigInt *, BigInt *);
+void BigInt_multiply_karatsuba_with_sign(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_karatsuba_t(BigInt *, BigInt *, BigInt *);
+void BigInt_multiply_karatsuba_ts(BigInt *, BigInt *, BigInt *);
+void BigInt_multiply_karatsuba_assign(BigInt *, BigInt *);
+void BigInt_multiply_auto(BigInt *, BigInt *, BigInt *);
+void BigInt_multiply_auto_with_sign(BigInt *, BigInt *, BigInt *);
+void BigInt_multiply_auto_t(BigInt *, BigInt *, BigInt *);
+void BigInt_multiply_auto_ts(BigInt *, BigInt *, BigInt *);
 
 #if defined(BIGINT_IMPL) || defined(MPA_IMPL)
 
@@ -311,6 +318,10 @@ void BigInt_init_negative_one(BigInt * b) {
 
 void BigInt_init_random_limb(BigInt * b, int limb_count) {
   int i;
+  if (limb_count < 1) {
+    BigInt_init_none(b);
+    return;
+  }
   b->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC(limb_count * sizeof(BigInt_limb_t));
   b->internalSize = limb_count;
   b->allocSize = limb_count;
@@ -325,6 +336,10 @@ void BigInt_init_random_limb(BigInt * b, int limb_count) {
 
 void BigInt_init_zero_limb(BigInt * b, int limb_count) {
   int i;
+  if (limb_count < 1) {
+    BigInt_init_none(b);
+    return;
+  }
   b->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC(limb_count * sizeof(BigInt_limb_t));
   b->internalSize = 1;
   b->allocSize = limb_count;
@@ -1815,12 +1830,96 @@ void BigInt_multiply_karatsuba(BigInt * product, BigInt * multiplicand, BigInt *
   BigInt_remove_leading_zeroes(product);
 }
 
+void BigInt_multiply_karatsuba_with_sign(BigInt * product, BigInt * multiplicand, BigInt * multiplier) {
+  int m1_len, m2_len, mlen_max;
+  BigInt m1, m2;
+  BigInt_copy_to_no_init(&m1, multiplicand, 0, 0);
+  BigInt_copy_to_no_init(&m2, multiplier, 0, 0);
+  m1_len = m1.internalSize;
+  m2_len = m2.internalSize;
+  mlen_max = m1_len;
+  if (m2_len > m1_len) {
+    mlen_max = m2_len;
+  }
+  BigInt_add_leading_zeroes(&m1, mlen_max - m1_len);
+  BigInt_add_leading_zeroes(&m2, mlen_max - m2_len);
+  BigInt_multiply_karatsuba_impl(&m1, &m2, product);
+  product->sign = multiplicand->sign * multiplier->sign;
+  BigInt_destroy(&m1);
+  BigInt_destroy(&m2);
+  BigInt_remove_leading_zeroes(product);
+}
+
 void BigInt_multiply_karatsuba_t(BigInt * out, BigInt * a, BigInt * b) {
   BigInt temp;
   BigInt_init(&temp);
 
   BigInt_multiply_karatsuba(&temp, a, b);
   
+  BigInt_copy(out, &temp);
+  BigInt_destroy(&temp);
+}
+
+void BigInt_multiply_karatsuba_ts(BigInt * out, BigInt * a, BigInt * b) {
+  BigInt temp;
+  BigInt_init(&temp);
+
+  BigInt_multiply_karatsuba_with_sign(&temp, a, b);
+  
+  BigInt_copy(out, &temp);
+  BigInt_destroy(&temp);
+}
+
+void BigInt_multiply_karatsuba_assign(BigInt * a, BigInt * b) {
+  BigInt temp;
+  BigInt_init_none(&temp);
+
+  BigInt_multiply_karatsuba(&temp, a, b);
+  
+  BigInt_swap(a, &temp);
+  BigInt_destroy(&temp);
+}
+
+void BigInt_multiply_auto(BigInt * product, BigInt * multiplicand, BigInt * multiplier) {
+  if (multiplicand->internalSize < BIGINT_KARATSUBA_THRESHOLD && multiplier->internalSize < BIGINT_KARATSUBA_THRESHOLD) {
+    BigInt_multiply(product, multiplicand, multiplier);
+  } else {
+    BigInt_multiply_karatsuba(product, multiplicand, multiplier);
+  }
+}
+
+void BigInt_multiply_auto_with_sign(BigInt * product, BigInt * multiplicand, BigInt * multiplier) {
+  if (multiplicand->internalSize < BIGINT_KARATSUBA_THRESHOLD && multiplier->internalSize < BIGINT_KARATSUBA_THRESHOLD) {
+    BigInt_multiply_with_sign(product, multiplicand, multiplier);
+  } else {
+    BigInt_multiply_karatsuba_with_sign(product, multiplicand, multiplier);
+  }
+}
+
+void BigInt_multiply_auto_t(BigInt * out, BigInt * a, BigInt * b) {
+  BigInt temp;
+  BigInt_init(&temp);
+
+  if (a->internalSize < BIGINT_KARATSUBA_THRESHOLD && b->internalSize < BIGINT_KARATSUBA_THRESHOLD) {
+    BigInt_multiply(&temp, a, b);
+  } else {
+    BigInt_multiply_karatsuba(&temp, a, b);
+  }
+
+  BigInt_copy(out, &temp);
+  BigInt_destroy(&temp);
+}
+
+void BigInt_multiply_auto_ts(BigInt * out, BigInt * a, BigInt * b) {
+  BigInt temp;
+  BigInt_init(&temp);
+
+  if (a->internalSize < BIGINT_KARATSUBA_THRESHOLD && b->internalSize < BIGINT_KARATSUBA_THRESHOLD) {
+    BigInt_multiply_with_sign(&temp, a, b);
+  } else {
+    BigInt_multiply_karatsuba_with_sign(&temp, a, b);
+  }
+
   BigInt_copy(out, &temp);
   BigInt_destroy(&temp);
 }
