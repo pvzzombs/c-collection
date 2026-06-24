@@ -520,8 +520,8 @@ void randomizedMultiplyKaratsubaNLimbs() {
   for (i = 0; i < 100; i++) {
     lenA = rand() % 512;
     lenB = rand() % 512;
-    if (lenA == 0) lenA = 1;
-    if (lenB == 0) lenB = 1;
+    if (lenA < 64) lenA = 64;
+    if (lenB < 64) lenB = 64;
     /* printf("Lens: %d, %d\n", lenA, lenB); */
     BigInt_init_random_limb(&a, lenA);
     BigInt_init_random_limb(&b, lenB);
@@ -542,6 +542,37 @@ void randomizedMultiplyKaratsubaNLimbs() {
   }
 }
 
+void randomizedMultiplyToomCook3NLimbs() {
+  BigInt a,b,schoolbook,toomcook3;
+  int i, lenA, lenB;
+  char * a_str;
+  char * b_str;
+  srand(time(NULL));
+  for (i = 0; i < 100; i++) {
+    lenA = rand() % 1024;
+    lenB = rand() % 1024;
+    if (lenA < 256) lenA = 256;
+    if (lenB < 256) lenB = 256;
+    /* printf("Lens: %d, %d\n", lenA, lenB); */
+    BigInt_init_random_limb(&a, lenA);
+    BigInt_init_random_limb(&b, lenB);
+    BigInt_init_zero_limb(&schoolbook, lenA + lenB);
+    BigInt_init_zero_limb(&toomcook3, lenA + lenB);
+    BigInt_multiply(&schoolbook, &a, &b);
+    BigInt_multiply_toomcook3(&toomcook3, &a, &b);
+    a_str = BigInt_to_string(&a);
+    b_str = BigInt_to_string(&b);
+    TEST_CHECK(BigInt_cmp(&schoolbook, &toomcook3) == 0);
+    TEST_MSG("Mismatch occured! Offending operands: %s, %s", a_str, b_str);
+    free(a_str);
+    free(b_str);
+    BigInt_destroy(&a);
+    BigInt_destroy(&b);
+    BigInt_destroy(&schoolbook);
+    BigInt_destroy(&toomcook3);
+  }
+}
+
 TEST_LIST = {
   {"addition", additionTest},
   {"subtraction", subtractionTest},
@@ -559,5 +590,6 @@ TEST_LIST = {
   {"randomized digit count test", digitCountTest},
   /*{"randomized digit count test 2", digitCountTest2},*/
   {"randomized positive multiplication karatsuba test (2)", randomizedMultiplyKaratsubaNLimbs},
+  {"randomized positive multiplication toom-cook 3 test", randomizedMultiplyToomCook3NLimbs},
   {NULL, NULL}
 };
