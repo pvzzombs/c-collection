@@ -1,5 +1,9 @@
-## Multiprecision Arithmetic
+# Welcome!
 
+## The Challenge
+I wanted to write my own BigInteger library, just for fun, and this is the result of it. Currently, I am implementing toom-cook 3 multiplication algorithm, but it turns out to be difficult to implement, however, I still do my best to fix the bugs and make it work correctly, accurately and precisely. If you have the time to submit some issues, or pull requests, then feel free to do so.
+
+## Multiprecision Arithmetic
 See `test.c`.
 
 ## Big Integer
