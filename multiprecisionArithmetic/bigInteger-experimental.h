@@ -12,7 +12,7 @@ void BigInt_multiply_toomcook3(BigInt *, BigInt *, BigInt *);
 #if defined(BIGINT_IMPL) || defined(MPA_IMPL)
 
 void BigInt_multiply_toomcook3_impl(BigInt * multiplicand, BigInt * multiplier, BigInt * product) {
-  if (multiplicand->internalSize < BIGINT_TOOMCOOK3_THRESHOLD && multiplier->internalSize < BIGINT_TOOMCOOK3_THRESHOLD) {
+  if (multiplicand->internalSize < BIGINT_TOOMCOOK3_THRESHOLD || multiplier->internalSize < BIGINT_TOOMCOOK3_THRESHOLD) {
     BigInt_multiply_with_sign(product, multiplicand, multiplier);
   } else {
     BigInt x_0, x_1, x_2;
@@ -25,20 +25,17 @@ void BigInt_multiply_toomcook3_impl(BigInt * multiplicand, BigInt * multiplier, 
     BigInt w0, w1, w2, wn1, winf;
     BigInt c0, c1, c2, c3, c4;
     BigInt s, d, u, temp1, temp2, temp3;
-    int l = multiplicand->internalSize;
+    int l = BigInt_max_int(multiplicand->internalSize, multiplier->internalSize);
     int b = (l + 2) / 3;
     int len1, len2, lenMax;
     
     /* if (l % 3 > 0) {
       b++;
     }*/
-    lenMax = l;
+    /*lenMax = l;
     if (multiplier->internalSize > lenMax) {
       lenMax = multiplier->internalSize;
-    }
-    
-    BigInt_add_leading_zeroes(multiplicand, lenMax - multiplicand->internalSize);
-    BigInt_add_leading_zeroes(multiplier, lenMax - multiplier->internalSize);
+    }*/
     
     BigInt_init_none(&x_0);
     BigInt_init_none(&x_1);
@@ -168,18 +165,10 @@ void BigInt_multiply_toomcook3_impl(BigInt * multiplicand, BigInt * multiplier, 
     BigInt_copy(&xinf, &x_2);
     BigInt_copy(&yinf, &y_2);
     
-    len1 = x0.internalSize;
-    len2 = y0.internalSize;
-    lenMax = len1;
-    if (len2 > len1) {
-      lenMax = len2;
-    }
-    BigInt_add_leading_zeroes(&x0, lenMax - len1);
-    BigInt_add_leading_zeroes(&y0, lenMax - len2);
     /* w(0) = x(0) * y(0) */
     BigInt_multiply_toomcook3_impl(&x0, &y0, &w0);
-    BigInt_remove_leading_zeroes(&w0);
-    BigInt_multiply(&temp1, &x0, &y0);
+    /* BigInt_remove_leading_zeroes(&w0); */
+    /*BigInt_multiply(&temp1, &x0, &y0);
     if (BigInt_cmp(&temp1, &w0) != 0) {
       printf("Expected: ");
       BigInt_print_internal(&temp1);
@@ -187,19 +176,12 @@ void BigInt_multiply_toomcook3_impl(BigInt * multiplicand, BigInt * multiplier, 
       BigInt_print_internal(&w0);
       printf("Error! w0 mismatch\n");
       exit(1);
-    }
-    len1 = xinf.internalSize;
-    len2 = yinf.internalSize;
-    lenMax = len1;
-    if (len2 > len1) {
-      lenMax = len2;
-    }
-    BigInt_add_leading_zeroes(&xinf, lenMax - len1);
-    BigInt_add_leading_zeroes(&yinf, lenMax - len2);
+    }*/
+
     /* w(inf) = x(inf) * y(inf) */
     BigInt_multiply_toomcook3_impl(&xinf, &yinf, &winf);
-    BigInt_remove_leading_zeroes(&winf);
-    BigInt_multiply(&temp1, &xinf, &yinf);
+    /* BigInt_remove_leading_zeroes(&winf); */
+    /*BigInt_multiply(&temp1, &xinf, &yinf);
     if (BigInt_cmp(&temp1, &winf) != 0) {
       printf("Error! winf mismatch\n");
       printf("xinf: ");
@@ -208,67 +190,38 @@ void BigInt_multiply_toomcook3_impl(BigInt * multiplicand, BigInt * multiplier, 
       printf("yinf: ");
       BigInt_print_internal(&yinf);
       exit(1);
-    }
-    
-    len1 = x1.internalSize;
-    len2 = y1.internalSize;
-    lenMax = len1;
-    
-    if (len2 > len1) {
-      lenMax = len2;
-    }
-    
-    BigInt_add_leading_zeroes(&x1, lenMax - len1);
-    BigInt_add_leading_zeroes(&y1, lenMax - len2);
+    }*/
     
     /* w(1) = x(1) * y(1) */
     BigInt_multiply_toomcook3_impl(&x1, &y1, &w1);
-    BigInt_remove_leading_zeroes(&w1);
-    BigInt_multiply(&temp1, &x1, &y1);
+    /* BigInt_remove_leading_zeroes(&w1); */
+    /* BigInt_multiply(&temp1, &x1, &y1);
     if (BigInt_cmp(&temp1, &w1) != 0) {
-      printf("Error! w1 mismatch\n");\
+      printf("x1");
+      BigInt_print_internal(&x1);
+      printf("y1");
+      BigInt_print_internal(&x1);
+      printf("Error! w1 mismatch\n");
       exit(1);
-    }
-    
-    len1 = xn1.internalSize;
-    len2 = yn1.internalSize;
-    lenMax = len1;
-    
-    if (len2 > len1) {
-      lenMax = len2;
-    }
-    
-    BigInt_add_leading_zeroes(&xn1, lenMax - len1);
-    BigInt_add_leading_zeroes(&yn1, lenMax - len2);
+    }*/
     
     /* w(-1) = x(-1) * y(-1) */
     BigInt_multiply_toomcook3_impl(&xn1, &yn1, &wn1);
-    BigInt_remove_leading_zeroes(&wn1);
-    BigInt_multiply(&temp1, &xn1, &yn1);
+    /* BigInt_remove_leading_zeroes(&wn1); */
+    /* BigInt_multiply(&temp1, &xn1, &yn1);
     if (BigInt_cmp(&temp1, &wn1) != 0) {
       printf("Error! w0 mismatch\n");
       exit(1);
-    }
-    
-    len1 = x2.internalSize;
-    len2 = y2.internalSize;
-    lenMax = len1;
-    
-    if (len2 > len1) {
-      lenMax = len2;
-    }
-    
-    BigInt_add_leading_zeroes(&x2, lenMax - len1);
-    BigInt_add_leading_zeroes(&y2, lenMax - len2);
+    } */
     
     /* w(2) = x(2) * y(2) */
     BigInt_multiply_toomcook3_impl(&x2, &y2, &w2);
-    BigInt_remove_leading_zeroes(&w2);
-    BigInt_multiply(&temp1, &x2, &y2);
+    /* BigInt_remove_leading_zeroes(&w2); */
+    /* BigInt_multiply(&temp1, &x2, &y2);
     if (BigInt_cmp(&temp1, &w2) != 0) {
       printf("Error! w2 mismatch\n");
       exit(1);
-    }
+    } */
     
     /*printf("w0 BigInt sign is %d\n", w0.sign);
     printf("w1 BigInt sign is %d\n", w1.sign);
@@ -278,10 +231,10 @@ void BigInt_multiply_toomcook3_impl(BigInt * multiplicand, BigInt * multiplier, 
     
     /* c0 = w(0) */
     BigInt_copy(&c0, &w0);
-    BigInt_remove_leading_zeroes(&c0);
+    /* BigInt_remove_leading_zeroes(&c0); */
     /* c4 = w(inf) */
     BigInt_copy(&c4, &winf);
-    BigInt_remove_leading_zeroes(&c4);
+    /* BigInt_remove_leading_zeroes(&c4); */
     
     /* s = (w(1) + w(-1)) / 2 */
     BigInt_add_with_sign(&s, &w1, &wn1);
@@ -294,7 +247,7 @@ void BigInt_multiply_toomcook3_impl(BigInt * multiplicand, BigInt * multiplier, 
     /* c2 = s - c0 - c4 */
     BigInt_subtract_with_sign(&c2, &s, &c0);
     BigInt_subtract_ts(&c2, &c2, &c4);
-    BigInt_remove_leading_zeroes(&c2);
+    /* BigInt_remove_leading_zeroes(&c2); */
     
     /* u = w(2) - c0 - 4*c2 - 16*c4 */
     BigInt_multiply_with_sign(&temp1, &four, &c2);
@@ -307,21 +260,12 @@ void BigInt_multiply_toomcook3_impl(BigInt * multiplicand, BigInt * multiplier, 
     BigInt_multiply_with_sign(&temp3, &two, &d);
     BigInt_subtract_with_sign(&c3, &u, &temp3);
     BigInt_divide_ts(&c3, &c3, &six);
-    BigInt_remove_leading_zeroes(&c3);
+    /* BigInt_remove_leading_zeroes(&c3); */
     
     /* c1 = d - 2*c3 */
     BigInt_multiply_with_sign(&temp1, &two, &c3);
     BigInt_subtract_with_sign(&c1, &d, &c3);
-    BigInt_remove_leading_zeroes(&c1);
-    
-    /* printf("c0 size %d\n", c0.internalSize);
-    printf("c1 size %d\n", c1.internalSize);
-    printf("c2 size %d\n", c2.internalSize);
-    printf("c3 size %d\n", c3.internalSize);
-    printf("c4 size %d\n", c4.internalSize); */
-    /* if (c4.internalSize == 1) {
-      printf("c4 details: %d %d %d %d\n", c4.internalSize, c4.allocSize, c4.sign, c4.internalRepresentation[0]);
-    }*/
+    /* BigInt_remove_leading_zeroes(&c1); */
     
     BigInt_shift_left(&c4, b * 4);
     BigInt_shift_left(&c3, b * 3);

@@ -110,6 +110,8 @@ struct BigInt_ {
   int sign;
 };
 typedef struct BigInt_ BigInt;
+BigInt_limb_t BigInt_min_int(BigInt_limb_wide_t, BigInt_limb_wide_t);
+BigInt_limb_t BigInt_max_int(BigInt_limb_wide_t, BigInt_limb_wide_t);
 BigInt_limb_t BigInt_atoi_impl(char *);
 int BigInt_atoi_impl_with_range(char *, int, int);
 void BigInt_itoa_impl(BigInt_limb_t, char *);
@@ -216,6 +218,11 @@ void BigInt_reverse_digits_impl(char * arr, int len) {
 
 BigInt_limb_t BigInt_min_int(BigInt_limb_wide_t a, BigInt_limb_wide_t b) {
   if (a < b) return a;
+  return b;
+}
+
+BigInt_limb_t BigInt_max_int(BigInt_limb_wide_t a, BigInt_limb_wide_t b) {
+  if (a > b) return a;
   return b;
 }
 
@@ -1732,7 +1739,7 @@ void BigInt_add_leading_zeroes(BigInt * b, int n) {
 void BigInt_set_from_view(BigInt * dest, BigInt * source, int start, int end) {
   int i, j;
   BigInt_limb_t * limbs = NULL;
-  if (start > end) {
+  if (start > end || (start < 0 && end < 0) || (start >= source->internalSize && end >= source->internalSize)) {
     if (dest->allocSize < 1) {
       limbs = (BigInt_limb_t *)BIGINT_ALLOC(sizeof(BigInt_limb_t) * 1);
       BIGINT_FREE(dest->internalRepresentation);
@@ -1744,6 +1751,8 @@ void BigInt_set_from_view(BigInt * dest, BigInt * source, int start, int end) {
     dest->internalSize = 1;
     return;
   }
+  if (start < 0) start = 0;
+  if (end >= source->internalSize) end = source->internalSize - 1;
   if (dest->allocSize < (end - start + 1)) {
     limbs = (BigInt_limb_t *)BIGINT_ALLOC(sizeof(BigInt_limb_t) * (end - start + 1));
     BIGINT_FREE(dest->internalRepresentation);
@@ -1757,18 +1766,18 @@ void BigInt_set_from_view(BigInt * dest, BigInt * source, int start, int end) {
     dest->internalRepresentation[j] = source->internalRepresentation[i];
     j++;
   }
+  BigInt_remove_leading_zeroes(dest);
 }
 
 void BigInt_multiply_karatsuba_impl(BigInt * multiplicand, BigInt * multiplier, BigInt * product) {
-  if (multiplicand->internalSize < BIGINT_KARATSUBA_THRESHOLD && multiplier->internalSize < BIGINT_KARATSUBA_THRESHOLD) {
+  if (multiplicand->internalSize < BIGINT_KARATSUBA_THRESHOLD || multiplier->internalSize < BIGINT_KARATSUBA_THRESHOLD) {
     BigInt_multiply(product, multiplicand, multiplier);
   } else {
     BigInt low1, low2, high1, high2;
     BigInt z0, z1, z2;
     BigInt sum1, sum2;
-    int l = multiplicand->internalSize;
+    int l = BigInt_max_int(multiplicand->internalSize, multiplier->internalSize);
     int m = l / 2;
-    int len1, len2, lenMax;
     BigInt_init_none(&low1);
     BigInt_init_none(&low2);
     BigInt_init_none(&high1);
@@ -1791,17 +1800,6 @@ void BigInt_multiply_karatsuba_impl(BigInt * multiplicand, BigInt * multiplier, 
 
     BigInt_add(&sum1, &low1, &high1);
     BigInt_add(&sum2, &low2, &high2);
-
-    len1 = sum1.internalSize;
-    len2 = sum2.internalSize;
-    lenMax = len1;
-
-    if (len2 > len1) {
-      lenMax = len2;
-    }
-
-    BigInt_add_leading_zeroes(&sum1, lenMax - len1);
-    BigInt_add_leading_zeroes(&sum2, lenMax - len2);
     
     BigInt_multiply_karatsuba_impl(&sum1, &sum2, &z1);
     BigInt_subtract_t(&z1, &z1, &z0);
@@ -1827,21 +1825,12 @@ void BigInt_multiply_karatsuba_impl(BigInt * multiplicand, BigInt * multiplier, 
 }
 
 void BigInt_multiply_karatsuba(BigInt * product, BigInt * multiplicand, BigInt * multiplier) {
-  if (multiplicand->internalSize < BIGINT_KARATSUBA_THRESHOLD && multiplier->internalSize < BIGINT_KARATSUBA_THRESHOLD) {
+  if (multiplicand->internalSize < BIGINT_KARATSUBA_THRESHOLD || multiplier->internalSize < BIGINT_KARATSUBA_THRESHOLD) {
     BigInt_multiply(product, multiplicand, multiplier);
   } else {
-    int m1_len, m2_len, mlen_max;
     BigInt m1, m2;
     BigInt_copy_to_no_init(&m1, multiplicand, 0, 0);
     BigInt_copy_to_no_init(&m2, multiplier, 0, 0);
-    m1_len = m1.internalSize;
-    m2_len = m2.internalSize;
-    mlen_max = m1_len;
-    if (m2_len > m1_len) {
-      mlen_max = m2_len;
-    }
-    BigInt_add_leading_zeroes(&m1, mlen_max - m1_len);
-    BigInt_add_leading_zeroes(&m2, mlen_max - m2_len);
     BigInt_multiply_karatsuba_impl(&m1, &m2, product);
     BigInt_destroy(&m1);
     BigInt_destroy(&m2);
@@ -1850,21 +1839,12 @@ void BigInt_multiply_karatsuba(BigInt * product, BigInt * multiplicand, BigInt *
 }
 
 void BigInt_multiply_karatsuba_with_sign(BigInt * product, BigInt * multiplicand, BigInt * multiplier) {
-  if (multiplicand->internalSize < BIGINT_KARATSUBA_THRESHOLD && multiplier->internalSize < BIGINT_KARATSUBA_THRESHOLD) {
+  if (multiplicand->internalSize < BIGINT_KARATSUBA_THRESHOLD || multiplier->internalSize < BIGINT_KARATSUBA_THRESHOLD) {
     BigInt_multiply_with_sign(product, multiplicand, multiplier);
   } else {
-    int m1_len, m2_len, mlen_max;
     BigInt m1, m2;
     BigInt_copy_to_no_init(&m1, multiplicand, 0, 0);
     BigInt_copy_to_no_init(&m2, multiplier, 0, 0);
-    m1_len = m1.internalSize;
-    m2_len = m2.internalSize;
-    mlen_max = m1_len;
-    if (m2_len > m1_len) {
-      mlen_max = m2_len;
-    }
-    BigInt_add_leading_zeroes(&m1, mlen_max - m1_len);
-    BigInt_add_leading_zeroes(&m2, mlen_max - m2_len);
     BigInt_multiply_karatsuba_impl(&m1, &m2, product);
     product->sign = multiplicand->sign * multiplier->sign;
     BigInt_destroy(&m1);
