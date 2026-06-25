@@ -3,7 +3,7 @@
 #include <string.h>
 #include <time.h>
 #define BIGINT_IMPL
-#include "bigInteger.h"
+#include "bigInteger-experimental.h"
 #include "../others/acutest.h"
 
 #define DIGIT_COUNT 100
@@ -563,7 +563,7 @@ void randomizedMultiplyToomCook3NLimbs() {
     a_str = BigInt_to_string(&a);
     b_str = BigInt_to_string(&b);
     TEST_CHECK(BigInt_cmp(&schoolbook, &toomcook3) == 0);
-    TEST_MSG("Mismatch occured! Offending operands: %s, %s", a_str, b_str);
+    TEST_MSG("Mismatch occured! Operand sizes: %d, %d, Offending operands: %s, %s", lenA, lenB, a_str, b_str);
     free(a_str);
     free(b_str);
     BigInt_destroy(&a);

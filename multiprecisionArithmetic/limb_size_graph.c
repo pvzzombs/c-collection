@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #define BIGINT_IMPL
-#include "bigInteger.h"
+#include "bigInteger-experimental.h"
 
 #ifdef _WIN32
 #include <windows.h>

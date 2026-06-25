@@ -1,13 +1,13 @@
 #include <stdio.h>
 
 #define BIGINT_IMPL
-#include "bigInteger.h"
+#include "bigInteger-experimental.h"
 
 int main() {
   BigInt a, b, schoolbook, toomcook3;
 
-  BigInt_init_random_limb(&a, 1024);
-  BigInt_init_random_limb(&b, 512);
+  BigInt_init_random_limb(&a, 984);
+  BigInt_init_random_limb(&b, 256);
   BigInt_init(&schoolbook);
   BigInt_init(&toomcook3);
   printf("A is: ");
