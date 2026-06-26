@@ -1770,7 +1770,7 @@ void BigInt_set_from_view(BigInt * dest, BigInt * source, int start, int end) {
 }
 
 void BigInt_multiply_karatsuba_impl(BigInt * multiplicand, BigInt * multiplier, BigInt * product) {
-  if (multiplicand->internalSize < BIGINT_KARATSUBA_THRESHOLD || multiplier->internalSize < BIGINT_KARATSUBA_THRESHOLD) {
+  if (multiplicand->internalSize < BIGINT_KARATSUBA_THRESHOLD && multiplier->internalSize < BIGINT_KARATSUBA_THRESHOLD) {
     BigInt_multiply(product, multiplicand, multiplier);
   } else {
     BigInt low1, low2, high1, high2;
@@ -1825,30 +1825,20 @@ void BigInt_multiply_karatsuba_impl(BigInt * multiplicand, BigInt * multiplier, 
 }
 
 void BigInt_multiply_karatsuba(BigInt * product, BigInt * multiplicand, BigInt * multiplier) {
-  if (multiplicand->internalSize < BIGINT_KARATSUBA_THRESHOLD || multiplier->internalSize < BIGINT_KARATSUBA_THRESHOLD) {
+  if (multiplicand->internalSize < BIGINT_KARATSUBA_THRESHOLD && multiplier->internalSize < BIGINT_KARATSUBA_THRESHOLD) {
     BigInt_multiply(product, multiplicand, multiplier);
   } else {
-    BigInt m1, m2;
-    BigInt_copy_to_no_init(&m1, multiplicand, 0, 0);
-    BigInt_copy_to_no_init(&m2, multiplier, 0, 0);
-    BigInt_multiply_karatsuba_impl(&m1, &m2, product);
-    BigInt_destroy(&m1);
-    BigInt_destroy(&m2);
+    BigInt_multiply_karatsuba_impl(multiplicand, multiplier, product);
     BigInt_remove_leading_zeroes(product);
   }
 }
 
 void BigInt_multiply_karatsuba_with_sign(BigInt * product, BigInt * multiplicand, BigInt * multiplier) {
-  if (multiplicand->internalSize < BIGINT_KARATSUBA_THRESHOLD || multiplier->internalSize < BIGINT_KARATSUBA_THRESHOLD) {
+  if (multiplicand->internalSize < BIGINT_KARATSUBA_THRESHOLD && multiplier->internalSize < BIGINT_KARATSUBA_THRESHOLD) {
     BigInt_multiply_with_sign(product, multiplicand, multiplier);
   } else {
-    BigInt m1, m2;
-    BigInt_copy_to_no_init(&m1, multiplicand, 0, 0);
-    BigInt_copy_to_no_init(&m2, multiplier, 0, 0);
-    BigInt_multiply_karatsuba_impl(&m1, &m2, product);
+    BigInt_multiply_karatsuba_impl(multiplicand, multiplier, product);
     product->sign = multiplicand->sign * multiplier->sign;
-    BigInt_destroy(&m1);
-    BigInt_destroy(&m2);
     BigInt_remove_leading_zeroes(product);
   }
 }

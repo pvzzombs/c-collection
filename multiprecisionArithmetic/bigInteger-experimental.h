@@ -12,7 +12,7 @@ void BigInt_multiply_toomcook3(BigInt *, BigInt *, BigInt *);
 #if defined(BIGINT_IMPL) || defined(MPA_IMPL)
 
 void BigInt_multiply_toomcook3_impl(BigInt * multiplicand, BigInt * multiplier, BigInt * product) {
-  if (multiplicand->internalSize < BIGINT_TOOMCOOK3_THRESHOLD || multiplier->internalSize < BIGINT_TOOMCOOK3_THRESHOLD) {
+  if (multiplicand->internalSize < BIGINT_TOOMCOOK3_THRESHOLD && multiplier->internalSize < BIGINT_TOOMCOOK3_THRESHOLD) {
     BigInt_multiply_with_sign(product, multiplicand, multiplier);
   } else {
     BigInt x_0, x_1, x_2;
@@ -336,23 +336,7 @@ void BigInt_multiply_toomcook3(BigInt * product, BigInt * multiplicand, BigInt *
   if (multiplicand->internalSize < BIGINT_TOOMCOOK3_THRESHOLD && multiplier->internalSize < BIGINT_TOOMCOOK3_THRESHOLD) {
     BigInt_multiply_karatsuba_with_sign(product, multiplicand, multiplier);
   } else {
-    int m1_len, m2_len, mlen_max;
-    BigInt m1, m2;
-    BigInt_copy_to_no_init(&m1, multiplicand, 0, 0);
-    BigInt_copy_to_no_init(&m2, multiplier, 0, 0);
-    m1_len = m1.internalSize;
-    m2_len = m2.internalSize;
-    mlen_max = m1_len;
-    if (m2_len > m1_len) {
-      mlen_max = m2_len;
-    }
-    BigInt_add_leading_zeroes(&m1, mlen_max - m1_len);
-    BigInt_add_leading_zeroes(&m2, mlen_max - m2_len);
-    BigInt_set_positive_sign(&m1);
-    BigInt_set_positive_sign(&m2);
-    BigInt_multiply_toomcook3_impl(&m1, &m2, product);
-    BigInt_destroy(&m1);
-    BigInt_destroy(&m2);
+    BigInt_multiply_toomcook3_impl(multiplicand, multiplier, product);
     BigInt_remove_leading_zeroes(product);
   }
 }
