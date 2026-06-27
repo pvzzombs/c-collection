@@ -75,10 +75,10 @@ void BigInt_multiply_toomcook3_impl(BigInt * multiplicand, BigInt * multiplier, 
     BigInt_init_none(&y2_2y_1);
     BigInt_init_none(&y2_4y_2);
     
-    BigInt_init_none(&two);
-    BigInt_init_none(&four);
-    BigInt_init_none(&sixteen);
-    BigInt_init_none(&six);
+    BigInt_init_from_int(&two, 2);
+    BigInt_init_from_int(&four, 4);
+    BigInt_init_from_int(&sixteen, 16);
+    BigInt_init_from_int(&six, 6);
     
     BigInt_init_none(&s);
     BigInt_init_none(&d);
@@ -86,16 +86,6 @@ void BigInt_multiply_toomcook3_impl(BigInt * multiplicand, BigInt * multiplier, 
     BigInt_init_none(&temp1);
     BigInt_init_none(&temp2);
     BigInt_init_none(&temp3);
-    
-    BigInt_set_from_limb(&two, 2, BIGINT_BASE);
-    BigInt_set_from_limb(&four, 4, BIGINT_BASE);
-    BigInt_set_from_limb(&sixteen, 16, BIGINT_BASE);
-    BigInt_set_from_limb(&six, 6, BIGINT_BASE);
-    
-    BigInt_set_positive_sign(&two);
-    BigInt_set_positive_sign(&four);
-    BigInt_set_positive_sign(&sixteen);
-    BigInt_set_positive_sign(&six);
     
     /*printf("-----------\n");
     printf("b: %d, l: %d\n", b, l);*/
@@ -223,12 +213,6 @@ void BigInt_multiply_toomcook3_impl(BigInt * multiplicand, BigInt * multiplier, 
       exit(1);
     } */
     
-    /*printf("w0 BigInt sign is %d\n", w0.sign);
-    printf("w1 BigInt sign is %d\n", w1.sign);
-    printf("wn1 BigInt sign is %d\n", wn1.sign);
-    printf("w2 BigInt sign is %d\n", w2.sign);
-    printf("winf BigInt sign is %d\n", winf.sign);*/
-    
     /* c0 = w(0) */
     BigInt_copy(&c0, &w0);
     /* BigInt_remove_leading_zeroes(&c0); */
@@ -262,8 +246,7 @@ void BigInt_multiply_toomcook3_impl(BigInt * multiplicand, BigInt * multiplier, 
     BigInt_divide_ts(&c3, &c3, &six);
     /* BigInt_remove_leading_zeroes(&c3); */
     
-    /* c1 = d - 2*c3 */
-    BigInt_multiply_with_sign(&temp1, &two, &c3);
+    /* c1 = d - c3 */
     BigInt_subtract_with_sign(&c1, &d, &c3);
     /* BigInt_remove_leading_zeroes(&c1); */
     

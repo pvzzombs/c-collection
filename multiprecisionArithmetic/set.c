@@ -4,6 +4,7 @@
 int main() {
   BigInt num1, num2;
   char * s;
+  int r;
   BigInt_init(&num1);
   BigInt_init(&num2);
 
@@ -40,6 +41,12 @@ int main() {
   s = BigInt_to_string_with_sign(&num1);
   printf("Number init is %s\n", s);
   free(s);
+  
+  BigInt_destroy(&num1);
+  
+  BigInt_init_from_int(&num1, 1234);
+  r = BigInt_to_int(&num1);
+  printf("Number is %d\n", r);
   
   BigInt_destroy(&num1);
   BigInt_destroy(&num2);

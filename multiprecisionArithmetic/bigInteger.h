@@ -188,10 +188,13 @@ void BigInt_add_ts(BigInt *, BigInt *, BigInt *);
 void BigInt_subtract_ts(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_ts(BigInt *, BigInt *, BigInt *);
 void BigInt_divide_ts(BigInt *, BigInt *, BigInt *);
+void BigInt_init_from_int(BigInt *, int);
+void BigInt_set_from_int(BigInt *, int);
 char * BigInt_to_string_with_small_base(BigInt *);
 int BigInt_count_digits_base_10(BigInt *);
 char * BigInt_to_string(BigInt *);
 char * BigInt_to_string_with_sign(BigInt *);
+int BigInt_to_int(BigInt *);
 void BigInt_print_internal(BigInt *);
 void BigInt_shift_left(BigInt *, int);
 void BigInt_shift_right(BigInt *, int);
@@ -1407,6 +1410,40 @@ void BigInt_set_from_limb(BigInt * b, BigInt_limb_wide_t num, BigInt_limb_wide_t
   }
 }
 
+void BigInt_set_from_int(BigInt * b, int num) {
+  if (b->allocSize < 1) {
+    BigInt_limb_t * temp = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
+    BIGINT_FREE(b->internalRepresentation);
+    b->internalRepresentation = temp;
+    b->allocSize = 1;
+  }
+  b->internalSize = 1;
+  if (num < 0) {
+    b->sign = -1;
+    num = num * -1;
+  } else if (num > 0) {
+    b->sign = 1;
+  } else {
+    b->sign = 0;
+  }
+  b->internalRepresentation[0] = num & BIGINT_BASE_MAX_INT;
+}
+
+void BigInt_init_from_int(BigInt * b, int num) {
+  b->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
+  b->internalSize = 1;
+  b->allocSize = 1;
+  if (num < 0) {
+    b->sign = -1;
+    num = num * -1;
+  } else if (num > 0) {
+    b->sign = 1;
+  } else {
+    b->sign = 0;
+  }
+  b->internalRepresentation[0] = num & BIGINT_BASE_MAX_INT;
+}
+
 void BigInt_big_add(BigInt * sum, BigInt * addend1, BigInt * addend2) {
   if (BigInt_cmp(addend1, addend2) < 0) {
     BigInt * temp = addend1;
@@ -1703,6 +1740,13 @@ char * BigInt_to_string_with_sign(BigInt * b) {
   BigInt_destroy(&out1);
 
   return str_out;
+}
+
+int BigInt_to_int(BigInt * b) {
+  if (b->internalSize > 0) {
+    return b->internalRepresentation[0] * b->sign;
+  }
+  return 0;
 }
 
 void BigInt_print_internal(BigInt * b) {
