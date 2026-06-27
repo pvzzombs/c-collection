@@ -1,5 +1,10 @@
 # Welcome!
 
+## Usage
+
+Include `bigInteger.h` or `bigDecimal.h` into your project,
+ no need to compile or build separately! 
+
 ## The Challenge
 I wanted to write my own BigInteger library, just for fun, and this is the result of it.
 If you have the time to submit some issues, or pull requests, then feel free to do so.
