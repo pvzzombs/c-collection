@@ -573,6 +573,71 @@ void randomizedMultiplyToomCook3NLimbs() {
   }
 }
 
+void left_shift_by_bit_test() {
+  BigInt num, a, b, two, product, ShiftLeftByTwo;
+  int i, j;
+  srand(time(NULL));
+  for (j = 0; j < 100; j++) {
+    BigInt_init_none(&a);
+    BigInt_init_none(&product);
+    BigInt_init_two(&two);
+    BigInt_init_from_string(&b, "1");
+    BigInt_init_none(&ShiftLeftByTwo);
+    BigInt_init_random_limb(&num, j + 1);
+    BigInt_copy(&a, &num);
+    for (i = 0; i < 100; i++) {
+      BigInt_multiply_t(&b, &b, &two);
+      BigInt_multiply(&product, &a, &b);
+      /* BigInt_print_internal(&product); */
+      BigInt_copy(&ShiftLeftByTwo, &num);
+      BigInt_shift_left_bit(&ShiftLeftByTwo, i + 1);
+      /* BigInt_print_internal(&ShiftLeftByTwo); */
+      TEST_CHECK(BigInt_cmp(&product, &ShiftLeftByTwo) == 0);
+      TEST_MSG("Left Shift by %d mismatch!", i + 1);
+    }
+    BigInt_destroy(&a);
+    BigInt_destroy(&b);
+    BigInt_destroy(&two);
+    BigInt_destroy(&product);
+    BigInt_destroy(&num);
+    BigInt_destroy(&ShiftLeftByTwo);
+  }
+}
+
+void right_shift_by_bit_test() {
+  BigInt num, a, b, two, product, ShiftRightByTwo;
+  int i, j;
+  srand(time(NULL));
+  for (j = 0; j < 100; j++) {
+    BigInt_init_none(&a);
+    BigInt_init_none(&product);
+    BigInt_init_two(&two);
+    BigInt_init_from_string(&b, "1");
+    BigInt_init_none(&ShiftRightByTwo);
+    BigInt_init_random_limb(&num, j + 1);
+    BigInt_copy(&a, &num);
+    for (i = 0; i < 100; i++) {
+      BigInt_multiply_t(&b, &b, &two);
+      BigInt_divide(&product, &a, &b);      
+      BigInt_copy(&ShiftRightByTwo, &num);
+      BigInt_shift_right_bit(&ShiftRightByTwo, i + 1);
+      TEST_CHECK(BigInt_cmp(&product, &ShiftRightByTwo) == 0);
+      TEST_MSG("Right Shift by %d mismatch!", i + 1);
+      if (BigInt_cmp(&product, &ShiftRightByTwo) != 0) {
+        BigInt_print_internal(&product);
+        BigInt_print_internal(&ShiftRightByTwo);
+        exit(1);
+      }
+    }
+    BigInt_destroy(&a);
+    BigInt_destroy(&b);
+    BigInt_destroy(&two);
+    BigInt_destroy(&product);
+    BigInt_destroy(&num);
+    BigInt_destroy(&ShiftRightByTwo);
+  }
+}
+
 TEST_LIST = {
   {"addition", additionTest},
   {"subtraction", subtractionTest},
@@ -591,5 +656,7 @@ TEST_LIST = {
   /*{"randomized digit count test 2", digitCountTest2},*/
   {"randomized positive multiplication karatsuba test (2)", randomizedMultiplyKaratsubaNLimbs},
   {"randomized positive multiplication toom-cook 3 test", randomizedMultiplyToomCook3NLimbs},
+  {"randomized left shift by bit test", left_shift_by_bit_test},
+  {"randomized right shift by bit test", right_shift_by_bit_test},
   {NULL, NULL}
 };

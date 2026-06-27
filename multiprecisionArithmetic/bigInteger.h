@@ -35,16 +35,20 @@
 
 #if defined(__STDC_VERSION__)
 #define BIGINT_BASE 2147483648LL
+#define BIGINT_BASE_MAX_INT 2147483647LL
 #define BIGINT_BASE_STRING "2147483648"
 #define BIGINT_BASE_DIGITS 9
 #define BIGINT_BASE_10 1000000000LL
+#define BIGINT_BASE_BIT_LENGTH 31
 typedef int32_t BigInt_limb_t;
 typedef int64_t BigInt_limb_wide_t;
 #else
 #define BIGINT_BASE 2147483648L
+#define BIGINT_BASE_MAX_INT 2147483647L
 #define BIGINT_BASE_STRING "2147483648"
 #define BIGINT_BASE_DIGITS 9
 #define BIGINT_BASE_10 1000000000L
+#define BIGINT_BASE_BIT_LENGTH 31
 typedef int BigInt_limb_t;
 typedef long BigInt_limb_wide_t;
 #endif
@@ -53,24 +57,30 @@ typedef long BigInt_limb_wide_t;
 
 #if defined(__STDC_VERSION__)
 #define BIGINT_BASE 2147483648LL
+#define BIGINT_BASE_MAX_INT 2147483647LL
 #define BIGINT_BASE_STRING "2147483648"
 #define BIGINT_BASE_DIGITS 9
 #define BIGINT_BASE_10 1000000000LL
+#define BIGINT_BASE_BIT_LENGTH 31
 typedef int32_t BigInt_limb_t;
 typedef int64_t BigInt_limb_wide_t;
 #else
 #if defined(_MSC_VER)
 #define BIGINT_BASE 2147483648i64
+#define BIGINT_BASE_MAX_INT 2147483647i64
 #define BIGINT_BASE_STRING "2147483648"
 #define BIGINT_BASE_DIGITS 9
 #define BIGINT_BASE_10 1000000000i64
+#define BIGINT_BASE_BIT_LENGTH 31
 typedef int BigInt_limb_t;
 typedef __int64 BigInt_limb_wide_t;
 #elif defined(__GNUC__)
 #define BIGINT_BASE 2147483648LL
+#define BIGINT_BASE_MAX_INT 2147483647LL
 #define BIGINT_BASE_STRING "2147483648"
 #define BIGINT_BASE_DIGITS 9
 #define BIGINT_BASE_10 1000000000LL
+#define BIGINT_BASE_BIT_LENGTH 31
 typedef int BigInt_limb_t;
 typedef long long BigInt_limb_wide_t;
 #else
@@ -82,9 +92,11 @@ typedef long long BigInt_limb_wide_t;
 #elif defined(BIGINT_USE_16_BIT)
 
 #define BIGINT_BASE 32768
+#define BIGINT_BASE_MAX_INT 32767
 #define BIGINT_BASE_STRING "32768"
 #define BIGINT_BASE_DIGITS 4
 #define BIGINT_BASE_10 10000
+#define BIGINT_BASE_BIT_LENGTH 15
 #if defined(__STDC_VERSION__)
 typedef int BigInt_limb_t;
 typedef long BigInt_limb_wide_t;
@@ -131,6 +143,7 @@ void BigInt_swap(BigInt *, BigInt *);
 void BigInt_destroy(BigInt *);
 int BigInt_internal_cmp(BigInt_limb_t *, BigInt_limb_t *, int, int);
 void BigInt_internal_shift_towards_front_by_one(BigInt_limb_t *, int);
+int BigInt_cmp_len(BigInt *, BigInt *);
 int BigInt_cmp(BigInt *, BigInt *);
 int BigInt_cmp_with_sign(BigInt *, BigInt *);
 void BigInt_remove_leading_zeroes(BigInt *);
@@ -182,6 +195,8 @@ char * BigInt_to_string_with_sign(BigInt *);
 void BigInt_print_internal(BigInt *);
 void BigInt_shift_left(BigInt *, int);
 void BigInt_shift_right(BigInt *, int);
+void BigInt_shift_left_bit(BigInt *, BigInt_limb_wide_t);
+void BigInt_shift_right_bit(BigInt *, BigInt_limb_wide_t);
 void BigInt_add_leading_zeroes(BigInt *, int);
 void BigInt_multiply_karatsuba_impl(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_karatsuba(BigInt *, BigInt *, BigInt *);
@@ -438,6 +453,15 @@ void BigInt_internal_shift_towards_front_by_one(BigInt_limb_t * arr, int len){
   for (i = len - 1; i > 0; i--) {
     arr[i] = arr[i - 1];
   }
+}
+
+int BigInt_cmp_len(BigInt * num1, BigInt * num2) {
+  if (num1->internalSize < num2->internalSize) {
+    return -1;
+  } else if (num1->internalSize > num2->internalSize) {
+    return 1;
+  }
+  return 0;
 }
 
 int BigInt_cmp(BigInt * num1, BigInt * num2) {
@@ -752,7 +776,7 @@ void BigInt_multiply_impl(BigInt_limb_t * multiplicand, BigInt_limb_t * multipli
 
 void BigInt_multiply(BigInt * product, BigInt * multiplicand, BigInt * multiplier) {
   int i;
-  if (BigInt_cmp(multiplicand, multiplier) < 0) {
+  if (BigInt_cmp_len(multiplicand, multiplier) < 0) {
     BigInt * temp = multiplicand;
     multiplicand = multiplier;
     multiplier = temp;
@@ -823,7 +847,7 @@ void BigInt_multiply_small(BigInt * product, BigInt * multiplicand, BigInt_limb_
 
 void BigInt_multiply_with_sign(BigInt * product, BigInt * multiplicand, BigInt * multiplier) {
   int i;
-  if (BigInt_cmp(multiplicand, multiplier) < 0) {
+  if (BigInt_cmp_len(multiplicand, multiplier) < 0) {
     BigInt * temp = multiplicand;
     multiplicand = multiplier;
     multiplier = temp;
@@ -896,6 +920,20 @@ void BigInt_divide(BigInt * quotient, BigInt * dividend1, BigInt * divisor) {
   BigInt_limb_t * newDividend;
   BigInt_limb_t * newDivisor;
   BigInt dividend2;
+  
+  if (BigInt_cmp(dividend1, divisor) < 0 || BigInt_is_zero_impl(divisor->internalRepresentation, divisor->internalSize)) {
+    if (quotient->allocSize >= 1) {
+      quotient->internalRepresentation[0] = 0;
+      quotient->internalSize = 1;
+    } else {
+      BIGINT_FREE(quotient->internalRepresentation);
+      quotient->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
+      quotient->internalRepresentation[0] = 0;
+      quotient->internalSize = 1;
+      quotient->allocSize = 1;
+    }
+    return;
+  }
 
   d = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
   newDividend = NULL;
@@ -937,6 +975,20 @@ void BigInt_divide_no_copy(BigInt * quotient, BigInt * dividend, BigInt * diviso
   BigInt_limb_t * d;
   BigInt_limb_t * newDividend;
   BigInt_limb_t * newDivisor;
+  
+  if (BigInt_cmp(dividend, divisor) < 0 || BigInt_is_zero_impl(divisor->internalRepresentation, divisor->internalSize)) {
+    if (quotient->allocSize >= 1) {
+      quotient->internalRepresentation[0] = 0;
+      quotient->internalSize = 1;
+    } else {
+      BIGINT_FREE(quotient->internalRepresentation);
+      quotient->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
+      quotient->internalRepresentation[0] = 0;
+      quotient->internalSize = 1;
+      quotient->allocSize = 1;
+    }
+    return;
+  }
 
   d = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
   newDividend = NULL;
@@ -1710,6 +1762,92 @@ void BigInt_shift_right(BigInt * b, int n) {
   for (; i < b->internalSize; i++) {
     b->internalRepresentation[i] = 0;
   }
+  BigInt_remove_leading_zeroes(b);
+}
+
+void BigInt_shift_left_bit(BigInt * b, BigInt_limb_wide_t bitcount) {
+  int oldLen = b->internalSize;
+  int newLen = oldLen + bitcount / BIGINT_BASE_BIT_LENGTH;
+  int i, j, next, pad = 0;
+  int rem = bitcount % BIGINT_BASE_BIT_LENGTH;
+  BigInt_limb_t * temp;
+  if (bitcount < 1) {
+    return;
+  }
+  if (rem) {
+    newLen = newLen + 1;
+  }
+  if (b->allocSize < newLen) {
+    temp = (BigInt_limb_t *)BIGINT_ALLOC(sizeof(BigInt_limb_t) * newLen);
+    for (i = 0; i < oldLen; i++) {
+      temp[i] = b->internalRepresentation[i];
+    }
+    BIGINT_FREE(b->internalRepresentation);
+    b->internalRepresentation = temp;
+    b->allocSize = newLen;
+  }
+  b->internalSize = newLen;
+  for (i = 0; i < rem; i++) {
+    pad = pad << 1;
+    pad = pad | 1;
+  }
+  pad = pad << (BIGINT_BASE_BIT_LENGTH - rem);
+  /* printf("%d\n", pad); */
+  i = newLen - 1;
+  j = oldLen - 1;
+  if (rem) {
+    next = b->internalRepresentation[j] & pad;
+    next = next >> (BIGINT_BASE_BIT_LENGTH - rem);
+    b->internalRepresentation[i] = next;
+    i--;
+  }
+  for (; j >= 0; j--) {
+    next = 0;
+    if (j != 0) {
+      next = b->internalRepresentation[j - 1] & pad;
+    }
+    next = next >> (BIGINT_BASE_BIT_LENGTH - rem);
+    /* printf("Next %d\n",next); */
+    b->internalRepresentation[j] = (b->internalRepresentation[j] << rem) & BIGINT_BASE_MAX_INT;
+    b->internalRepresentation[j] = b->internalRepresentation[j] | next;
+    b->internalRepresentation[i] = b->internalRepresentation[j];
+    i--;
+  }
+  for (; i >= 0; i--) {
+    b->internalRepresentation[i] = 0;
+  }
+  BigInt_remove_leading_zeroes(b);
+}
+
+void BigInt_shift_right_bit(BigInt * b, BigInt_limb_wide_t bitcount) {
+  int start = bitcount / BIGINT_BASE_BIT_LENGTH;
+  int rem = bitcount % BIGINT_BASE_BIT_LENGTH;
+  int oldLen = b->internalSize;
+  /* int newLen = oldLen - start; */
+  int i, j, pad = 0, next;
+  for (i = 0; i < rem; i++) {
+    pad = pad << 1;
+    pad = pad | 1;
+  }
+  i = 0;
+  j = start;
+  for (; j < oldLen; j++) {
+    next = 0;
+    if (j != oldLen - 1) {
+      next = b->internalRepresentation[j + 1] & pad;
+    }
+    next = next << (BIGINT_BASE_BIT_LENGTH - rem);
+    b->internalRepresentation[j] = b->internalRepresentation[j] >> rem;
+    b->internalRepresentation[j] = b->internalRepresentation[j] | next;
+    b->internalRepresentation[i] = b->internalRepresentation[j];
+    i++;
+  }
+  
+  for (; i < oldLen; i++) {
+    b->internalRepresentation[i] = 0;
+  }
+  /* printf("oldlen %d, start %d\n", oldLen, start); */
+  /* b->internalSize = newLen; */
   BigInt_remove_leading_zeroes(b);
 }
 
