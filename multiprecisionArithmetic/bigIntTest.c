@@ -638,6 +638,454 @@ void right_shift_by_bit_test() {
   }
 }
 
+void additionTestSigned() {
+  BigInt num1, num2, ans1, ans2;
+  int i, len1, len2;
+  for (i = 0; i < 100; i++) {
+    len1 = rand() % 100 + 1;
+    len2 = rand() % 100 + 1;
+    BigInt_init_random_limb(&num1, len1);
+    BigInt_init_random_limb(&num2, len2);
+    BigInt_init_none(&ans1);
+    BigInt_init_none(&ans2);
+    if (BigInt_cmp(&num1, &num2) < 0) {
+      BigInt_swap(&num1, &num2);
+    } else if (BigInt_cmp(&num1, &num2) == 0) {
+      BigInt_destroy(&ans1);
+      BigInt_destroy(&ans2);
+      BigInt_destroy(&num1);
+      BigInt_destroy(&num2);
+      continue;
+    }
+    BigInt_add(&ans1, &num1, &num2);
+    BigInt_add_with_sign(&ans2, &num1, &num2);
+    TEST_CHECK(ans2.sign == 1);
+    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    BigInt_destroy(&ans1);
+    BigInt_destroy(&ans2);
+    BigInt_destroy(&num1);
+    BigInt_destroy(&num2);
+  }
+  
+  for (i = 0; i < 100; i++) {
+    len1 = rand() % 100 + 1;
+    len2 = rand() % 100 + 1;
+    BigInt_init_random_limb(&num1, len1);
+    BigInt_init_random_limb(&num2, len2);
+    BigInt_init_none(&ans1);
+    BigInt_init_none(&ans2);
+    if (BigInt_cmp(&num1, &num2) < 0) {
+      BigInt_swap(&num1, &num2);
+    } else if (BigInt_cmp(&num1, &num2) == 0) {
+      BigInt_destroy(&ans1);
+      BigInt_destroy(&ans2);
+      BigInt_destroy(&num1);
+      BigInt_destroy(&num2);
+      continue;
+    }
+    BigInt_set_negative_sign(&num1);
+    BigInt_subtract(&ans1, &num1, &num2);
+    BigInt_add_with_sign(&ans2, &num1, &num2);
+    TEST_CHECK(ans2.sign == -1);
+    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    BigInt_destroy(&ans1);
+    BigInt_destroy(&ans2);
+    BigInt_destroy(&num1);
+    BigInt_destroy(&num2);
+  }
+  
+  for (i = 0; i < 100; i++) {
+    len1 = rand() % 100 + 1;
+    len2 = rand() % 100 + 1;
+    BigInt_init_random_limb(&num1, len1);
+    BigInt_init_random_limb(&num2, len2);
+    BigInt_init_none(&ans1);
+    BigInt_init_none(&ans2);
+    if (BigInt_cmp(&num1, &num2) < 0) {
+      BigInt_swap(&num1, &num2);
+    } else if (BigInt_cmp(&num1, &num2) == 0) {
+      BigInt_destroy(&ans1);
+      BigInt_destroy(&ans2);
+      BigInt_destroy(&num1);
+      BigInt_destroy(&num2);
+      continue;
+    }
+    BigInt_set_negative_sign(&num2);
+    BigInt_subtract(&ans1, &num1, &num2);
+    BigInt_add_with_sign(&ans2, &num1, &num2);
+    TEST_CHECK(ans2.sign == 1);
+    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    BigInt_destroy(&ans1);
+    BigInt_destroy(&ans2);
+    BigInt_destroy(&num1);
+    BigInt_destroy(&num2);
+  }
+  
+  for (i = 0; i < 100; i++) {
+    len1 = rand() % 100 + 1;
+    len2 = rand() % 100 + 1;
+    BigInt_init_random_limb(&num1, len1);
+    BigInt_init_random_limb(&num2, len2);
+    BigInt_init_none(&ans1);
+    BigInt_init_none(&ans2);
+    if (BigInt_cmp(&num1, &num2) < 0) {
+      BigInt_swap(&num1, &num2);
+    } else if (BigInt_cmp(&num1, &num2) == 0) {
+      BigInt_destroy(&ans1);
+      BigInt_destroy(&ans2);
+      BigInt_destroy(&num1);
+      BigInt_destroy(&num2);
+      continue;
+    }
+    BigInt_set_negative_sign(&num1);
+    BigInt_set_negative_sign(&num2);
+    BigInt_add(&ans1, &num1, &num2);
+    BigInt_add_with_sign(&ans2, &num1, &num2);
+    TEST_CHECK(ans2.sign == -1);
+    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    BigInt_destroy(&ans1);
+    BigInt_destroy(&ans2);
+    BigInt_destroy(&num1);
+    BigInt_destroy(&num2);
+  }
+}
+
+void subtractionTestSigned() {
+  BigInt num1, num2, ans1, ans2;
+  int i, len1, len2;
+  for (i = 0; i < 100; i++) {
+    len1 = rand() % 100 + 1;
+    len2 = rand() % 100 + 1;
+    BigInt_init_random_limb(&num1, len1);
+    BigInt_init_random_limb(&num2, len2);
+    BigInt_init_none(&ans1);
+    BigInt_init_none(&ans2);
+    if (BigInt_cmp(&num1, &num2) < 0) {
+      BigInt_swap(&num1, &num2);
+    } else if (BigInt_cmp(&num1, &num2) == 0) {
+      BigInt_destroy(&ans1);
+      BigInt_destroy(&ans2);
+      BigInt_destroy(&num1);
+      BigInt_destroy(&num2);
+      continue;
+    }
+    BigInt_subtract(&ans1, &num1, &num2);
+    BigInt_subtract_with_sign(&ans2, &num1, &num2);
+    TEST_CHECK(ans2.sign == 1);
+    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    BigInt_destroy(&ans1);
+    BigInt_destroy(&ans2);
+    BigInt_destroy(&num1);
+    BigInt_destroy(&num2);
+  }
+  
+  for (i = 0; i < 100; i++) {
+    len1 = rand() % 100 + 1;
+    len2 = rand() % 100 + 1;
+    BigInt_init_random_limb(&num1, len1);
+    BigInt_init_random_limb(&num2, len2);
+    BigInt_init_none(&ans1);
+    BigInt_init_none(&ans2);
+    if (BigInt_cmp(&num1, &num2) < 0) {
+      BigInt_swap(&num1, &num2);
+    } else if (BigInt_cmp(&num1, &num2) == 0) {
+      BigInt_destroy(&ans1);
+      BigInt_destroy(&ans2);
+      BigInt_destroy(&num1);
+      BigInt_destroy(&num2);
+      continue;
+    }
+    BigInt_set_negative_sign(&num1);
+    BigInt_add(&ans1, &num1, &num2);
+    BigInt_subtract_with_sign(&ans2, &num1, &num2);
+    TEST_CHECK(ans2.sign == -1);
+    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    BigInt_destroy(&ans1);
+    BigInt_destroy(&ans2);
+    BigInt_destroy(&num1);
+    BigInt_destroy(&num2);
+  }
+  
+  for (i = 0; i < 100; i++) {
+    len1 = rand() % 100 + 1;
+    len2 = rand() % 100 + 1;
+    BigInt_init_random_limb(&num1, len1);
+    BigInt_init_random_limb(&num2, len2);
+    BigInt_init_none(&ans1);
+    BigInt_init_none(&ans2);
+    if (BigInt_cmp(&num1, &num2) < 0) {
+      BigInt_swap(&num1, &num2);
+    } else if (BigInt_cmp(&num1, &num2) == 0) {
+      BigInt_destroy(&ans1);
+      BigInt_destroy(&ans2);
+      BigInt_destroy(&num1);
+      BigInt_destroy(&num2);
+      continue;
+    }
+    BigInt_set_negative_sign(&num2);
+    BigInt_add(&ans1, &num1, &num2);
+    BigInt_subtract_with_sign(&ans2, &num1, &num2);
+    TEST_CHECK(ans2.sign == 1);
+    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    BigInt_destroy(&ans1);
+    BigInt_destroy(&ans2);
+    BigInt_destroy(&num1);
+    BigInt_destroy(&num2);
+  }
+  
+  for (i = 0; i < 100; i++) {
+    len1 = rand() % 100 + 1;
+    len2 = rand() % 100 + 1;
+    BigInt_init_random_limb(&num1, len1);
+    BigInt_init_random_limb(&num2, len2);
+    BigInt_init_none(&ans1);
+    BigInt_init_none(&ans2);
+    if (BigInt_cmp(&num1, &num2) < 0) {
+      BigInt_swap(&num1, &num2);
+    } else if (BigInt_cmp(&num1, &num2) == 0) {
+      BigInt_destroy(&ans1);
+      BigInt_destroy(&ans2);
+      BigInt_destroy(&num1);
+      BigInt_destroy(&num2);
+      continue;
+    }
+    BigInt_set_negative_sign(&num1);
+    BigInt_set_negative_sign(&num2);
+    BigInt_subtract(&ans1, &num1, &num2);
+    BigInt_subtract_with_sign(&ans2, &num1, &num2);
+    TEST_CHECK(ans2.sign == -1);
+    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    BigInt_destroy(&ans1);
+    BigInt_destroy(&ans2);
+    BigInt_destroy(&num1);
+    BigInt_destroy(&num2);
+  }
+}
+
+void multiplicationTestSigned() {
+  BigInt num1, num2, ans1, ans2;
+  int i, len1, len2;
+  for (i = 0; i < 100; i++) {
+    len1 = rand() % 100 + 1;
+    len2 = rand() % 100 + 1;
+    BigInt_init_random_limb(&num1, len1);
+    BigInt_init_random_limb(&num2, len2);
+    BigInt_init_none(&ans1);
+    BigInt_init_none(&ans2);
+    if (BigInt_cmp(&num1, &num2) < 0) {
+      BigInt_swap(&num1, &num2);
+    } else if (BigInt_cmp(&num1, &num2) == 0) {
+      BigInt_destroy(&ans1);
+      BigInt_destroy(&ans2);
+      BigInt_destroy(&num1);
+      BigInt_destroy(&num2);
+      continue;
+    }
+    BigInt_multiply(&ans1, &num1, &num2);
+    BigInt_multiply_with_sign(&ans2, &num1, &num2);
+    TEST_CHECK(ans2.sign == 1);
+    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    BigInt_destroy(&ans1);
+    BigInt_destroy(&ans2);
+    BigInt_destroy(&num1);
+    BigInt_destroy(&num2);
+  }
+  
+  for (i = 0; i < 100; i++) {
+    len1 = rand() % 100 + 1;
+    len2 = rand() % 100 + 1;
+    BigInt_init_random_limb(&num1, len1);
+    BigInt_init_random_limb(&num2, len2);
+    BigInt_init_none(&ans1);
+    BigInt_init_none(&ans2);
+    if (BigInt_cmp(&num1, &num2) < 0) {
+      BigInt_swap(&num1, &num2);
+    } else if (BigInt_cmp(&num1, &num2) == 0) {
+      BigInt_destroy(&ans1);
+      BigInt_destroy(&ans2);
+      BigInt_destroy(&num1);
+      BigInt_destroy(&num2);
+      continue;
+    }
+    BigInt_set_negative_sign(&num1);
+    BigInt_multiply(&ans1, &num1, &num2);
+    BigInt_multiply_with_sign(&ans2, &num1, &num2);
+    TEST_CHECK(ans2.sign == -1);
+    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    BigInt_destroy(&ans1);
+    BigInt_destroy(&ans2);
+    BigInt_destroy(&num1);
+    BigInt_destroy(&num2);
+  }
+  
+  for (i = 0; i < 100; i++) {
+    len1 = rand() % 100 + 1;
+    len2 = rand() % 100 + 1;
+    BigInt_init_random_limb(&num1, len1);
+    BigInt_init_random_limb(&num2, len2);
+    BigInt_init_none(&ans1);
+    BigInt_init_none(&ans2);
+    if (BigInt_cmp(&num1, &num2) < 0) {
+      BigInt_swap(&num1, &num2);
+    } else if (BigInt_cmp(&num1, &num2) == 0) {
+      BigInt_destroy(&ans1);
+      BigInt_destroy(&ans2);
+      BigInt_destroy(&num1);
+      BigInt_destroy(&num2);
+      continue;
+    }
+    BigInt_set_negative_sign(&num2);
+    BigInt_multiply(&ans1, &num1, &num2);
+    BigInt_multiply_with_sign(&ans2, &num1, &num2);
+    TEST_CHECK(ans2.sign == -1);
+    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    BigInt_destroy(&ans1);
+    BigInt_destroy(&ans2);
+    BigInt_destroy(&num1);
+    BigInt_destroy(&num2);
+  }
+  
+  for (i = 0; i < 100; i++) {
+    len1 = rand() % 100 + 1;
+    len2 = rand() % 100 + 1;
+    BigInt_init_random_limb(&num1, len1);
+    BigInt_init_random_limb(&num2, len2);
+    BigInt_init_none(&ans1);
+    BigInt_init_none(&ans2);
+    if (BigInt_cmp(&num1, &num2) < 0) {
+      BigInt_swap(&num1, &num2);
+    } else if (BigInt_cmp(&num1, &num2) == 0) {
+      BigInt_destroy(&ans1);
+      BigInt_destroy(&ans2);
+      BigInt_destroy(&num1);
+      BigInt_destroy(&num2);
+      continue;
+    }
+    BigInt_set_negative_sign(&num1);
+    BigInt_set_negative_sign(&num2);
+    BigInt_multiply(&ans1, &num1, &num2);
+    BigInt_multiply_with_sign(&ans2, &num1, &num2);
+    TEST_CHECK(ans2.sign == 1);
+    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    BigInt_destroy(&ans1);
+    BigInt_destroy(&ans2);
+    BigInt_destroy(&num1);
+    BigInt_destroy(&num2);
+  }
+}
+
+void divisionTestSigned() {
+  BigInt num1, num2, ans1, ans2;
+  int i, len1, len2;
+  for (i = 0; i < 100; i++) {
+    len1 = rand() % 100 + 1;
+    len2 = rand() % 100 + 1;
+    BigInt_init_random_limb(&num1, len1);
+    BigInt_init_random_limb(&num2, len2);
+    BigInt_init_none(&ans1);
+    BigInt_init_none(&ans2);
+    if (BigInt_cmp(&num1, &num2) < 0) {
+      BigInt_swap(&num1, &num2);
+    } else if (BigInt_cmp(&num1, &num2) == 0) {
+      BigInt_destroy(&ans1);
+      BigInt_destroy(&ans2);
+      BigInt_destroy(&num1);
+      BigInt_destroy(&num2);
+      continue;
+    }
+    BigInt_divide(&ans1, &num1, &num2);
+    BigInt_divide_with_sign(&ans2, &num1, &num2);
+    TEST_CHECK(ans2.sign == 1);
+    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    BigInt_destroy(&ans1);
+    BigInt_destroy(&ans2);
+    BigInt_destroy(&num1);
+    BigInt_destroy(&num2);
+  }
+  
+  for (i = 0; i < 100; i++) {
+    len1 = rand() % 100 + 1;
+    len2 = rand() % 100 + 1;
+    BigInt_init_random_limb(&num1, len1);
+    BigInt_init_random_limb(&num2, len2);
+    BigInt_init_none(&ans1);
+    BigInt_init_none(&ans2);
+    if (BigInt_cmp(&num1, &num2) < 0) {
+      BigInt_swap(&num1, &num2);
+    } else if (BigInt_cmp(&num1, &num2) == 0) {
+      BigInt_destroy(&ans1);
+      BigInt_destroy(&ans2);
+      BigInt_destroy(&num1);
+      BigInt_destroy(&num2);
+      continue;
+    }
+    BigInt_set_negative_sign(&num1);
+    BigInt_divide(&ans1, &num1, &num2);
+    BigInt_divide_with_sign(&ans2, &num1, &num2);
+    TEST_CHECK(ans2.sign == -1);
+    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    BigInt_destroy(&ans1);
+    BigInt_destroy(&ans2);
+    BigInt_destroy(&num1);
+    BigInt_destroy(&num2);
+  }
+  
+  for (i = 0; i < 100; i++) {
+    len1 = rand() % 100 + 1;
+    len2 = rand() % 100 + 1;
+    BigInt_init_random_limb(&num1, len1);
+    BigInt_init_random_limb(&num2, len2);
+    BigInt_init_none(&ans1);
+    BigInt_init_none(&ans2);
+    if (BigInt_cmp(&num1, &num2) < 0) {
+      BigInt_swap(&num1, &num2);
+    } else if (BigInt_cmp(&num1, &num2) == 0) {
+      BigInt_destroy(&ans1);
+      BigInt_destroy(&ans2);
+      BigInt_destroy(&num1);
+      BigInt_destroy(&num2);
+      continue;
+    }
+    BigInt_set_negative_sign(&num2);
+    BigInt_divide(&ans1, &num1, &num2);
+    BigInt_divide_with_sign(&ans2, &num1, &num2);
+    TEST_CHECK(ans2.sign == -1);
+    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    BigInt_destroy(&ans1);
+    BigInt_destroy(&ans2);
+    BigInt_destroy(&num1);
+    BigInt_destroy(&num2);
+  }
+  
+  for (i = 0; i < 100; i++) {
+    len1 = rand() % 100 + 1;
+    len2 = rand() % 100 + 1;
+    BigInt_init_random_limb(&num1, len1);
+    BigInt_init_random_limb(&num2, len2);
+    BigInt_init_none(&ans1);
+    BigInt_init_none(&ans2);
+    if (BigInt_cmp(&num1, &num2) < 0) {
+      BigInt_swap(&num1, &num2);
+    } else if (BigInt_cmp(&num1, &num2) == 0) {
+      BigInt_destroy(&ans1);
+      BigInt_destroy(&ans2);
+      BigInt_destroy(&num1);
+      BigInt_destroy(&num2);
+      continue;
+    }
+    BigInt_set_negative_sign(&num1);
+    BigInt_set_negative_sign(&num2);
+    BigInt_divide(&ans1, &num1, &num2);
+    BigInt_divide_with_sign(&ans2, &num1, &num2);
+    TEST_CHECK(ans2.sign == 1);
+    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    BigInt_destroy(&ans1);
+    BigInt_destroy(&ans2);
+    BigInt_destroy(&num1);
+    BigInt_destroy(&num2);
+  }
+}
+
 TEST_LIST = {
   {"addition", additionTest},
   {"subtraction", subtractionTest},
@@ -650,6 +1098,10 @@ TEST_LIST = {
   {"randomized positive multiplication karatsuba test", randomizedMultiplyKaratsuba},
   {"randomized positive division test", randomizedDivide},
   {"randomized positive division test max(100) digits by max(50) digits", randomizedDivide100by50},
+  {"randomized signed addition test", additionTestSigned},
+  {"randomized signed subtraction test", subtractionTestSigned},
+  {"randomized signed multiplication test", multiplicationTestSigned},
+  {"randomized signed division test", divisionTestSigned},
   /*{"randomized fast input and output test", inputAndOutputTest2},*/
   {"specific digit count test", specificDigitCountTest},
   {"randomized digit count test", digitCountTest},
