@@ -33,6 +33,8 @@
 
 #if defined(BIGINT_USE_64_BIT)
 
+#define BIGINT_ALLOC_THRESHOLD (1 << 17)
+
 #if defined(__STDC_VERSION__)
 
 #if defined(__GNUC__) && defined(BIGINT_USE_FAST_128BIT)
@@ -93,6 +95,8 @@ typedef __int64 BigInt_limb_wide_t;
 
 #elif defined(BIGINT_USE_32_BIT)
 
+#define BIGINT_ALLOC_THRESHOLD (1 << 17)
+
 #if defined(__STDC_VERSION__)
 #define BIGINT_BASE 2147483648LL
 #define BIGINT_BASE_MAX_INT 2147483647LL
@@ -128,6 +132,8 @@ typedef long long BigInt_limb_wide_t;
 #endif
 
 #elif defined(BIGINT_USE_16_BIT)
+
+#define BIGINT_ALLOC_THRESHOLD (1 << 10)
 
 #define BIGINT_BASE 32768
 #define BIGINT_BASE_MAX_INT 32767
@@ -190,6 +196,7 @@ void BigInt_init_two(BigInt *);
 void BigInt_init_negative_one(BigInt *);
 void BigInt_init_random_limb(BigInt *, int);
 void BigInt_init_zero_limb(BigInt *, int);
+void BigInt_init_zero_alloc_limb(BigInt *, int);
 void BigInt_copy(BigInt *, BigInt *);
 void BigInt_copy_to_no_init(BigInt *, BigInt *, int, int);
 void BigInt_swap(BigInt *, BigInt *);
@@ -269,8 +276,6 @@ void BigInt_multiply_auto_with_sign(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_auto_t(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_auto_ts(BigInt *, BigInt *, BigInt *);
 
-extern BigInt_limb_t BigInt_reserved_id;
-
 #if defined(BIGINT_IMPL) || defined(MPA_IMPL)
 
 #include <stdio.h>
@@ -278,8 +283,6 @@ extern BigInt_limb_t BigInt_reserved_id;
 #include <string.h>
 
 /* #include "multiprecisionArithmetic.h" */
-
-BigInt_limb_t BigInt_reserved_id = 0;
 
 void BigInt_reverse_digits_impl(char * arr, int len) {
   int mid = (len - 1) / 2;
@@ -344,6 +347,22 @@ void BigInt_zero_all_impl(BigInt_limb_t * dest, int len) {
   for (i = 0; i < len; i++) {
     dest[i] = 0;
   }
+}
+
+BigInt_limb_t * BigInt_alloc_helper(int * old_alloc_size, int required_size) {
+  int newSize;
+  if (*old_alloc_size == 0) {
+    newSize = required_size;
+  } else if (*old_alloc_size < BIGINT_ALLOC_THRESHOLD) {
+    newSize = (*old_alloc_size) * 2;
+  } else {
+    newSize = (*old_alloc_size) + ((*old_alloc_size) / 4);
+  }
+  if (newSize < required_size) {
+    newSize = required_size;
+  }
+  *old_alloc_size = newSize;
+  return (BigInt_limb_t *)BIGINT_ALLOC(newSize * sizeof(BigInt_limb_t));
 }
 
 int BigInt_is_zero_impl(BigInt_limb_t * arr, int len) {
@@ -697,10 +716,9 @@ void BigInt_add(BigInt * sum, BigInt * addend1, BigInt * addend2) {
     sum->internalRepresentation[addend1->internalSize] = 0;
   } else {
     BIGINT_FREE(sum->internalRepresentation);
-    sum->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((addend1->internalSize + 1) * sizeof(BigInt_limb_t));
+    sum->internalRepresentation = BigInt_alloc_helper(&(sum->allocSize), addend1->internalSize + 1);
     sum->internalRepresentation[addend1->internalSize] = 0;
     sum->internalSize = addend1->internalSize + 1;
-    sum->allocSize = addend1->internalSize + 1;
   }
   
   BigInt_add_optimize_impl(addend1->internalRepresentation, addend2->internalRepresentation, sum->internalRepresentation, addend1->internalSize, addend2->internalSize, sum->internalSize);
@@ -758,10 +776,9 @@ void BigInt_add_small(BigInt * sum, BigInt * addend1, BigInt_limb_t addend2) {
     sum->internalSize = addend1->internalSize + 1;
   } else {
     BIGINT_FREE(sum->internalRepresentation);
-    sum->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((addend1->internalSize + 1) * sizeof(BigInt_limb_t));
+    sum->internalRepresentation = BigInt_alloc_helper(&(sum->allocSize), addend1->internalSize + 1);
     sum->internalRepresentation[addend1->internalSize] = 0;
     sum->internalSize = addend1->internalSize + 1;
-    sum->allocSize = addend1->internalSize + 1;
   }
   
   BigInt_add_small_impl(addend1->internalRepresentation, addend2, sum->internalRepresentation, addend1->internalSize, sum->internalSize);
@@ -843,9 +860,8 @@ void BigInt_subtract(BigInt * difference, BigInt * minuend, BigInt * subtrahend)
     difference->internalSize = minuend->internalSize;
   } else {
     BIGINT_FREE(difference->internalRepresentation);
-    difference->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((minuend->internalSize) * sizeof(BigInt_limb_t));
+    difference->internalRepresentation = BigInt_alloc_helper(&(difference->allocSize), minuend->internalSize);
     difference->internalSize = minuend->internalSize;
-    difference->allocSize = minuend->internalSize;
   }
   BigInt_subtract_optimize_impl(minuend->internalRepresentation, subtrahend->internalRepresentation, difference->internalRepresentation, minuend->internalSize, subtrahend->internalSize, difference->internalSize);
   BigInt_remove_leading_zeroes(difference);
@@ -869,10 +885,9 @@ void BigInt_add_with_sign(BigInt * sum, BigInt * addend1, BigInt * addend2) {
     sum->internalSize = addend1->internalSize + 1;
   } else {
     BIGINT_FREE(sum->internalRepresentation);
-    sum->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((addend1->internalSize + 1) * sizeof(BigInt_limb_t));
+    sum->internalRepresentation = BigInt_alloc_helper(&(sum->allocSize), addend1->internalSize + 1);
     sum->internalRepresentation[addend1->internalSize] = 0;
     sum->internalSize = addend1->internalSize + 1;
-    sum->allocSize = addend1->internalSize + 1;
   }
   if(sameSign) {
     BigInt_add_optimize_impl(addend1->internalRepresentation, addend2->internalRepresentation, sum->internalRepresentation, addend1->internalSize, addend2->internalSize, sum->internalSize);
@@ -906,10 +921,9 @@ void BigInt_subtract_with_sign(BigInt * difference, BigInt * minuend, BigInt * s
     difference->internalSize = minuend->internalSize + allowance;
   } else {
     BIGINT_FREE(difference->internalRepresentation);
-    difference->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((minuend->internalSize + allowance) * sizeof(BigInt_limb_t));
+    difference->internalRepresentation = BigInt_alloc_helper(&(difference->allocSize), minuend->internalSize + allowance);
     difference->internalRepresentation[minuend->internalSize + allowance - 1] = 0;
     difference->internalSize = minuend->internalSize + allowance;
-    difference->allocSize = minuend->internalSize + allowance;
   }
   if (sameSign) {
     BigInt_add_optimize_impl(minuend->internalRepresentation, subtrahend->internalRepresentation, difference->internalRepresentation, minuend->internalSize, subtrahend->internalSize, difference->internalSize);
@@ -1020,9 +1034,8 @@ void BigInt_multiply(BigInt * product, BigInt * multiplicand, BigInt * multiplie
     product->internalSize = multiplicand->internalSize + multiplier->internalSize;
   } else {
     BIGINT_FREE(product->internalRepresentation);
-    product->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((multiplicand->internalSize + multiplier->internalSize) * sizeof(BigInt_limb_t));
+    product->internalRepresentation = BigInt_alloc_helper(&(product->allocSize), multiplicand->internalSize + multiplier->internalSize);
     product->internalSize = multiplicand->internalSize + multiplier->internalSize;
-    product->allocSize = multiplicand->internalSize + multiplier->internalSize;
   }
   for (i = 0; i < product->internalSize; i++) {
     product->internalRepresentation[i] = 0;
@@ -1092,9 +1105,8 @@ void BigInt_multiply_small(BigInt * product, BigInt * multiplicand, BigInt_limb_
     product->internalSize = multiplicand->internalSize + 1;
   } else {
     BIGINT_FREE(product->internalRepresentation);
-    product->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((multiplicand->internalSize + 1) * sizeof(BigInt_limb_t));
+    product->internalRepresentation = BigInt_alloc_helper(&(product->allocSize), multiplicand->internalSize + 1);
     product->internalSize = multiplicand->internalSize + 1;
-    product->allocSize = multiplicand->internalSize + 1;
   }
   for (i = 0; i < product->internalSize; i++) {
     product->internalRepresentation[i] = 0;
@@ -1116,8 +1128,8 @@ void BigInt_multiply_with_sign(BigInt * product, BigInt * multiplicand, BigInt *
   } else {
     BIGINT_FREE(product->internalRepresentation);
     product->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((multiplicand->internalSize + multiplier->internalSize) * sizeof(BigInt_limb_t));
+    product->internalRepresentation = BigInt_alloc_helper(&(product->allocSize), multiplicand->internalSize + multiplier->internalSize);
     product->internalSize = multiplicand->internalSize + multiplier->internalSize;
-    product->allocSize = multiplicand->internalSize + multiplier->internalSize;
   }
   for (i = 0; i < product->internalSize; i++) {
     product->internalRepresentation[i] = 0;
@@ -1216,9 +1228,8 @@ void BigInt_divide(BigInt * quotient, BigInt * dividend1, BigInt * divisor) {
     quotient->internalSize = dividend2.internalSize - divisor->internalSize;
   } else {
     BIGINT_FREE(quotient->internalRepresentation);
-    quotient->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((dividend2.internalSize - divisor->internalSize) * sizeof(BigInt_limb_t));
+    quotient->internalRepresentation = BigInt_alloc_helper(&(quotient->allocSize), dividend2.internalSize - divisor->internalSize);
     quotient->internalSize = dividend2.internalSize - divisor->internalSize;
-    quotient->allocSize = dividend2.internalSize - divisor->internalSize;
   }
   BigInt_multiply_optimize_impl(dividend2.internalRepresentation, d, newDividend, dividend2.internalSize - 1, 1, dividend2.internalSize);
   BigInt_multiply_optimize_impl(divisor->internalRepresentation, d, newDivisor, divisor->internalSize, 1, divisor->internalSize);
@@ -1273,9 +1284,8 @@ void BigInt_divide_no_copy(BigInt * quotient, BigInt * dividend, BigInt * diviso
     quotient->internalSize = dividend->internalSize - divisor->internalSize;
   } else {
     BIGINT_FREE(quotient->internalRepresentation);
-    quotient->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((dividend->internalSize - divisor->internalSize) * sizeof(BigInt_limb_t));
+    quotient->internalRepresentation = BigInt_alloc_helper(&(quotient->allocSize), dividend->internalSize - divisor->internalSize);
     quotient->internalSize = dividend->internalSize - divisor->internalSize;
-    quotient->allocSize = dividend->internalSize - divisor->internalSize;
   }
   BigInt_multiply_optimize_impl(dividend->internalRepresentation, d, newDividend, dividend->internalSize - 1, 1, dividend->internalSize);
   BigInt_multiply_optimize_impl(divisor->internalRepresentation, d, newDivisor, divisor->internalSize, 1, divisor->internalSize);
@@ -1331,9 +1341,8 @@ void BigInt_divide_with_sign(BigInt * quotient, BigInt * dividend1, BigInt * div
       quotient->internalSize = dividend2.internalSize - divisor->internalSize;
     } else {
       BIGINT_FREE(quotient->internalRepresentation);
-      quotient->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((dividend2.internalSize - divisor->internalSize) * sizeof(BigInt_limb_t));
+      quotient->internalRepresentation = BigInt_alloc_helper(&(quotient->allocSize), dividend2.internalSize - divisor->internalSize);
       quotient->internalSize = dividend2.internalSize - divisor->internalSize;
-      quotient->allocSize = dividend2.internalSize - divisor->internalSize;
     }
     BigInt_multiply_optimize_impl(dividend2.internalRepresentation, d, newDividend, dividend2.internalSize - 1, 1, dividend2.internalSize);
     BigInt_multiply_optimize_impl(divisor->internalRepresentation, d, newDivisor, divisor->internalSize, 1, divisor->internalSize);
@@ -1390,9 +1399,8 @@ void BigInt_divide_no_copy_with_sign(BigInt * quotient, BigInt * dividend, BigIn
       quotient->internalSize = dividend->internalSize - divisor->internalSize;
     } else {
       BIGINT_FREE(quotient->internalRepresentation);
-      quotient->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((dividend->internalSize - divisor->internalSize) * sizeof(BigInt_limb_t));
+      quotient->internalRepresentation = BigInt_alloc_helper(&(quotient->allocSize), dividend->internalSize - divisor->internalSize);
       quotient->internalSize = dividend->internalSize - divisor->internalSize;
-      quotient->allocSize = dividend->internalSize - divisor->internalSize;
     }
     BigInt_multiply_optimize_impl(dividend->internalRepresentation, d, newDividend, dividend->internalSize - 1, 1, dividend->internalSize);
     BigInt_multiply_optimize_impl(divisor->internalRepresentation, d, newDivisor, divisor->internalSize, 1, divisor->internalSize);

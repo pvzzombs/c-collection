@@ -36,18 +36,20 @@ int main() {
   double start, end;
   FILE * f = fopen("fibmillion.bin", "w");
 
-  BigInt_init_zero_alloc_limb(&a, 200000);
-  BigInt_init_zero_alloc_limb(&b, 200000);
-  BigInt_init_zero_alloc_limb(&temp, 200000);
+  BigInt_init_zero(&a);
+  BigInt_init_zero(&b);
+  BigInt_init_zero(&temp);
   
   BigInt_set_from_int(&a, 1);
   BigInt_set_from_int(&b, 1);
 
   start = get_time();
   while(index < 1000000) {
-    BigInt_add_less_checks(&temp, &a, &b);
-    BigInt_swap(&a, &b);
-    BigInt_swap(&b, &temp);
+    BigInt_add(&temp, &a, &b);
+    /* BigInt_swap(&a, &b);
+    BigInt_swap(&b, &temp); */
+    BigInt_copy(&a, &b);
+    BigInt_copy(&b, &temp);
     index++;
   }
   end = get_time();
