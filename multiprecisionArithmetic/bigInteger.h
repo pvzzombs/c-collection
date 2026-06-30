@@ -35,6 +35,20 @@
 
 #if defined(__STDC_VERSION__)
 
+#if defined(__GNUC__) && defined(BIGINT_USE_FAST_128BIT)
+
+#define BIGINT_BASE 9223372036854775808ULL
+#define BIGINT_BASE_MAX_INT 9223372036854775807ULL
+#define BIGINT_BASE_STRING "9223372036854775808"
+#define BIGINT_BASE_DIGITS 19ULL
+#define BIGINT_BASE_10 1000000000000000000ULL
+#define BIGINT_BASE_BIT_LENGTH 63
+typedef unsigned long long BigInt_limb_t;
+typedef unsigned __int128 BigInt_limb_wide_t;
+
+
+#else
+
 #define BIGINT_BASE 2147483648LL
 #define BIGINT_BASE_MAX_INT 2147483647LL
 #define BIGINT_BASE_STRING "2147483648"
@@ -43,6 +57,8 @@
 #define BIGINT_BASE_BIT_LENGTH 31
 typedef int32_t BigInt_limb_t;
 typedef long long BigInt_limb_wide_t;
+#endif
+
 #else
 
 #if defined(__GNUC__)
@@ -133,9 +149,13 @@ typedef long BigInt_limb_wide_t;
 
 #endif
 
-#if defined(__GNUC__) && defined(BIGINT_USE_64_BIT)
+#if defined(__GNUC__) && defined(BIGINT_USE_64_BIT) && !defined(BIGINT_USE_FAST_128BIT)
 
 #define BIGINT_ENABLE_GNU_64_OPTIMIZATION
+
+#elif defined(__GNUC__) && defined(BIGINT_USE_64_BIT) && defined(BIGINT_USE_FAST_128BIT)
+
+#define BIGINT_ENABLE_GNU_64_WITH_128_OPTIMIZATION
 
 #else
 
@@ -385,6 +405,7 @@ void BigInt_init_negative_one(BigInt * b) {
 
 void BigInt_init_random_limb(BigInt * b, int limb_count) {
   int i;
+  BigInt_limb_wide_t r, base = BIGINT_BASE;
   if (limb_count < 1) {
     BigInt_init_none(b);
     return;
@@ -394,7 +415,9 @@ void BigInt_init_random_limb(BigInt * b, int limb_count) {
   b->allocSize = limb_count;
   b->sign = 1;
   for (i = 0; i < limb_count; i++) {
-    b->internalRepresentation[i] = BIGINT_RAND() % BIGINT_BASE;
+    r = BIGINT_RAND();
+    r = r % base;
+    b->internalRepresentation[i] = r;
   }
   if (b->internalRepresentation[limb_count - 1] == 0) {
     b->internalRepresentation[limb_count - 1] = 1;
@@ -414,6 +437,18 @@ void BigInt_init_zero_limb(BigInt * b, int limb_count) {
   for (i = 0; i < limb_count; i++) {
     b->internalRepresentation[i] = 0;
   }
+}
+
+void BigInt_init_zero_alloc_limb(BigInt * b, int limb_count) {
+  if (limb_count < 1) {
+    BigInt_init_none(b);
+    return;
+  }
+  b->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC(limb_count * sizeof(BigInt_limb_t));
+  b->internalSize = 1;
+  b->allocSize = limb_count;
+  b->sign = 0;
+  b->internalRepresentation[0] = 0;
 }
 
 void BigInt_copy(BigInt * to, BigInt * from) {
@@ -619,7 +654,7 @@ void BigInt_add_any_base_impl(BigInt_limb_t * addend1, BigInt_limb_t * addend2, 
 
 void BigInt_add_optimize_impl(BigInt_limb_t * addend1, BigInt_limb_t * addend2, BigInt_limb_t * sum, int addend1Len, int addend2Len, int sumLen) {
   int i;
-  BigInt_limb_wide_t digitSum = 0, carry = 0;
+  BigInt_limb_wide_t digitSum = 0, carry = 0, num;
   for (i = 0; i < addend2Len; i++) {
     BigInt_limb_wide_t a = addend1[i];
     BigInt_limb_wide_t b = addend2[i];
@@ -635,15 +670,20 @@ void BigInt_add_optimize_impl(BigInt_limb_t * addend1, BigInt_limb_t * addend2, 
 #endif
     sum[i] = digitSum;
   }
-  for(; i < sumLen; i++) {
-    BigInt_limb_wide_t num = 0;
-    if(i < addend1Len) {
-      num = addend1[i];
-    }
-    digitSum = (num + carry) & BIGINT_BASE_MAX_INT;
-    carry = (num + carry) >> BIGINT_BASE_BIT_LENGTH;
+  for(; i < addend1Len; i++) {
+    BigInt_limb_wide_t num = addend1[i];
+#if defined(BIGINT_ENABLE_GNU_64_OPTIMIZATION)
+    __builtin_saddll_overflow(num, carry, &digitSum);
+    carry = digitSum >> BIGINT_BASE_BIT_LENGTH;
+    digitSum &= BIGINT_BASE_MAX_INT;
+#else
+    digitSum = num + carry;
+    carry = digitSum >> BIGINT_BASE_BIT_LENGTH;
+    digitSum &= BIGINT_BASE_MAX_INT;
+#endif
     sum[i] = digitSum;
   }
+  sum[i] = carry;
 }
 
 void BigInt_add(BigInt * sum, BigInt * addend1, BigInt * addend2) {
@@ -667,6 +707,19 @@ void BigInt_add(BigInt * sum, BigInt * addend1, BigInt * addend2) {
   BigInt_remove_leading_zeroes(sum);
 }
 
+void BigInt_add_less_checks(BigInt * sum, BigInt * addend1, BigInt * addend2) {
+  int t = BigInt_max_int(addend1->internalSize, addend2->internalSize) + 1;
+  if (BigInt_cmp_len(addend1, addend2) < 0) {
+    BigInt * temp = addend1;
+    addend1 = addend2;
+    addend2 = temp;
+  }
+  sum->internalSize = t;
+  BigInt_add_optimize_impl(addend1->internalRepresentation, addend2->internalRepresentation, sum->internalRepresentation, addend1->internalSize, addend2->internalSize, t);
+  BigInt_remove_leading_zeroes(sum);
+  
+}
+
 void BigInt_add_small_impl(BigInt_limb_t * addend1, BigInt_limb_t addend2, BigInt_limb_t * sum, int addend1Len, int sumLen) {
   int i = 0;
   BigInt_limb_wide_t digitSum = 0, carry = 0;
@@ -684,11 +737,8 @@ void BigInt_add_small_impl(BigInt_limb_t * addend1, BigInt_limb_t addend2, BigIn
 #endif
   sum[i] = digitSum;
   i++;
-  for(; i < sumLen; i++) {
-    BigInt_limb_wide_t num = 0;
-    if(i < addend1Len) {
-      num = addend1[i];
-    }
+  for(; i < addend1Len; i++) {
+    BigInt_limb_wide_t num = addend1[i];
 #if defined(BIGINT_ENABLE_GNU_64_OPTIMIZATION)
     __builtin_saddll_overflow(num, carry, &digitSum);
     carry = digitSum >> BIGINT_BASE_BIT_LENGTH;
@@ -700,6 +750,7 @@ void BigInt_add_small_impl(BigInt_limb_t * addend1, BigInt_limb_t addend2, BigIn
 #endif
     sum[i] = digitSum;
   }
+  sum[i] = carry;
 }
 
 void BigInt_add_small(BigInt * sum, BigInt * addend1, BigInt_limb_t addend2) {
@@ -724,7 +775,7 @@ void BigInt_subtract_optimize_impl(BigInt_limb_t * minuend, BigInt_limb_t * subt
     BigInt_limb_wide_t minuendDigit = minuend[i];
     BigInt_limb_wide_t subtrahendDigit = subtrahend[i];
     BigInt_limb_wide_t tempBorrow = borrow;
-    BigInt_limb_wide_t temp;
+    BigInt_limb_wide_t temp, base = BIGINT_BASE;
 
 #if defined(BIGINT_ENABLE_GNU_64_OPTIMIZATION)
     __builtin_ssubll_overflow(minuendDigit, tempBorrow, &temp);
@@ -738,7 +789,7 @@ void BigInt_subtract_optimize_impl(BigInt_limb_t * minuend, BigInt_limb_t * subt
     __builtin_ssubll_overflow(temp, subtrahendDigit, &digitDifference);
 #else
     if (minuendDigit - tempBorrow < subtrahendDigit) {
-      minuendDigit += BIGINT_BASE;
+      minuendDigit += base;
       borrow = 1;
     } else {
       borrow = 0;
@@ -751,7 +802,7 @@ void BigInt_subtract_optimize_impl(BigInt_limb_t * minuend, BigInt_limb_t * subt
   for (; i < minuendLen; i++) {
     BigInt_limb_wide_t minuendDigit = minuend[i];
     BigInt_limb_wide_t tempBorrow = borrow;
-    BigInt_limb_wide_t temp;
+    BigInt_limb_wide_t temp, base = BIGINT_BASE;
 #if defined(BIGINT_ENABLE_GNU_64_OPTIMIZATION)
     __builtin_ssubll_overflow(minuendDigit, tempBorrow, &temp);
     if (temp < 0) {
@@ -763,7 +814,7 @@ void BigInt_subtract_optimize_impl(BigInt_limb_t * minuend, BigInt_limb_t * subt
     __builtin_ssubll_overflow(minuendDigit, tempBorrow, &digitDifference);
 #else
     if (minuendDigit - tempBorrow < 0) {
-      minuendDigit += BIGINT_BASE;
+      minuendDigit += base;
       borrow = 1;
     } else {
       borrow = 0;
@@ -1078,7 +1129,7 @@ void BigInt_multiply_with_sign(BigInt * product, BigInt * multiplicand, BigInt *
 void BigInt_divide_optimize_impl(BigInt_limb_t * dividend, BigInt_limb_t * divisor, BigInt_limb_t * quotient, int dividendLen, int divisorLen, int quotientLen) {
   int remainderLen = divisorLen + 1;
   int i, j;
-  BigInt_limb_wide_t qDigit1, qDigit2, dvsrDigit, qhat;
+  BigInt_limb_wide_t qDigit1, qDigit2, dvsrDigit, qhat, base = BIGINT_BASE;
   BigInt_limb_t * remainder;
   BigInt_limb_t * tempHolder;
   BigInt_limb_t * qDigit;
@@ -1096,7 +1147,7 @@ void BigInt_divide_optimize_impl(BigInt_limb_t * dividend, BigInt_limb_t * divis
     qDigit1 = remainder[remainderLen - 1];
     qDigit2 = remainder[remainderLen - 2];
     dvsrDigit = divisor[divisorLen - 1];
-    qhat = (qDigit1 * BIGINT_BASE + qDigit2) / dvsrDigit;
+    qhat = (qDigit1 * base + qDigit2) / dvsrDigit;
     qhat = BigInt_min_int(qhat, BIGINT_BASE_MAX_INT);
 
     qDigit[0] = qhat;
@@ -1126,6 +1177,7 @@ void BigInt_divide(BigInt * quotient, BigInt * dividend1, BigInt * divisor) {
   BigInt_limb_t * d;
   BigInt_limb_t * newDividend;
   BigInt_limb_t * newDivisor;
+  BigInt_limb_wide_t div;
   BigInt dividend2;
   
   if (BigInt_cmp_len(dividend1, divisor) < 0 || BigInt_is_zero_impl(divisor->internalRepresentation, divisor->internalSize)) {
@@ -1148,7 +1200,9 @@ void BigInt_divide(BigInt * quotient, BigInt * dividend1, BigInt * divisor) {
 
   BigInt_copy_to_no_init(&dividend2, dividend1, 1, 1);
 
-  d[0] = BIGINT_BASE / (divisor->internalRepresentation[divisor->internalSize - 1] + 1);
+  div = BIGINT_BASE;
+  div /= divisor->internalRepresentation[divisor->internalSize - 1] + 1;
+  d[0] = div;
   newDividend = (BigInt_limb_t *)BIGINT_ALLOC((dividend2.internalSize) * sizeof(BigInt_limb_t));
   newDivisor = (BigInt_limb_t *)BIGINT_ALLOC((divisor->internalSize) * sizeof(BigInt_limb_t));
   for (i = 0; i < dividend2.internalSize; i++) {
@@ -1182,6 +1236,7 @@ void BigInt_divide_no_copy(BigInt * quotient, BigInt * dividend, BigInt * diviso
   BigInt_limb_t * d;
   BigInt_limb_t * newDividend;
   BigInt_limb_t * newDivisor;
+  BigInt_limb_wide_t div;
   
   if (BigInt_cmp_len(dividend, divisor) < 0 || BigInt_is_zero_impl(divisor->internalRepresentation, divisor->internalSize)) {
     if (quotient->allocSize >= 1) {
@@ -1202,8 +1257,9 @@ void BigInt_divide_no_copy(BigInt * quotient, BigInt * dividend, BigInt * diviso
   newDivisor = NULL;
 
   BigInt_add_leading_zero(dividend);
-
-  d[0] = BIGINT_BASE / (divisor->internalRepresentation[divisor->internalSize - 1] + 1);
+  div = BIGINT_BASE;
+  div /= divisor->internalRepresentation[divisor->internalSize - 1] + 1;
+  d[0] = div;
   newDividend = (BigInt_limb_t *)BIGINT_ALLOC((dividend->internalSize) * sizeof(BigInt_limb_t));
   newDivisor = (BigInt_limb_t *)BIGINT_ALLOC((divisor->internalSize) * sizeof(BigInt_limb_t));
   for (i = 0; i < dividend->internalSize; i++) {
@@ -1237,6 +1293,7 @@ void BigInt_divide_with_sign(BigInt * quotient, BigInt * dividend1, BigInt * div
   BigInt_limb_t * d;
   BigInt_limb_t * newDividend;
   BigInt_limb_t * newDivisor;
+  BigInt_limb_wide_t div;
   BigInt dividend2;
 
   d = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
@@ -1245,7 +1302,9 @@ void BigInt_divide_with_sign(BigInt * quotient, BigInt * dividend1, BigInt * div
 
   BigInt_copy_to_no_init(&dividend2, dividend1, 1, 1);
 
-  d[0] = BIGINT_BASE / (divisor->internalRepresentation[divisor->internalSize - 1] + 1);
+  div = BIGINT_BASE;
+  div /= divisor->internalRepresentation[divisor->internalSize - 1] + 1;
+  d[0] = div;
   newDividend = (BigInt_limb_t *)BIGINT_ALLOC((dividend2.internalSize) * sizeof(BigInt_limb_t));
   newDivisor = (BigInt_limb_t *)BIGINT_ALLOC((divisor->internalSize) * sizeof(BigInt_limb_t));
   for (i = 0; i < dividend2.internalSize; i++) {
@@ -1293,14 +1352,17 @@ void BigInt_divide_no_copy_with_sign(BigInt * quotient, BigInt * dividend, BigIn
   BigInt_limb_t * d;
   BigInt_limb_t * newDividend;
   BigInt_limb_t * newDivisor;
+  BigInt_limb_wide_t div;
 
   d = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
   newDividend = NULL;
   newDivisor = NULL;
 
   BigInt_add_leading_zero(dividend);
-
-  d[0] = BIGINT_BASE / (divisor->internalRepresentation[divisor->internalSize - 1] + 1);
+  
+  div = BIGINT_BASE;
+  div /= divisor->internalRepresentation[divisor->internalSize - 1] + 1;
+  d[0] = div;
   newDividend = (BigInt_limb_t *)BIGINT_ALLOC((dividend->internalSize) * sizeof(BigInt_limb_t));
   newDivisor = (BigInt_limb_t *)BIGINT_ALLOC((divisor->internalSize) * sizeof(BigInt_limb_t));
   for (i = 0; i < dividend->internalSize; i++) {

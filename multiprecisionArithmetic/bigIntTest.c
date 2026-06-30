@@ -3,6 +3,7 @@
 #include <string.h>
 #include <time.h>
 #define BIGINT_IMPL
+/* #define BIGINT_USE_FAST_128BIT */
 #include "bigInteger-experimental.h"
 #include "../others/acutest.h"
 

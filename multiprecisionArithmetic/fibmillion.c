@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #define BIGINT_IMPL
+/* #define BIGINT_USE_FAST_128BIT */
 #include "bigInteger.h"
 
 #ifdef _WIN32
@@ -33,18 +34,20 @@ int main() {
   int index = 0, link = 1;
   char * s = NULL;
   double start, end;
+  FILE * f = fopen("fibmillion.bin", "w");
 
-  BigInt_init_one(&a);
-  BigInt_init_zero_limb(&b, 200000);
-  BigInt_init_zero_limb(&temp, 200000);
+  BigInt_init_zero_alloc_limb(&a, 200000);
+  BigInt_init_zero_alloc_limb(&b, 200000);
+  BigInt_init_zero_alloc_limb(&temp, 200000);
   
+  BigInt_set_from_int(&a, 1);
   BigInt_set_from_int(&b, 1);
 
   start = get_time();
   while(index < 1000000) {
-    BigInt_add(&temp, &a, &b);
-    BigInt_copy(&a, &b);
-    BigInt_copy(&b, &temp);
+    BigInt_add_less_checks(&temp, &a, &b);
+    BigInt_swap(&a, &b);
+    BigInt_swap(&b, &temp);
     index++;
   }
   end = get_time();
@@ -52,8 +55,8 @@ int main() {
   printf("Time taken: %lfs\n", end - start);
   
   s = BigInt_to_string(&a);
-  printf("Index is %d, digits are %s.\n", index, s);
-
+  printf("Index is %d.\n", index);
+  fprintf(f, "%s", s);
   free(s);
 
   /* BigInt_print_internal(&a); */
@@ -61,6 +64,8 @@ int main() {
   BigInt_destroy(&a);
   BigInt_destroy(&b);
   BigInt_destroy(&temp);
+  
+  fclose(f);
 
   return 0;
 }
