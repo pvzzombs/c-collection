@@ -167,17 +167,17 @@ typedef long BigInt_limb_wide_t;
 
 #define BIGINT_ENABLE_MSVC_32_OPTIMIZATION_LATEST
 
-#include <intrin.h>
+/* #include <intrin.h>
 
 #pragma intrinsic(_addcarry_u32)
 #pragma intrinsic(_subborrow_u32)
-#pragma intrinsic(__emul)
+#pragma intrinsic(__emul) */
 
 #elif defined(_MSC_VER) && defined(BIGINT_USE_32_BIT) && _MSC_VER < 1900
 
 #define BIGINT_ENABLE_MSVC_32_OPTIMIZATION
 
-#include "msvc32bitassembly.h"
+/* #include "msvc32bitassembly.h"
 
 #pragma intrinsic(addi64)
 #pragma intrinsic(subi64)
@@ -185,7 +185,7 @@ typedef long BigInt_limb_wide_t;
 
 #pragma intrinsic(addi64p)
 #pragma intrinsic(subi64p)
-#pragma intrinsic(muli64p)
+#pragma intrinsic(muli64p) */
 
 #else
 
@@ -699,23 +699,16 @@ void BigInt_add_optimize_impl(BigInt_limb_t * addend1, BigInt_limb_t * addend2, 
   int i;
   BigInt_limb_wide_t digitSum = 0, carry = 0, num;
   for (i = 0; i < addend2Len; i++) {
+#if defined(BIGINT_ENABLE_GNU_64_OPTIMIZATION)
     BigInt_limb_wide_t a = addend1[i];
     BigInt_limb_wide_t b = addend2[i];
-    BigInt_limb_t tempCarry;
-#if defined(BIGINT_ENABLE_GNU_64_OPTIMIZATION)
     __builtin_saddll_overflow(a, b, &digitSum);
     __builtin_saddll_overflow(digitSum, carry, &digitSum);
     carry = digitSum >> BIGINT_BASE_BIT_LENGTH;
     digitSum &= BIGINT_BASE_MAX_INT;
-#elif defined(BIGINT_ENABLE_MSVC_32_OPTIMIZATION)
-    addi64p(a, b, &digitSum);
-    addi64p(digitSum, carry, &digitSum);
-    carry = digitSum >> BIGINT_BASE_BIT_LENGTH;
-    digitSum &= BIGINT_BASE_MAX_INT;
-    /* tempCarry = addi32_carry(a, b, &digitSum);
-    tempCarry |= addi32_carry(digitSum, carry, &digitSum); */
-    carry = tempCarry;
 #else
+    BigInt_limb_wide_t a = addend1[i];
+    BigInt_limb_wide_t b = addend2[i];
     digitSum = a + b + carry;
     carry = digitSum >> BIGINT_BASE_BIT_LENGTH;
     digitSum &= BIGINT_BASE_MAX_INT;
@@ -723,17 +716,13 @@ void BigInt_add_optimize_impl(BigInt_limb_t * addend1, BigInt_limb_t * addend2, 
     sum[i] = digitSum;
   }
   for(; i < addend1Len; i++) {
-    BigInt_limb_wide_t num = addend1[i];
 #if defined(BIGINT_ENABLE_GNU_64_OPTIMIZATION)
+    BigInt_limb_wide_t num = addend1[i];
     __builtin_saddll_overflow(num, carry, &digitSum);
     carry = digitSum >> BIGINT_BASE_BIT_LENGTH;
     digitSum &= BIGINT_BASE_MAX_INT;
-#elif defined(BIGINT_ENABLE_MSVC_32_OPTIMIZATION)
-    addi64p(num, carry, &digitSum);
-    carry = digitSum >> BIGINT_BASE_BIT_LENGTH;
-    digitSum &= BIGINT_BASE_MAX_INT;
-    /* carry = addi32_carry(num, carry, &digitSum); */
 #else
+    BigInt_limb_wide_t num = addend1[i];
     digitSum = num + carry;
     carry = digitSum >> BIGINT_BASE_BIT_LENGTH;
     digitSum &= BIGINT_BASE_MAX_INT;
@@ -779,23 +768,16 @@ void BigInt_add_less_checks(BigInt * sum, BigInt * addend1, BigInt * addend2) {
 void BigInt_add_small_impl(BigInt_limb_t * addend1, BigInt_limb_t addend2, BigInt_limb_t * sum, int addend1Len, int sumLen) {
   int i = 0;
   BigInt_limb_wide_t digitSum = 0, carry = 0;
+#if defined(BIGINT_ENABLE_GNU_64_OPTIMIZATION)
   BigInt_limb_wide_t Addend1 = addend1[i];
   BigInt_limb_wide_t Addend2 = addend2;
-  BigInt_limb_t carryTemp;
-#if defined(BIGINT_ENABLE_GNU_64_OPTIMIZATION)
   __builtin_saddll_overflow(Addend1, Addend2, &digitSum);
   __builtin_saddll_overflow(digitSum, carry, &digitSum);
   carry = digitSum >> BIGINT_BASE_BIT_LENGTH;
   digitSum &= BIGINT_BASE_MAX_INT;
-#elif defined(BIGINT_ENABLE_MSVC_32_OPTIMIZATION)
-  addi64p(Addend1, Addend2, &digitSum);
-  addi64p(digitSum, carry, &digitSum);
-  carry = digitSum >> BIGINT_BASE_BIT_LENGTH;
-  digitSum &= BIGINT_BASE_MAX_INT;
-  /* carryTemp = addi32_carry(Addend1, Addend2, &digitSum);
-  carryTemp |= addi32_carry(digitSum, carry, &digitSum);
-  carry = carryTemp; */
 #else
+  BigInt_limb_wide_t Addend1 = addend1[i];
+  BigInt_limb_wide_t Addend2 = addend2;
   digitSum = Addend1 + Addend2 + carry;
   carry = digitSum >> BIGINT_BASE_BIT_LENGTH;
   digitSum &= BIGINT_BASE_MAX_INT;
@@ -803,17 +785,13 @@ void BigInt_add_small_impl(BigInt_limb_t * addend1, BigInt_limb_t addend2, BigIn
   sum[i] = digitSum;
   i++;
   for(; i < addend1Len; i++) {
-    BigInt_limb_wide_t num = addend1[i];
 #if defined(BIGINT_ENABLE_GNU_64_OPTIMIZATION)
+    BigInt_limb_wide_t num = addend1[i];
     __builtin_saddll_overflow(num, carry, &digitSum);
     carry = digitSum >> BIGINT_BASE_BIT_LENGTH;
     digitSum &= BIGINT_BASE_MAX_INT;
-#elif defined(BIGINT_ENABLE_MSVC_32_OPTIMIZATION)
-    addi64p(num, carry, &digitSum);
-    carry = digitSum >> BIGINT_BASE_BIT_LENGTH;
-    digitSum &= BIGINT_BASE_MAX_INT;
-    /* carry = addi32_carry(num, carry, &digitSum); */
 #else
+    BigInt_limb_wide_t num = addend1[i];
     digitSum = num + carry;
     carry = digitSum >> BIGINT_BASE_BIT_LENGTH;
     digitSum &= BIGINT_BASE_MAX_INT;
@@ -856,16 +834,6 @@ void BigInt_subtract_optimize_impl(BigInt_limb_t * minuend, BigInt_limb_t * subt
     }
     __builtin_ssubll_overflow(minuendDigit, tempBorrow, &temp);
     __builtin_ssubll_overflow(temp, subtrahendDigit, &digitDifference);
-#elif defined(BIGINT_ENABLE_MSVC_32_OPTIMIZATION)
-    subi64p(minuendDigit, tempBorrow, &temp);
-    if (temp < subtrahendDigit) {
-      subi64p(minuendDigit, BIGINT_BASE, &minuendDigit);
-      borrow = 1;
-    } else {
-      borrow = 0;
-    }
-    subi64p(minuendDigit, tempBorrow, &temp);
-    subi64p(temp, subtrahendDigit, &digitDifference);
 #else
     if (minuendDigit - tempBorrow < subtrahendDigit) {
       minuendDigit += base;
@@ -891,15 +859,6 @@ void BigInt_subtract_optimize_impl(BigInt_limb_t * minuend, BigInt_limb_t * subt
       borrow = 0;
     }
     __builtin_ssubll_overflow(minuendDigit, tempBorrow, &digitDifference);
-#elif defined(BIGINT_ENABLE_MSVC_32_OPTIMIZATION)
-    subi64p(minuendDigit, tempBorrow, &temp);
-    if (temp < 0) {
-      subi64p(minuendDigit, BIGINT_BASE, &minuendDigit);
-      borrow = 1;
-    } else {
-      borrow = 0;
-    }
-    subi64p(minuendDigit, tempBorrow, &digitDifference);
 #else
     if (minuendDigit - tempBorrow < 0) {
       minuendDigit += base;
@@ -1063,15 +1022,6 @@ void BigInt_multiply_optimize_impl(BigInt_limb_t * multiplicand, BigInt_limb_t *
       __builtin_saddll_overflow(temp, p, &temp);
       sumDigit = temp & BIGINT_BASE_MAX_INT;
       carryA = temp >> BIGINT_BASE_BIT_LENGTH;
-#elif defined(BIGINT_ENABLE_MSVC_32_OPTIMIZATION)
-      muli64p(m, n, &temp);
-      addi64p(temp, carryM, &temp);
-      productDigit = temp & BIGINT_BASE_MAX_INT;
-      carryM = temp >> BIGINT_BASE_BIT_LENGTH;
-      addi64p(productDigit, carryA, &temp);
-      addi64p(temp, p, &temp);
-      sumDigit = temp & BIGINT_BASE_MAX_INT;
-      carryA = temp >> BIGINT_BASE_BIT_LENGTH;
 #else
       temp = m * n + carryM;
       productDigit = temp & BIGINT_BASE_MAX_INT;
@@ -1089,11 +1039,6 @@ void BigInt_multiply_optimize_impl(BigInt_limb_t * multiplicand, BigInt_limb_t *
 #if defined(BIGINT_ENABLE_GNU_64_OPTIMIZATION)
       __builtin_saddll_overflow(carryM, carryA, &sumDigit);
       __builtin_saddll_overflow(sumDigit, p, &sumDigit);
-      carryA = sumDigit >> BIGINT_BASE_BIT_LENGTH;
-      sumDigit &= BIGINT_BASE_MAX_INT;
-#elif defined(BIGINT_ENABLE_MSVC_32_OPTIMIZATION)
-      addi64p(carryM, carryA, &sumDigit);
-      addi64p(sumDigit, p, &sumDigit);
       carryA = sumDigit >> BIGINT_BASE_BIT_LENGTH;
       sumDigit &= BIGINT_BASE_MAX_INT;
 #else
@@ -1153,15 +1098,6 @@ void BigInt_multiply_small_impl(BigInt_limb_t * multiplicand, BigInt_limb_t mult
     __builtin_saddll_overflow(temp, p, &temp);
     sumDigit = temp & BIGINT_BASE_MAX_INT;
     carryA = temp >> BIGINT_BASE_BIT_LENGTH;
-#elif defined(BIGINT_ENABLE_MSVC_32_OPTIMIZATION)
-    muli64p(m, n, &temp);
-    addi64p(temp, carryM, &temp);
-    productDigit = temp & BIGINT_BASE_MAX_INT;
-    carryM = temp >> BIGINT_BASE_BIT_LENGTH;
-    addi64p(productDigit, carryA, &temp);
-    addi64p(temp, p, &temp);
-    sumDigit = temp & BIGINT_BASE_MAX_INT;
-    carryA = temp >> BIGINT_BASE_BIT_LENGTH;
 #else
     temp = m * n + carryM;
     productDigit = temp & BIGINT_BASE_MAX_INT;
@@ -1180,11 +1116,6 @@ void BigInt_multiply_small_impl(BigInt_limb_t * multiplicand, BigInt_limb_t mult
 #if defined(BIGINT_ENABLE_GNU_64_OPTIMIZATION)
     __builtin_saddll_overflow(carryM, carryA, &sumDigit);
     __builtin_saddll_overflow(sumDigit, p, &sumDigit);
-    carryA = sumDigit >> BIGINT_BASE_BIT_LENGTH;
-    sumDigit &= BIGINT_BASE_MAX_INT;
-#elif defined(BIGINT_ENABLE_MSVC_32_OPTIMIZATION)
-    addi64p(carryM, carryA, &sumDigit);
-    addi64p(sumDigit, p, &sumDigit);
     carryA = sumDigit >> BIGINT_BASE_BIT_LENGTH;
     sumDigit &= BIGINT_BASE_MAX_INT;
 #else
