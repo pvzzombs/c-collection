@@ -4,12 +4,26 @@
 
 Include `bigInteger.h` or `bigDecimal.h` into your project,
  no need to compile or build separately! 
+Ensure to use maximum compiler optimization!  
+- On GCC, use `-O3` flag  
+- On MSVC, use `/O2` flag  
+
+## Compiler and Optimization Support
+- [x] Support MinGW-W64 GCC 13.2.0
+- [ ] Support Possible Max Optimization for MinGW-W64 GCC 13.2.0 **(In Progress)**
+- [x] Support Visual Studio 2010 C Optimizing Compiler 16.00
+- [ ] Support Possible Max Optimization for Visual Studio 2010 C Optimizing Compiler 16.00 **(In Progress)**
+- [ ] Support Other Compiler and Different Versions **(In Progress)**
 
 ## The Challenge
 I wanted to write my own BigInteger library, just for fun, and this is the result of it.
 If you have the time to submit some issues, or pull requests, then feel free to do so.
 
 Checklist:  
+- [ ] Speed up Addition Algorithm
+- [ ] Speed up Subtraction Algorithm
+- [ ] Speed up Multiplication Algorithm
+- [ ] Speed up Division Algorithm
 - [x] Implement Karatsuba Multiplication Algorithm  
 - [ ] Speed up Karatsuba Multiplication Algorithm  
 - [x] Implement Toom Cook 3 Multiplication Algorithm  
