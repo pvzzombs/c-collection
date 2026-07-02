@@ -1,5 +1,8 @@
 # Welcome!
 
+[![Multiprecision Big Integer Library Ubuntu Test CI](https://github.com/pvzzombs/c-collection/actions/workflows/mpa_ci_ubuntu.yml/badge.svg)](https://github.com/pvzzombs/c-collection/actions/workflows/mpa_ci_ubuntu.yml)  
+[![Multiprecision Big Integer Library Windows Test CI](https://github.com/pvzzombs/c-collection/actions/workflows/mpa_ci_windows.yml/badge.svg)](https://github.com/pvzzombs/c-collection/actions/workflows/mpa_ci_windows.yml)  
+
 ## Usage
 
 Include `bigInteger.h` or `bigDecimal.h` into your project,
