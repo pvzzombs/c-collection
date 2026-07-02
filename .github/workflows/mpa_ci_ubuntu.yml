@@ -1,0 +1,24 @@
+name: Multiprecision Big Integer Library Ubuntu Test CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare
+        run: meson setup build
+
+      - name: Compile
+        run: ninja -C build
+
+      - name: Run
+        run: ./build/multiprecisionArithmetic/bigIntTest
