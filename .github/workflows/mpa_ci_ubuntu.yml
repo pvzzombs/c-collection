@@ -14,6 +14,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install Meson
+        run: pip3 install meson
+
+      - name: Install Ninja
+        run: pip3 install ninja
+
       - name: Prepare
         run: meson setup build
 
