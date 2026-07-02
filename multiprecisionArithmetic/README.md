@@ -9,15 +9,24 @@ Ensure to use maximum compiler optimization!
 - On MSVC, use `/O2` flag  
 
 ## Compiler and Optimization Support
-- [x] Support MinGW-W64 GCC 13.2.0
-- [ ] Support Possible Max Optimization for MinGW-W64 GCC 13.2.0 **(In Progress)**
-- [x] Support Visual Studio 2010 C Optimizing Compiler 16.00
-- [ ] Support Possible Max Optimization for Visual Studio 2010 C Optimizing Compiler 16.00 **(In Progress)**
+- [x] Support MinGW-W64 GCC 13.2.0 (64 bit)
+- [ ] Support Possible Max Optimization for MinGW-W64 GCC 13.2.0 (64 bit) **(In Progress)**
+- [x] Support Visual Studio 2010 C Optimizing Compiler 16.00 (32 bit)
+- [ ] Support Possible Max Optimization for Visual Studio 2010 C Optimizing Compiler 16.00 (32 bit) **(In Progress)**
+- [x] Support GCC 11.2.0 (64 bit)
+- [ ] Support Possible Max Optimization for GCC 11.2.0 (64 bit) **(In Progress)**
 - [ ] Support Other Compiler and Different Versions **(In Progress)**
 
 ## The Challenge
-I wanted to write my own BigInteger library, just for fun, and this is the result of it.
-If you have the time to submit some issues, or pull requests, then feel free to do so.
+My idea of making this library started when I tried solving some of the Project Euler problems (https://projecteuler.net/).  
+I realized there is no easy C/C++ library to build and use on Windows OS; there is GMP, but it is difficult to build.   
+Because of that I tried switching to Java, just to be able to use their own BigInteger library, unfortunately that is not
+what I wanted.  
+From there, I realized, why not make one?  
+It would be good if I can use something that I have written and would also benefit others.  
+Here it is, while it is under progress and heavy development, I tried to ensure it would be
+portable and would work on most of the platforms (Works on Arduino Uno too!).  
+If you have any good ideas, problems or issues, feel free to submit one!  
 
 Checklist:  
 - [ ] Speed up Addition Algorithm
@@ -32,9 +41,6 @@ Checklist:
 - [ ] Speed up FFT/NTT Multiplication Algorithm  
 
 Will add more things to the list.  
-
-## Multiprecision Arithmetic
-See `test.c`.
 
 ## Big Integer
 ### Common functions
