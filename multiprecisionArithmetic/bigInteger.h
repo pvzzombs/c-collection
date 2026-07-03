@@ -12,6 +12,10 @@
 #define BIGINT_KARATSUBA_THRESHOLD 64
 #define BIGINT_TOOMCOOK3_THRESHOLD 256
 
+#if !defined(BIGINT_ALLOC_STRATEGY_DISABLE)
+#define BIGINT_ALLOC_STRATEGY_GROW
+#endif
+
 #if defined(__STDC_VERSION__)
 #include <stdint.h>
 #if INTPTR_MAX == INT64_MAX
@@ -33,7 +37,7 @@
 
 #if defined(BIGINT_USE_64_BIT)
 
-#define BIGINT_ALLOC_THRESHOLD (1 << 17)
+#define BIGINT_ALLOC_GROW_THRESHOLD (1 << 17)
 
 #if defined(__STDC_VERSION__)
 
@@ -95,7 +99,7 @@ typedef __int64 BigInt_limb_wide_t;
 
 #elif defined(BIGINT_USE_32_BIT)
 
-#define BIGINT_ALLOC_THRESHOLD (1 << 17)
+#define BIGINT_ALLOC_GROW_THRESHOLD (1 << 17)
 
 #if defined(__STDC_VERSION__)
 #define BIGINT_BASE 2147483648LL
@@ -133,7 +137,7 @@ typedef long long BigInt_limb_wide_t;
 
 #elif defined(BIGINT_USE_16_BIT)
 
-#define BIGINT_ALLOC_THRESHOLD (1 << 10)
+#define BIGINT_ALLOC_GROW_THRESHOLD (1 << 10)
 
 #define BIGINT_BASE 32768
 #define BIGINT_BASE_MAX_INT 32767
@@ -375,9 +379,10 @@ void BigInt_zero_all_impl(BigInt_limb_t * dest, int len) {
 
 BigInt_limb_t * BigInt_alloc_helper(int * old_alloc_size, int required_size) {
   int newSize;
+#if defined(BIGINT_ALLOC_STRATEGY_GROW)
   if (*old_alloc_size == 0) {
     newSize = required_size;
-  } else if (*old_alloc_size < BIGINT_ALLOC_THRESHOLD) {
+  } else if (*old_alloc_size < BIGINT_ALLOC_GROW_THRESHOLD) {
     newSize = (*old_alloc_size) * 2;
   } else {
     newSize = (*old_alloc_size) + ((*old_alloc_size) / 4);
@@ -385,6 +390,9 @@ BigInt_limb_t * BigInt_alloc_helper(int * old_alloc_size, int required_size) {
   if (newSize < required_size) {
     newSize = required_size;
   }
+#else
+  newSize = required_size;
+#endif
   *old_alloc_size = newSize;
   return (BigInt_limb_t *)BIGINT_ALLOC(newSize * sizeof(BigInt_limb_t));
 }
@@ -2173,6 +2181,9 @@ void BigInt_shift_right_bit(BigInt * b, BigInt_limb_wide_t bitcount) {
   int oldLen = b->internalSize;
   /* int newLen = oldLen - start; */
   int i, j, pad = 0, next;
+  if (bitcount < 1) {
+    return;
+  }
   for (i = 0; i < rem; i++) {
     pad = pad << 1;
     pad = pad | 1;
