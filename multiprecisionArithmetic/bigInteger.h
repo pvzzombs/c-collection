@@ -48,7 +48,9 @@
 #define BIGINT_BASE_STRING "9223372036854775808"
 #define BIGINT_BASE_DIGITS 19ULL
 #define BIGINT_BASE_10 1000000000000000000ULL
+#define BIGINT_BASE_10_BIT_LENGTH 30
 #define BIGINT_BASE_BIT_LENGTH 63
+#define BIGINT_BASE_WIDE_BIT_LENGTH 63
 typedef unsigned long long BigInt_limb_t;
 typedef unsigned __int128 BigInt_limb_wide_t;
 
@@ -60,7 +62,9 @@ typedef unsigned __int128 BigInt_limb_wide_t;
 #define BIGINT_BASE_STRING "2147483648"
 #define BIGINT_BASE_DIGITS 9
 #define BIGINT_BASE_10 1000000000LL
+#define BIGINT_BASE_10_BIT_LENGTH 30
 #define BIGINT_BASE_BIT_LENGTH 31
+#define BIGINT_BASE_WIDE_BIT_LENGTH 63
 typedef int32_t BigInt_limb_t;
 typedef long long BigInt_limb_wide_t;
 #endif
@@ -74,7 +78,9 @@ typedef long long BigInt_limb_wide_t;
 #define BIGINT_BASE_STRING "2147483648"
 #define BIGINT_BASE_DIGITS 9
 #define BIGINT_BASE_10 1000000000LL
+#define BIGINT_BASE_10_BIT_LENGTH 30
 #define BIGINT_BASE_BIT_LENGTH 31
+#define BIGINT_BASE_WIDE_BIT_LENGTH 63
 typedef int BigInt_limb_t;
 typedef long long BigInt_limb_wide_t;
 
@@ -85,7 +91,9 @@ typedef long long BigInt_limb_wide_t;
 #define BIGINT_BASE_STRING "2147483648"
 #define BIGINT_BASE_DIGITS 9
 #define BIGINT_BASE_10 1000000000L
+#define BIGINT_BASE_10_BIT_LENGTH 30
 #define BIGINT_BASE_BIT_LENGTH 31
+#define BIGINT_BASE_WIDE_BIT_LENGTH 63
 typedef int BigInt_limb_t;
 typedef __int64 BigInt_limb_wide_t;
 
@@ -107,7 +115,9 @@ typedef __int64 BigInt_limb_wide_t;
 #define BIGINT_BASE_STRING "2147483648"
 #define BIGINT_BASE_DIGITS 9
 #define BIGINT_BASE_10 1000000000LL
+#define BIGINT_BASE_10_BIT_LENGTH 30
 #define BIGINT_BASE_BIT_LENGTH 31
+#define BIGINT_BASE_WIDE_BIT_LENGTH 63
 typedef int32_t BigInt_limb_t;
 typedef int64_t BigInt_limb_wide_t;
 #else
@@ -117,7 +127,9 @@ typedef int64_t BigInt_limb_wide_t;
 #define BIGINT_BASE_STRING "2147483648"
 #define BIGINT_BASE_DIGITS 9
 #define BIGINT_BASE_10 1000000000i64
+#define BIGINT_BASE_10_BIT_LENGTH 30
 #define BIGINT_BASE_BIT_LENGTH 31
+#define BIGINT_BASE_WIDE_BIT_LENGTH 63
 typedef int BigInt_limb_t;
 typedef __int64 BigInt_limb_wide_t;
 #elif defined(__GNUC__)
@@ -126,7 +138,9 @@ typedef __int64 BigInt_limb_wide_t;
 #define BIGINT_BASE_STRING "2147483648"
 #define BIGINT_BASE_DIGITS 9
 #define BIGINT_BASE_10 1000000000LL
+#define BIGINT_BASE_10_BIT_LENGTH 30
 #define BIGINT_BASE_BIT_LENGTH 31
+#define BIGINT_BASE_WIDE_BIT_LENGTH 63
 typedef int BigInt_limb_t;
 typedef long long BigInt_limb_wide_t;
 #else
@@ -144,7 +158,9 @@ typedef long long BigInt_limb_wide_t;
 #define BIGINT_BASE_STRING "32768"
 #define BIGINT_BASE_DIGITS 4
 #define BIGINT_BASE_10 10000
+#define BIGINT_BASE_10_BIT_LENGTH 14
 #define BIGINT_BASE_BIT_LENGTH 15
+#define BIGINT_BASE_WIDE_BIT_LENGTH 31
 #if defined(__STDC_VERSION__)
 typedef int BigInt_limb_t;
 typedef long BigInt_limb_wide_t;
@@ -239,7 +255,7 @@ void BigInt_add_leading_zero(BigInt *);
 void BigInt_print(BigInt *);
 void BigInt_print_s(BigInt *);
 void BigInt_add_optimize_impl(BigInt_limb_t *, BigInt_limb_t *, BigInt_limb_t *, int, int, int);
-void BigInt_add_any_base_impl(BigInt_limb_t *, BigInt_limb_t *, BigInt_limb_t *, int, int, int, BigInt_limb_wide_t);
+void BigInt_add_any_base_impl(BigInt_limb_t *, BigInt_limb_t *, BigInt_limb_t *, int, int, int, BigInt_limb_wide_t, BigInt_limb_wide_t);
 void BigInt_add(BigInt *, BigInt *, BigInt *);
 void BigInt_add_small_impl(BigInt_limb_t *, BigInt_limb_t, BigInt_limb_t *, int, int);
 void BigInt_add_small(BigInt *, BigInt *, BigInt_limb_t);
@@ -678,29 +694,27 @@ void BigInt_print_s(BigInt * b) {
   BIGINT_FREE(s);
 }
 
-void BigInt_add_any_base_impl(BigInt_limb_t * addend1, BigInt_limb_t * addend2, BigInt_limb_t * sum, int addend1Len, int addend2Len, int sumLen, BigInt_limb_wide_t limb_base) {
+void BigInt_add_any_base_impl(BigInt_limb_t * addend1, BigInt_limb_t * addend2, BigInt_limb_t * sum, int addend1Len, int addend2Len, int sumLen, BigInt_limb_wide_t limb_base, BigInt_limb_wide_t limb_base_bit_len) {
   int i;
   BigInt_limb_wide_t digitSum = 0, carry = 0;
   for (i = 0; i < addend2Len; i++) {
     BigInt_limb_wide_t Addend1 = addend1[i];
     BigInt_limb_wide_t Addend2 = addend2[i];
-    digitSum = (Addend1 + Addend2 + carry) % limb_base;
-    carry = (Addend1 + Addend2 + carry) / limb_base;
+    BigInt_limb_wide_t sign;
+    digitSum = Addend1 + Addend2 + carry - limb_base;
+    sign = (digitSum >> BIGINT_BASE_WIDE_BIT_LENGTH) & 1;
+    digitSum = digitSum + (limb_base & ((sign << limb_base_bit_len) - sign));
+    carry = !sign;
     sum[i] = digitSum;
   }
-  for(; i < sumLen; i++) {
-    BigInt_limb_wide_t num = 0;
-    if(i < addend1Len) {
-      num = addend1[i];
-    }
-    digitSum = (num + carry) % limb_base;
-    carry = (num + carry) / limb_base;
-    if (!carry && !(i < addend1Len)) {
-      sum[i] = digitSum;
-      break;
-    }
+  for(; i < addend1Len; i++) {
+    BigInt_limb_wide_t num = addend1[i] + carry - limb_base;
+    BigInt_limb_wide_t sign = (num >> BIGINT_BASE_WIDE_BIT_LENGTH) & 1;
+    digitSum = num + (limb_base & ((sign << (limb_base_bit_len)) - sign));
+    carry = !sign;
     sum[i] = digitSum;
   }
+  sum[i] = carry;
 }
 
 void BigInt_add_optimize_impl(BigInt_limb_t * addend1, BigInt_limb_t * addend2, BigInt_limb_t * sum, int addend1Len, int addend2Len, int sumLen) {
@@ -834,22 +848,13 @@ void BigInt_subtract_optimize_impl(BigInt_limb_t * minuend, BigInt_limb_t * subt
 
 #if defined(BIGINT_ENABLE_GNU_64_OPTIMIZATION)
     __builtin_ssubll_overflow(minuendDigit, tempBorrow, &temp);
-    if (temp < subtrahendDigit) {
-      __builtin_saddll_overflow(minuendDigit, BIGINT_BASE, &minuendDigit);
-      borrow = 1;
-    } else {
-      borrow = 0;
-    }
-    __builtin_ssubll_overflow(minuendDigit, tempBorrow, &temp);
-    __builtin_ssubll_overflow(temp, subtrahendDigit, &digitDifference);
+    __builtin_ssubll_overflow(temp, subtrahendDigit, &temp);
+    borrow = (temp >> BIGINT_BASE_WIDE_BIT_LENGTH) & 1;
+    __builtin_saddll_overflow(temp, (base & ((borrow << (BIGINT_BASE_BIT_LENGTH + 1)) - borrow)), &digitDifference);
 #else
-    if (minuendDigit - tempBorrow < subtrahendDigit) {
-      minuendDigit += base;
-      borrow = 1;
-    } else {
-      borrow = 0;
-    }
-    digitDifference = minuendDigit - tempBorrow - subtrahendDigit;
+    temp = minuendDigit - tempBorrow - subtrahendDigit;
+    borrow = (temp >> BIGINT_BASE_WIDE_BIT_LENGTH) & 1;
+    digitDifference = temp + (base & ((borrow << (BIGINT_BASE_BIT_LENGTH + 1)) - borrow));
 #endif
     difference[i] = digitDifference;
   }
@@ -860,21 +865,12 @@ void BigInt_subtract_optimize_impl(BigInt_limb_t * minuend, BigInt_limb_t * subt
     BigInt_limb_wide_t temp, base = BIGINT_BASE;
 #if defined(BIGINT_ENABLE_GNU_64_OPTIMIZATION)
     __builtin_ssubll_overflow(minuendDigit, tempBorrow, &temp);
-    if (temp < 0) {
-      __builtin_saddll_overflow(minuendDigit, BIGINT_BASE, &minuendDigit);
-      borrow = 1;
-    } else {
-      borrow = 0;
-    }
-    __builtin_ssubll_overflow(minuendDigit, tempBorrow, &digitDifference);
+    borrow = (temp >> BIGINT_BASE_WIDE_BIT_LENGTH) & 1;
+    __builtin_saddll_overflow(temp, (base & ((borrow << (BIGINT_BASE_BIT_LENGTH + 1)) - borrow)), &digitDifference);
 #else
-    if (minuendDigit - tempBorrow < 0) {
-      minuendDigit += base;
-      borrow = 1;
-    } else {
-      borrow = 0;
-    }
-    digitDifference = minuendDigit - tempBorrow - 0;
+    temp = minuendDigit - tempBorrow;
+    borrow = (temp >> BIGINT_BASE_WIDE_BIT_LENGTH) & 1;
+    digitDifference = temp + (base & ((borrow << (BIGINT_BASE_BIT_LENGTH + 1)) - borrow));
 #endif
     difference[i] = digitDifference;
   }
@@ -1774,7 +1770,7 @@ void BigInt_big_base_10_add(BigInt * sum, BigInt * addend1, BigInt * addend2) {
     sum->allocSize = addend1->internalSize + 1;
   }
   
-  BigInt_add_any_base_impl(addend1->internalRepresentation, addend2->internalRepresentation, sum->internalRepresentation, addend1->internalSize, addend2->internalSize, sum->internalSize, BIGINT_BASE_10);
+  BigInt_add_any_base_impl(addend1->internalRepresentation, addend2->internalRepresentation, sum->internalRepresentation, addend1->internalSize, addend2->internalSize, sum->internalSize, BIGINT_BASE_10, BIGINT_BASE_10_BIT_LENGTH);
   BigInt_remove_leading_zeroes(sum);
 }
 
@@ -1818,7 +1814,7 @@ void BigInt_B10_add(BigInt * sum, BigInt * addend1, BigInt * addend2) {
     sum->allocSize = addend1->internalSize + 1;
   }
   
-  BigInt_add_any_base_impl(addend1->internalRepresentation, addend2->internalRepresentation, sum->internalRepresentation, addend1->internalSize, addend2->internalSize, sum->internalSize, 10);
+  BigInt_add_any_base_impl(addend1->internalRepresentation, addend2->internalRepresentation, sum->internalRepresentation, addend1->internalSize, addend2->internalSize, sum->internalSize, 10, 4);
   BigInt_remove_leading_zeroes(sum);
 }
 
