@@ -708,8 +708,10 @@ void BigInt_add_any_base_impl(BigInt_limb_t * addend1, BigInt_limb_t * addend2, 
     sum[i] = digitSum;
   }
   for(; i < addend1Len; i++) {
-    BigInt_limb_wide_t num = addend1[i] + carry - limb_base;
-    BigInt_limb_wide_t sign = (num >> BIGINT_BASE_WIDE_BIT_LENGTH) & 1;
+    BigInt_limb_wide_t num = addend1[i];
+    BigInt_limb_wide_t sign;
+    num = num + carry - limb_base;
+    sign = (num >> BIGINT_BASE_WIDE_BIT_LENGTH) & 1;
     digitSum = num + (limb_base & ((sign << (limb_base_bit_len)) - sign));
     carry = !sign;
     sum[i] = digitSum;

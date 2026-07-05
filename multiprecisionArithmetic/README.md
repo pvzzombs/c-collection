@@ -12,12 +12,14 @@ Ensure to use maximum compiler optimization!
 - On MSVC, use `/O2` flag  
 
 ## Compiler and Optimization Support
-- [x] Support MinGW-W64 GCC 13.2.0 (64 bit)
-- [ ] Support Possible Max Optimization for MinGW-W64 GCC 13.2.0 (64 bit) **(In Progress)**
-- [x] Support Visual Studio 2010 C Optimizing Compiler 16.00 (32 bit)
-- [ ] Support Possible Max Optimization for Visual Studio 2010 C Optimizing Compiler 16.00 (32 bit) **(In Progress)**
-- [x] Support GCC 11.2.0 (64 bit)
-- [ ] Support Possible Max Optimization for GCC 11.2.0 (64 bit) **(In Progress)**
+- [x] Support MinGW-W64 GCC 13.2.0 (x64)
+- [ ] Maximize Optimization for MinGW-W64 GCC 13.2.0 (x64) **(In Progress)**
+- [x] Support Visual Studio 2010 C Optimizing Compiler 16.00 (x86)
+- [ ] Maximize Optimization for Visual Studio 2010 C Optimizing Compiler 16.00 (x86) **(In Progress)**
+- [x] Support Visual Studio 2015 C Optimizing Compiler 19.00 (x86)
+- [ ] Maximize Optimization for Visual Studio 2015 C Optimizing Compiler 19.00 (x86) **(In Progress)**
+- [x] Support GCC 11.2.0 (x64)
+- [ ] Maximize Optimization for GCC 11.2.0 (x64) **(In Progress)**
 - [ ] Support Other Compiler and Different Versions **(In Progress)**
 
 ## The Challenge
