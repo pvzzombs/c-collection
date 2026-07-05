@@ -1207,10 +1207,11 @@ void BigInt_divide_optimize_impl(BigInt_limb_t * dividend, BigInt_limb_t * divis
     BigInt_multiply_optimize_impl(divisor, qDigit, tempHolder, divisorLen, 1, remainderLen);
     while(BigInt_internal_cmp(remainder, tempHolder, remainderLen, remainderLen) < 0) {
       qDigit[0]--;
-      for (j = 0; j < remainderLen; j++) {
+      /* for (j = 0; j < remainderLen; j++) {
         tempHolder[j] = 0;
       }
-      BigInt_multiply_optimize_impl(divisor, qDigit, tempHolder, divisorLen, 1, remainderLen);
+      BigInt_multiply_optimize_impl(divisor, qDigit, tempHolder, divisorLen, 1, remainderLen); */
+      BigInt_subtract_optimize_impl(tempHolder, divisor, tempHolder, remainderLen, divisorLen, remainderLen);
     }
     BigInt_subtract_optimize_impl(remainder, tempHolder, remainder, remainderLen, remainderLen, remainderLen);
     quotient[quotientLen - i - 1] = qDigit[0];
