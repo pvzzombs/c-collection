@@ -210,7 +210,20 @@ int main() {
 ```
 
 ## Performance Results:
-### Windows 10 benchmark results:
+### 1,000,000th Fibonacci Number Test
+#### Windows 10 x64
+```
+fibmillion.c took 0m23.839s
+gmpfib.c took 0m9.603s
+```
+#### Android AArch64
+```
+fibmillion.c took 0m43.940s
+gmpfib.c took 0m15.819s
+```
+
+### Benchmarks
+#### Windows 10 benchmark results:
 ```
 Processor	AMD A6-7480 Radeon R5, 8 Compute Cores 2C+6G      3.50 GHz
 System Type	64-bit operating system, x64-based processor
@@ -225,7 +238,7 @@ Average: 4529856 per second.
 Division performance test...
 Average: 258892 per second.
 ```
-### Porteus 5.01 (Linux) benchmark results:
+#### Porteus 5.01 (Linux) benchmark results:
 ```
 OS: Porteus 5.01 x86_64
 Host: Hewlett-Packard 172A
