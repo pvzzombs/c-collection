@@ -20,7 +20,7 @@ int main() {
   BigInt_multiply_toomcook3(&toomcook3, &a, &b);
   BigInt_print_internal(&toomcook3);
   
-  if (BigInt_cmp(&schoolbook, &toomcook3) == 0) {
+  if (BigInt_cmp_unsigned(&schoolbook, &toomcook3) == 0) {
     printf("Equal!\n");
   } else {
     int len_schoolbook = schoolbook.internalSize;

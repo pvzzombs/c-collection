@@ -48,7 +48,7 @@ Checklist:
 Will add more things to the list.  
 
 ## Big Integer
-### Common functions
+### Common functions (Signed)
 `BigInt_init` - Initialize `BigInt` to zero.  
 `BigInt_init_from_string` - Initialize `BigInt` from string.  
 `BigInt_set_from_string` - Set already initialized `BigInt` from string.  
@@ -61,19 +61,17 @@ Will add more things to the list.
 `BigInt_multiply` - Multiply `BigInt`.  
 `BigInt_divide` - Divide `BigInt`.  
 
-### With Sign
-`BigInt_init_from_string_with_sign`  
-`BigInt_set_from_string_with_sign`  
-`BigInt_to_string_with_sign`  
-`BigInt_add_with_sign`  
-`BigInt_subtract_with_sign`  
-`BigInt_multiply_with_sign`  
-`BigInt_divide_with_sign`  
-`BigInt_divide_no_copy_with_sign`  
+### Unsigned
+`BigInt_init_from_string_unsigned`  
+`BigInt_set_from_string_unsigned`  
+`BigInt_to_string_unsigned`  
+`BigInt_add_unsigned`  
+`BigInt_subtract_unsigned`  
+`BigInt_multiply_unsigned`  
+`BigInt_divide_unsigned`  
+`BigInt_divide_no_copy_unsigned`  
 
 ### Example/s:
-
-**NOTE**: Please ensure that the **minuend is bigger** than or **equal** to the **subtrahend** and that the **dividend is bigger** than or **equal** to the **divisor**. If not correctly done, might lead to unintended results. (Only applies to common functions without sign).
 
 ```c
 char num1[] = "9876543210987654321987654321";
@@ -155,58 +153,6 @@ free(s);
 BigInt_destroy(&a);
 BigInt_destroy(&b);
 BigInt_destroy(&c);
-```
-
-With sign:
-```c
-int main() {
-  char num1[1024];
-  char num2[1024];
-  char * s;
-
-  BigInt a, b, c;
-  int index;
-  char * end;
-
-  BigInt_init(&a);
-  BigInt_init(&b);
-  BigInt_init(&c);
-
-  printf("Enter first number: ");
-  fgets(num1, 1024, stdin);
-  printf("Enter second number: ");
-  fgets(num2, 1024, stdin);
-
-  end = strstr(num1, "\n");
-  num1[end - num1] = 0;
-  end = strstr(num2, "\n");
-  num2[end - num2] = 0;
-
-  BigInt_set_from_string_with_sign(&a, num1);
-  BigInt_set_from_string_with_sign(&b, num2);
-
-  BigInt_add_with_sign(&c, &a, &b);
-  s = BigInt_to_string_with_sign(&c);
-  printf("Sum: %s\n",s);
-  free(s);
-  BigInt_subtract_with_sign(&c, &a, &b);
-  s = BigInt_to_string_with_sign(&c);
-  printf("Difference: %s\n",s);
-  free(s);
-  BigInt_multiply_with_sign(&c, &a, &b);
-  s = BigInt_to_string_with_sign(&c);
-  printf("Product: %s\n",s);
-  free(s);
-  BigInt_divide_with_sign(&c, &a, &b);
-  s = BigInt_to_string_with_sign(&c);
-  printf("Quotient: %s\n",s);
-  free(s);
-
-  BigInt_destroy(&a);
-  BigInt_destroy(&b);
-  BigInt_destroy(&c);
-  return 0;
-}
 ```
 
 ## Performance Results:

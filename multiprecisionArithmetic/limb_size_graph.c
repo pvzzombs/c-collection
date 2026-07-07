@@ -49,7 +49,7 @@ int main() {
     start_time = get_time();
     iterations_a = 0;
     do {
-      BigInt_multiply(&c, &a, &b);
+      BigInt_multiply_unsigned(&c, &a, &b);
       end_time = get_time();
       ++iterations_a;
     } while (end_time - start_time < 1.0f);
@@ -60,7 +60,7 @@ int main() {
     start_time = get_time();
     iterations_b = 0;
     do {
-      BigInt_multiply_karatsuba(&c, &a, &b);
+      BigInt_multiply_karatsuba_unsigned(&c, &a, &b);
       end_time = get_time();
       ++iterations_b;
     } while (end_time - start_time < 1.0f);

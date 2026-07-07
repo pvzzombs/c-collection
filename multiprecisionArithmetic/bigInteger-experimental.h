@@ -13,7 +13,7 @@ void BigInt_multiply_toomcook3(BigInt *, BigInt *, BigInt *);
 
 void BigInt_multiply_toomcook3_impl(BigInt * multiplicand, BigInt * multiplier, BigInt * product) {
   if (multiplicand->internalSize < BIGINT_TOOMCOOK3_THRESHOLD && multiplier->internalSize < BIGINT_TOOMCOOK3_THRESHOLD) {
-    BigInt_multiply_with_sign(product, multiplicand, multiplier);
+    BigInt_multiply(product, multiplicand, multiplier);
   } else {
     BigInt x_0, x_1, x_2;
     BigInt y_0, y_1, y_2;
@@ -107,40 +107,40 @@ void BigInt_multiply_toomcook3_impl(BigInt * multiplicand, BigInt * multiplier, 
     y_2.sign = multiplier->sign;
     
     /* x(1) = (x_0 + x_1 + x_2)*/
-    BigInt_add_ts(&x1, &x1, &x_0);
-    BigInt_add_ts(&x1, &x1, &x_1);
-    BigInt_add_ts(&x1, &x1, &x_2);
+    BigInt_add_s(&x1, &x1, &x_0);
+    BigInt_add_s(&x1, &x1, &x_1);
+    BigInt_add_s(&x1, &x1, &x_2);
     
     /* y(1) = (y_0 + y_1 + y_2)*/
-    BigInt_add_ts(&y1, &y1, &y_0);
-    BigInt_add_ts(&y1, &y1, &y_1);
-    BigInt_add_ts(&y1, &y1, &y_2);
+    BigInt_add_s(&y1, &y1, &y_0);
+    BigInt_add_s(&y1, &y1, &y_1);
+    BigInt_add_s(&y1, &y1, &y_2);
     
     /* x(-1) = (x_0 - x_1 + x_2) */
-    BigInt_add_ts(&xn1, &xn1, &x_0);
-    BigInt_subtract_ts(&xn1, &xn1, &x_1);
-    BigInt_add_ts(&xn1, &xn1, &x_2);
+    BigInt_add_s(&xn1, &xn1, &x_0);
+    BigInt_subtract_s(&xn1, &xn1, &x_1);
+    BigInt_add_s(&xn1, &xn1, &x_2);
     
     /* y(-1) = (y_0 - y_1 + y_2) */
-    BigInt_add_ts(&yn1, &yn1, &y_0);
-    BigInt_subtract_ts(&yn1, &yn1, &y_1);
-    BigInt_add_ts(&yn1, &yn1, &y_2);
+    BigInt_add_s(&yn1, &yn1, &y_0);
+    BigInt_subtract_s(&yn1, &yn1, &y_1);
+    BigInt_add_s(&yn1, &yn1, &y_2);
     
-    BigInt_multiply_with_sign(&x2_2x_1, &two, &x_1);
-    BigInt_multiply_with_sign(&x2_4x_2, &four, &x_2);
+    BigInt_multiply(&x2_2x_1, &two, &x_1);
+    BigInt_multiply(&x2_4x_2, &four, &x_2);
     
-    BigInt_multiply_with_sign(&y2_2y_1, &two, &y_1);
-    BigInt_multiply_with_sign(&y2_4y_2, &four, &y_2);
+    BigInt_multiply(&y2_2y_1, &two, &y_1);
+    BigInt_multiply(&y2_4y_2, &four, &y_2);
     
     /* x(2) = (x_0 + 2 * x_1 + 4 * x_2) */
-    BigInt_add_ts(&x2, &x2, &x_0);
-    BigInt_add_ts(&x2, &x2, &x2_2x_1);
-    BigInt_add_ts(&x2, &x2, &x2_4x_2);
+    BigInt_add_s(&x2, &x2, &x_0);
+    BigInt_add_s(&x2, &x2, &x2_2x_1);
+    BigInt_add_s(&x2, &x2, &x2_4x_2);
     
     /* y(2) = (y_0 + 2 * y_1 + 4 * y_2) */
-    BigInt_add_ts(&y2, &y2, &y_0);
-    BigInt_add_ts(&y2, &y2, &y2_2y_1);
-    BigInt_add_ts(&y2, &y2, &y2_4y_2);
+    BigInt_add_s(&y2, &y2, &y_0);
+    BigInt_add_s(&y2, &y2, &y2_2y_1);
+    BigInt_add_s(&y2, &y2, &y2_4y_2);
     
     /* x(0) = x_0, y(0) = y_0 */
     BigInt_copy(&x0, &x_0);
@@ -221,33 +221,33 @@ void BigInt_multiply_toomcook3_impl(BigInt * multiplicand, BigInt * multiplier, 
     /* BigInt_remove_leading_zeroes(&c4); */
     
     /* s = (w(1) + w(-1)) / 2 */
-    BigInt_add_with_sign(&s, &w1, &wn1);
-    BigInt_divide_ts(&s, &s, &two);
+    BigInt_add(&s, &w1, &wn1);
+    BigInt_divide_s(&s, &s, &two);
     
     /* d = (w(1) - w(-1)) / 2 */
-    BigInt_subtract_with_sign(&d, &w1, &wn1);
-    BigInt_divide_ts(&d, &d, &two);
+    BigInt_subtract(&d, &w1, &wn1);
+    BigInt_divide_s(&d, &d, &two);
     
     /* c2 = s - c0 - c4 */
-    BigInt_subtract_with_sign(&c2, &s, &c0);
-    BigInt_subtract_ts(&c2, &c2, &c4);
+    BigInt_subtract(&c2, &s, &c0);
+    BigInt_subtract_s(&c2, &c2, &c4);
     /* BigInt_remove_leading_zeroes(&c2); */
     
     /* u = w(2) - c0 - 4*c2 - 16*c4 */
-    BigInt_multiply_with_sign(&temp1, &four, &c2);
-    BigInt_multiply_with_sign(&temp2, &sixteen, &c4);
-    BigInt_subtract_with_sign(&u, &w2, &c0);
-    BigInt_subtract_ts(&u, &u, &temp1);
-    BigInt_subtract_ts(&u, &u, &temp2);
+    BigInt_multiply(&temp1, &four, &c2);
+    BigInt_multiply(&temp2, &sixteen, &c4);
+    BigInt_subtract(&u, &w2, &c0);
+    BigInt_subtract_s(&u, &u, &temp1);
+    BigInt_subtract_s(&u, &u, &temp2);
     
     /* c3 = (u - 2*d) / 6 */
-    BigInt_multiply_with_sign(&temp3, &two, &d);
-    BigInt_subtract_with_sign(&c3, &u, &temp3);
-    BigInt_divide_ts(&c3, &c3, &six);
+    BigInt_multiply(&temp3, &two, &d);
+    BigInt_subtract(&c3, &u, &temp3);
+    BigInt_divide_s(&c3, &c3, &six);
     /* BigInt_remove_leading_zeroes(&c3); */
     
     /* c1 = d - c3 */
-    BigInt_subtract_with_sign(&c1, &d, &c3);
+    BigInt_subtract(&c1, &d, &c3);
     /* BigInt_remove_leading_zeroes(&c1); */
     
     BigInt_shift_left(&c4, b * 4);
@@ -255,11 +255,11 @@ void BigInt_multiply_toomcook3_impl(BigInt * multiplicand, BigInt * multiplier, 
     BigInt_shift_left(&c2, b * 2);
     BigInt_shift_left(&c1, b);
     
-    BigInt_add_with_sign(&temp2, &c4, &c3);
-    BigInt_add_with_sign(&temp3, &c2, &c1);
-    BigInt_add_with_sign(&temp1, &temp2, &temp3);
+    BigInt_add(&temp2, &c4, &c3);
+    BigInt_add(&temp3, &c2, &c1);
+    BigInt_add(&temp1, &temp2, &temp3);
     
-    BigInt_add_with_sign(product, &temp1, &c0);
+    BigInt_add(product, &temp1, &c0);
     BigInt_remove_leading_zeroes(product);
     
     BigInt_destroy(&x_0);
@@ -317,7 +317,7 @@ void BigInt_multiply_toomcook3_impl(BigInt * multiplicand, BigInt * multiplier, 
 
 void BigInt_multiply_toomcook3(BigInt * product, BigInt * multiplicand, BigInt * multiplier) {
   if (multiplicand->internalSize < BIGINT_TOOMCOOK3_THRESHOLD && multiplier->internalSize < BIGINT_TOOMCOOK3_THRESHOLD) {
-    BigInt_multiply_karatsuba_with_sign(product, multiplicand, multiplier);
+    BigInt_multiply_karatsuba(product, multiplicand, multiplier);
   } else {
     BigInt_multiply_toomcook3_impl(multiplicand, multiplier, product);
     BigInt_remove_leading_zeroes(product);

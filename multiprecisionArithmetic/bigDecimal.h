@@ -55,7 +55,7 @@ void BigDec_init_from_string(BigDec * b, char * s) {
   new_s[j] = 0;
   printf("BigDec str is %s, scale is %d\n", new_s, scale);
   b->value = (BigInt *) BIGDEC_ALLOC(1 * sizeof(BigInt));
-  BigInt_init_from_string(b->value, new_s);
+  BigInt_init_from_string_unsigned(b->value, new_s);
   b->scale = scale;
   BIGDEC_FREE(new_s);
 }
@@ -68,7 +68,7 @@ void BigDec_destroy(BigDec * b) {
 
 void BigDec_add(BigDec * sum, BigDec * addend1, BigDec * addend2) {
   /* For now, we assume scale are the same */
-  BigInt_add_t(sum->value, addend1->value, addend2->value);
+  BigInt_add_u(sum->value, addend1->value, addend2->value);
 }
 
 #endif

@@ -39,7 +39,7 @@ int main() {
   BigInt_init_zero_limb(&c, 131072 + 131072);
 
   start_time = get_time();
-  BigInt_multiply(&c, &a, &b);
+  BigInt_multiply_unsigned(&c, &a, &b);
   end_time = get_time();
   schoolbook = end_time - start_time;
   
@@ -47,7 +47,7 @@ int main() {
   BigInt_init_zero_limb(&c, 131072 + 131072);
   
   start_time = get_time();
-  BigInt_multiply_karatsuba(&c, &a, &b);
+  BigInt_multiply_karatsuba_unsigned(&c, &a, &b);
   end_time = get_time();
   karatsuba = end_time - start_time;
   

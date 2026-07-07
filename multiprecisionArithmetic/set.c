@@ -9,14 +9,14 @@ int main() {
   BigInt_init(&num2);
 
 
-  BigInt_set_from_string_with_sign(&num1, "-123456");
-  s = BigInt_to_string_with_sign(&num1);
+  BigInt_set_from_string(&num1, "-123456");
+  s = BigInt_to_string(&num1);
   printf("Num1 is %s\n", s);
   free(s);
 
   /*BigInt_copy(&num2, &num1);*/
-  BigInt_set_from_string_with_sign(&num2, "-123456789801234567890");
-  s = BigInt_to_string_with_sign(&num2);
+  BigInt_set_from_string(&num2, "-123456789801234567890");
+  s = BigInt_to_string(&num2);
   /*printf("Sign is %d\n", num2.sign);*/
   printf("Num2 is %s\n", s);
   free(s);
@@ -37,8 +37,8 @@ int main() {
 
   BigInt_destroy(&num1);
 
-  BigInt_init_from_string_with_sign(&num1, "-123");
-  s = BigInt_to_string_with_sign(&num1);
+  BigInt_init_from_string(&num1, "-123");
+  s = BigInt_to_string(&num1);
   printf("Number init is %s\n", s);
   free(s);
   

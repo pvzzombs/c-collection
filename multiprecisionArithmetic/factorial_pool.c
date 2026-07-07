@@ -23,14 +23,14 @@ int main() {
   BigInt_init_one(&fact);
   BigInt_init_one(&i);
   BigInt_init_one(&one);
-  BigInt_init_from_string(&end, "10000");
+  BigInt_init_from_string_unsigned(&end, "10000");
 
   while(BigInt_cmp(&i, &end) <= 0) {
-    BigInt_multiply_assign(&fact, &i); /* fact = fact * i; */
-    BigInt_add_assign(&i, &one); /* i = i + 1; */
+    BigInt_multiply_assign_u(&fact, &i); /* fact = fact * i; */
+    BigInt_add_assign_u(&i, &one); /* i = i + 1; */
   }
 
-  s = BigInt_to_string(&fact);
+  s = BigInt_to_string_unsigned(&fact);
   printf("Factorial is %s.\n", s);
   /* BigInt_print_internal(&fact); */
 

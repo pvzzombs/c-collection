@@ -81,7 +81,7 @@ int main() {
     startTime = get_time();
     endTime = startTime;
     do {
-      BigInt_add(&c, &a, &b);
+      BigInt_add_unsigned(&c, &a, &b);
       ++iterations;
       endTime = get_time();
     } while(endTime - startTime < 1.0);
@@ -107,7 +107,7 @@ int main() {
     startTime = get_time();
     endTime = startTime;
     do {
-      BigInt_multiply(&c, &a, &b);
+      BigInt_multiply_unsigned(&c, &a, &b);
       ++iterations;
       endTime = get_time();
     } while(endTime - startTime < 1.0);
@@ -133,7 +133,7 @@ int main() {
     startTime = get_time();
     endTime = startTime;
     do {
-      BigInt_multiply_karatsuba(&c, &a, &b);
+      BigInt_multiply_karatsuba_unsigned(&c, &a, &b);
       ++iterations;
       endTime = get_time();
     } while(endTime - startTime < 1.0);
@@ -162,7 +162,7 @@ int main() {
     startTime = get_time();
     endTime = startTime;
     do {
-      BigInt_subtract(&c, &a, &b);
+      BigInt_subtract_unsigned(&c, &a, &b);
       ++iterations;
       endTime = get_time();
     } while(endTime - startTime < 1.0);
@@ -191,7 +191,7 @@ int main() {
     startTime = get_time();
     endTime = startTime;
     do {
-      BigInt_divide(&c, &a, &b);
+      BigInt_divide_unsigned(&c, &a, &b);
       ++iterations;
       endTime = get_time();
     } while(endTime - startTime < 1.0);
@@ -211,7 +211,7 @@ int main() {
     startTime = get_time();
     endTime = startTime;
     do {
-      BigInt_set_from_string(&a, bigNum1);
+      BigInt_set_from_string_unsigned(&a, bigNum1);
       ++iterations;
       endTime = get_time();
     } while(endTime - startTime < 1.0);
@@ -253,7 +253,7 @@ int main() {
     startTime = get_time();
     endTime = startTime;
     do {
-      str_out = BigInt_to_string(&a);
+      str_out = BigInt_to_string_unsigned(&a);
       free(str_out);
       ++iterations;
       endTime = get_time();

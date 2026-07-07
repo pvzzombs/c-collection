@@ -25,23 +25,23 @@ int main() {
   end = strstr(num2, "\n");
   num2[end - num2] = 0;
 
-  BigInt_set_from_string_with_sign(&a, num1);
-  BigInt_set_from_string_with_sign(&b, num2);
+  BigInt_set_from_string(&a, num1);
+  BigInt_set_from_string(&b, num2);
 
-  BigInt_add_with_sign(&c, &a, &b);
-  s = BigInt_to_string_with_sign(&c);
+  BigInt_add(&c, &a, &b);
+  s = BigInt_to_string(&c);
   printf("Sum: %s\n",s);
   free(s);
-  BigInt_subtract_with_sign(&c, &a, &b);
-  s = BigInt_to_string_with_sign(&c);
+  BigInt_subtract(&c, &a, &b);
+  s = BigInt_to_string(&c);
   printf("Difference: %s\n",s);
   free(s);
-  BigInt_multiply_with_sign(&c, &a, &b);
-  s = BigInt_to_string_with_sign(&c);
+  BigInt_multiply(&c, &a, &b);
+  s = BigInt_to_string(&c);
   printf("Product: %s\n",s);
   free(s);
-  BigInt_divide_with_sign(&c, &a, &b);
-  s = BigInt_to_string_with_sign(&c);
+  BigInt_divide(&c, &a, &b);
+  s = BigInt_to_string(&c);
   printf("Quotient: %s\n",s);
   free(s);
 

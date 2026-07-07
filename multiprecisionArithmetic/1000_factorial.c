@@ -28,12 +28,12 @@ int main() {
 
 
   while(i <= end) {
-    BigInt_multiply_small_assign(&fact, i); /* fact = fact * i; */
+    BigInt_multiply_small_assign_u(&fact, i); /* fact = fact * i; */
     /*BigInt_add_assign(&i, &one);*/ /* i = i + 1; */
     i += 1;
   }
 
-  s = BigInt_to_string(&fact);
+  s = BigInt_to_string_unsigned(&fact);
   printf("Factorial is %s.\n", s);
   /* BigInt_print_internal(&fact); */
 

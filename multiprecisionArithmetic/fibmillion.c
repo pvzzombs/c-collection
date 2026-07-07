@@ -46,7 +46,7 @@ int main() {
 
   start = get_time();
   while(index < 1000000) {
-    BigInt_add(&temp, &a, &b);
+    BigInt_add_unsigned(&temp, &a, &b);
     /* BigInt_swap(&a, &b);
     BigInt_swap(&b, &temp); */
     BigInt_copy(&a, &b);
@@ -57,7 +57,7 @@ int main() {
   
   printf("Time taken: %lfs\n", end - start);
   
-  s = BigInt_to_string(&a);
+  s = BigInt_to_string_unsigned(&a);
   printf("Index is %d.\n", index);
   fprintf(f, "%s", s);
   free(s);

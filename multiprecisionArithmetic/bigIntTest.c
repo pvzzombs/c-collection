@@ -67,10 +67,10 @@ void additionTest() {
 
   for (i = 0; i < 5; i++) {
     TEST_CASE_("Iteration #%d, %s", i, names[i]);
-    BigInt_set_from_string(&a, addends1[i]);
-    BigInt_set_from_string(&b, addends2[i]);
-    BigInt_add(&c, &a, &b);
-    s = BigInt_to_string(&c);
+    BigInt_set_from_string_unsigned(&a, addends1[i]);
+    BigInt_set_from_string_unsigned(&b, addends2[i]);
+    BigInt_add_unsigned(&c, &a, &b);
+    s = BigInt_to_string_unsigned(&c);
     TEST_CHECK(strcmp(s, sums[i]) == 0);
     TEST_MSG("Expected: %s, Output: %s, Addend1: %s, Addend2: %s", sums[i], s, addends1[i], addends2[i]);
     free(s);
@@ -123,10 +123,10 @@ void subtractionTest() {
 
   for (i = 0; i < 5; i++) {
     TEST_CASE_("Iteration #%d, %s", i, names[i]);
-    BigInt_set_from_string(&a, minuend[i]);
-    BigInt_set_from_string(&b, subtrahend[i]);
-    BigInt_subtract(&c, &a, &b);
-    s = BigInt_to_string(&c);
+    BigInt_set_from_string_unsigned(&a, minuend[i]);
+    BigInt_set_from_string_unsigned(&b, subtrahend[i]);
+    BigInt_subtract_unsigned(&c, &a, &b);
+    s = BigInt_to_string_unsigned(&c);
     TEST_CHECK(strcmp(s, difference[i]) == 0);
     TEST_MSG("Expected: %s, Output: %s, Minuend: %s, Subtrahend: %s", difference[i], s, minuend[i], subtrahend[i]);
     free(s);
@@ -179,10 +179,10 @@ void multiplicationTest() {
 
   for (i = 0; i < 5; i++) {
     TEST_CASE_("Iteration #%d, %s", i, names[i]);
-    BigInt_set_from_string(&a, multiplicand[i]);
-    BigInt_set_from_string(&b, multiplier[i]);
-    BigInt_multiply(&c, &a, &b);
-    s = BigInt_to_string(&c);
+    BigInt_set_from_string_unsigned(&a, multiplicand[i]);
+    BigInt_set_from_string_unsigned(&b, multiplier[i]);
+    BigInt_multiply_unsigned(&c, &a, &b);
+    s = BigInt_to_string_unsigned(&c);
     TEST_CHECK(strcmp(s, product[i]) == 0);
     TEST_MSG("Expected: %s, Output: %s, Multiplicand: %s, Multiplier: %s", product[i], s, multiplicand[i], multiplier[i]);
     free(s);
@@ -235,10 +235,10 @@ void divisionTest() {
 
   for (i = 0; i < 5; i++) {
     TEST_CASE_("Iteration #%d, %s", i, names[i]);
-    BigInt_set_from_string(&a, dividend[i]);
-    BigInt_set_from_string(&b, divisor[i]);
-    BigInt_divide_no_copy(&c, &a, &b);
-    s = BigInt_to_string(&c);
+    BigInt_set_from_string_unsigned(&a, dividend[i]);
+    BigInt_set_from_string_unsigned(&b, divisor[i]);
+    BigInt_divide_no_copy_unsigned(&c, &a, &b);
+    s = BigInt_to_string_unsigned(&c);
     TEST_CHECK(strcmp(s, quotient[i]) == 0);
     TEST_MSG("Expected: %s, Output: %s, Dividend: %s, Divisor: %s", quotient[i], s, dividend[i], divisor[i]);
     free(s);
@@ -259,8 +259,8 @@ void inputAndOutputTest() {
   for (i = 0; i < 100; i++) {
     generateBigInteger(buf);
     mpa_removeLeadingZeroes(buf);
-    BigInt_set_from_string(&a, buf);
-    s = BigInt_to_string(&a);
+    BigInt_set_from_string_unsigned(&a, buf);
+    s = BigInt_to_string_unsigned(&a);
     TEST_CHECK(strcmp(buf, s) == 0);
     TEST_MSG("Expected: %s, Output: %s", buf, s);
     free(s);
@@ -286,10 +286,10 @@ void randomizedAdd() {
     mpa_removeLeadingZeroes(num1);
     mpa_removeLeadingZeroes(num2);
     target = mpa_add(num1, num2);
-    BigInt_set_from_string(&a, num1);
-    BigInt_set_from_string(&b, num2);
-    BigInt_add(&c, &a, &b);
-    s = BigInt_to_string(&c);
+    BigInt_set_from_string_unsigned(&a, num1);
+    BigInt_set_from_string_unsigned(&b, num2);
+    BigInt_add_unsigned(&c, &a, &b);
+    s = BigInt_to_string_unsigned(&c);
     TEST_CHECK(strcmp(target, s) == 0);
     TEST_MSG("Expected: %s, Output: %s, Numbers: %s + %s", target, s, num1, num2);
     free(target);
@@ -321,10 +321,10 @@ void randomizedSubtract() {
       continue;
     }
     target = mpa_subtract(num1, num2);
-    BigInt_set_from_string(&a, num1);
-    BigInt_set_from_string(&b, num2);
-    BigInt_subtract(&c, &a, &b);
-    s = BigInt_to_string(&c);
+    BigInt_set_from_string_unsigned(&a, num1);
+    BigInt_set_from_string_unsigned(&b, num2);
+    BigInt_subtract_unsigned(&c, &a, &b);
+    s = BigInt_to_string_unsigned(&c);
     TEST_CHECK(strcmp(target, s) == 0);
     TEST_MSG("Expected: %s, Output: %s, Numbers: %s - %s", target, s, num1, num2);
     free(target);
@@ -353,10 +353,10 @@ void randomizedMultiply() {
     mpa_removeLeadingZeroes(num1);
     mpa_removeLeadingZeroes(num2);
     target = mpa_multiply(num1, num2);
-    BigInt_set_from_string(&a, num1);
-    BigInt_set_from_string(&b, num2);
-    BigInt_multiply(&c, &a, &b);
-    s = BigInt_to_string(&c);
+    BigInt_set_from_string_unsigned(&a, num1);
+    BigInt_set_from_string_unsigned(&b, num2);
+    BigInt_multiply_unsigned(&c, &a, &b);
+    s = BigInt_to_string_unsigned(&c);
     TEST_CHECK(strcmp(target, s) == 0);
     TEST_MSG("Expected: %s, Output: %s, Numbers: %s * %s", target, s, num1, num2);
     free(target);
@@ -385,10 +385,10 @@ void randomizedMultiplyKaratsuba() {
     mpa_removeLeadingZeroes(num1);
     mpa_removeLeadingZeroes(num2);
     target = mpa_multiply(num1, num2);
-    BigInt_set_from_string(&a, num1);
-    BigInt_set_from_string(&b, num2);
-    BigInt_multiply_karatsuba(&c, &a, &b);
-    s = BigInt_to_string(&c);
+    BigInt_set_from_string_unsigned(&a, num1);
+    BigInt_set_from_string_unsigned(&b, num2);
+    BigInt_multiply_karatsuba_unsigned(&c, &a, &b);
+    s = BigInt_to_string_unsigned(&c);
     TEST_CHECK(strcmp(target, s) == 0);
     TEST_MSG("Expected: %s, Output: %s, Numbers: %s * %s", target, s, num1, num2);
     free(target);
@@ -420,10 +420,10 @@ void randomizedDivide() {
       continue;
     }
     target = mpa_divide(num1, num2);
-    BigInt_set_from_string(&a, num1);
-    BigInt_set_from_string(&b, num2);
-    BigInt_divide(&c, &a, &b);
-    s = BigInt_to_string(&c);
+    BigInt_set_from_string_unsigned(&a, num1);
+    BigInt_set_from_string_unsigned(&b, num2);
+    BigInt_divide_unsigned(&c, &a, &b);
+    s = BigInt_to_string_unsigned(&c);
     TEST_CHECK(strcmp(target, s) == 0);
     TEST_MSG("Len is %d %d", strlen(target), strlen(s));
     TEST_MSG("Expected: %s, Output: %s, Numbers: %s / %s", target, s, num1, num2);
@@ -456,10 +456,10 @@ void randomizedDivide100by50() {
       continue;
     }
     target = mpa_divide(num1, num2);
-    BigInt_set_from_string(&a, num1);
-    BigInt_set_from_string(&b, num2);
-    BigInt_divide(&c, &a, &b);
-    s = BigInt_to_string(&c);
+    BigInt_set_from_string_unsigned(&a, num1);
+    BigInt_set_from_string_unsigned(&b, num2);
+    BigInt_divide_unsigned(&c, &a, &b);
+    s = BigInt_to_string_unsigned(&c);
     TEST_CHECK(strcmp(target, s) == 0);
     TEST_MSG("Len is %d %d", strlen(target), strlen(s));
     TEST_MSG("Expected: %s, Output: %s, Numbers: %s / %s", target, s, num1, num2);
@@ -480,7 +480,7 @@ void specificDigitCountTest() {
 
   BigInt_init(&a);
 
-  BigInt_set_from_string(&a, num1);
+  BigInt_set_from_string_unsigned(&a, num1);
   
   guess = BigInt_count_digits_base_10(&a);
   TEST_CHECK(count == guess);
@@ -502,9 +502,9 @@ void digitCountTest() {
     generateBigIntegerN(buf, count);
     mpa_removeLeadingZeroes(buf);
     count = strlen(buf);
-    BigInt_set_from_string(&a, buf);
+    BigInt_set_from_string_unsigned(&a, buf);
     guess = BigInt_count_digits_base_10(&a);
-    s = BigInt_to_string(&a);
+    s = BigInt_to_string_unsigned(&a);
     TEST_CHECK(count == guess);
     TEST_MSG("Expected: %d, Output: %d, Number: %s", count, guess, s);
     free(s);
@@ -528,11 +528,11 @@ void randomizedMultiplyKaratsubaNLimbs() {
     BigInt_init_random_limb(&b, lenB);
     BigInt_init_zero_limb(&schoolbook, lenA + lenB);
     BigInt_init_zero_limb(&karatsuba, lenA + lenB);
-    BigInt_multiply(&schoolbook, &a, &b);
-    BigInt_multiply_karatsuba(&karatsuba, &a, &b);
-    a_str = BigInt_to_string(&a);
-    b_str = BigInt_to_string(&b);
-    TEST_CHECK(BigInt_cmp(&schoolbook, &karatsuba) == 0);
+    BigInt_multiply_unsigned(&schoolbook, &a, &b);
+    BigInt_multiply_karatsuba_unsigned(&karatsuba, &a, &b);
+    a_str = BigInt_to_string_unsigned(&a);
+    b_str = BigInt_to_string_unsigned(&b);
+    TEST_CHECK(BigInt_cmp_unsigned(&schoolbook, &karatsuba) == 0);
     TEST_MSG("Mismatch occured! Offending operands: %s, %s", a_str, b_str);
     free(a_str);
     free(b_str);
@@ -559,11 +559,11 @@ void randomizedMultiplyToomCook3NLimbs() {
     BigInt_init_random_limb(&b, lenB);
     BigInt_init_zero_limb(&schoolbook, lenA + lenB);
     BigInt_init_zero_limb(&toomcook3, lenA + lenB);
-    BigInt_multiply(&schoolbook, &a, &b);
+    BigInt_multiply_unsigned(&schoolbook, &a, &b);
     BigInt_multiply_toomcook3(&toomcook3, &a, &b);
-    a_str = BigInt_to_string(&a);
-    b_str = BigInt_to_string(&b);
-    TEST_CHECK(BigInt_cmp(&schoolbook, &toomcook3) == 0);
+    a_str = BigInt_to_string_unsigned(&a);
+    b_str = BigInt_to_string_unsigned(&b);
+    TEST_CHECK(BigInt_cmp_unsigned(&schoolbook, &toomcook3) == 0);
     TEST_MSG("Mismatch occured! Operand sizes: %d, %d, Offending operands: %s, %s", lenA, lenB, a_str, b_str);
     free(a_str);
     free(b_str);
@@ -587,13 +587,13 @@ void left_shift_by_bit_test() {
     BigInt_init_random_limb(&num, j + 1);
     BigInt_copy(&a, &num);
     for (i = 0; i < 100; i++) {
-      BigInt_multiply_t(&b, &b, &two);
-      BigInt_multiply(&product, &a, &b);
+      BigInt_multiply_u(&b, &b, &two);
+      BigInt_multiply_unsigned(&product, &a, &b);
       /* BigInt_print_internal(&product); */
       BigInt_copy(&ShiftLeftByTwo, &num);
       BigInt_shift_left_bit(&ShiftLeftByTwo, i + 1);
       /* BigInt_print_internal(&ShiftLeftByTwo); */
-      TEST_CHECK(BigInt_cmp(&product, &ShiftLeftByTwo) == 0);
+      TEST_CHECK(BigInt_cmp_unsigned(&product, &ShiftLeftByTwo) == 0);
       TEST_MSG("Left Shift by %d mismatch!", i + 1);
     }
     BigInt_destroy(&a);
@@ -618,13 +618,13 @@ void right_shift_by_bit_test() {
     BigInt_init_random_limb(&num, j + 1);
     BigInt_copy(&a, &num);
     for (i = 0; i < 100; i++) {
-      BigInt_multiply_t(&b, &b, &two);
-      BigInt_divide(&product, &a, &b);      
+      BigInt_multiply_u(&b, &b, &two);
+      BigInt_divide_unsigned(&product, &a, &b);      
       BigInt_copy(&ShiftRightByTwo, &num);
       BigInt_shift_right_bit(&ShiftRightByTwo, i + 1);
-      TEST_CHECK(BigInt_cmp(&product, &ShiftRightByTwo) == 0);
+      TEST_CHECK(BigInt_cmp_unsigned(&product, &ShiftRightByTwo) == 0);
       TEST_MSG("Right Shift by %d mismatch!", i + 1);
-      if (BigInt_cmp(&product, &ShiftRightByTwo) != 0) {
+      if (BigInt_cmp_unsigned(&product, &ShiftRightByTwo) != 0) {
         BigInt_print_internal(&product);
         BigInt_print_internal(&ShiftRightByTwo);
         exit(1);
@@ -649,19 +649,19 @@ void additionTestSigned() {
     BigInt_init_random_limb(&num2, len2);
     BigInt_init_none(&ans1);
     BigInt_init_none(&ans2);
-    if (BigInt_cmp(&num1, &num2) < 0) {
+    if (BigInt_cmp_unsigned(&num1, &num2) < 0) {
       BigInt_swap(&num1, &num2);
-    } else if (BigInt_cmp(&num1, &num2) == 0) {
+    } else if (BigInt_cmp_unsigned(&num1, &num2) == 0) {
       BigInt_destroy(&ans1);
       BigInt_destroy(&ans2);
       BigInt_destroy(&num1);
       BigInt_destroy(&num2);
       continue;
     }
-    BigInt_add(&ans1, &num1, &num2);
-    BigInt_add_with_sign(&ans2, &num1, &num2);
+    BigInt_add_unsigned(&ans1, &num1, &num2);
+    BigInt_add(&ans2, &num1, &num2);
     TEST_CHECK(ans2.sign == 1);
-    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    TEST_CHECK(BigInt_cmp_unsigned(&ans1, &ans2) == 0);
     BigInt_destroy(&ans1);
     BigInt_destroy(&ans2);
     BigInt_destroy(&num1);
@@ -675,9 +675,9 @@ void additionTestSigned() {
     BigInt_init_random_limb(&num2, len2);
     BigInt_init_none(&ans1);
     BigInt_init_none(&ans2);
-    if (BigInt_cmp(&num1, &num2) < 0) {
+    if (BigInt_cmp_unsigned(&num1, &num2) < 0) {
       BigInt_swap(&num1, &num2);
-    } else if (BigInt_cmp(&num1, &num2) == 0) {
+    } else if (BigInt_cmp_unsigned(&num1, &num2) == 0) {
       BigInt_destroy(&ans1);
       BigInt_destroy(&ans2);
       BigInt_destroy(&num1);
@@ -685,10 +685,10 @@ void additionTestSigned() {
       continue;
     }
     BigInt_set_negative_sign(&num1);
-    BigInt_subtract(&ans1, &num1, &num2);
-    BigInt_add_with_sign(&ans2, &num1, &num2);
+    BigInt_subtract_unsigned(&ans1, &num1, &num2);
+    BigInt_add(&ans2, &num1, &num2);
     TEST_CHECK(ans2.sign == -1);
-    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    TEST_CHECK(BigInt_cmp_unsigned(&ans1, &ans2) == 0);
     BigInt_destroy(&ans1);
     BigInt_destroy(&ans2);
     BigInt_destroy(&num1);
@@ -702,9 +702,9 @@ void additionTestSigned() {
     BigInt_init_random_limb(&num2, len2);
     BigInt_init_none(&ans1);
     BigInt_init_none(&ans2);
-    if (BigInt_cmp(&num1, &num2) < 0) {
+    if (BigInt_cmp_unsigned(&num1, &num2) < 0) {
       BigInt_swap(&num1, &num2);
-    } else if (BigInt_cmp(&num1, &num2) == 0) {
+    } else if (BigInt_cmp_unsigned(&num1, &num2) == 0) {
       BigInt_destroy(&ans1);
       BigInt_destroy(&ans2);
       BigInt_destroy(&num1);
@@ -712,10 +712,10 @@ void additionTestSigned() {
       continue;
     }
     BigInt_set_negative_sign(&num2);
-    BigInt_subtract(&ans1, &num1, &num2);
-    BigInt_add_with_sign(&ans2, &num1, &num2);
+    BigInt_subtract_unsigned(&ans1, &num1, &num2);
+    BigInt_add(&ans2, &num1, &num2);
     TEST_CHECK(ans2.sign == 1);
-    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    TEST_CHECK(BigInt_cmp_unsigned(&ans1, &ans2) == 0);
     BigInt_destroy(&ans1);
     BigInt_destroy(&ans2);
     BigInt_destroy(&num1);
@@ -729,9 +729,9 @@ void additionTestSigned() {
     BigInt_init_random_limb(&num2, len2);
     BigInt_init_none(&ans1);
     BigInt_init_none(&ans2);
-    if (BigInt_cmp(&num1, &num2) < 0) {
+    if (BigInt_cmp_unsigned(&num1, &num2) < 0) {
       BigInt_swap(&num1, &num2);
-    } else if (BigInt_cmp(&num1, &num2) == 0) {
+    } else if (BigInt_cmp_unsigned(&num1, &num2) == 0) {
       BigInt_destroy(&ans1);
       BigInt_destroy(&ans2);
       BigInt_destroy(&num1);
@@ -740,10 +740,10 @@ void additionTestSigned() {
     }
     BigInt_set_negative_sign(&num1);
     BigInt_set_negative_sign(&num2);
-    BigInt_add(&ans1, &num1, &num2);
-    BigInt_add_with_sign(&ans2, &num1, &num2);
+    BigInt_add_unsigned(&ans1, &num1, &num2);
+    BigInt_add(&ans2, &num1, &num2);
     TEST_CHECK(ans2.sign == -1);
-    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    TEST_CHECK(BigInt_cmp_unsigned(&ans1, &ans2) == 0);
     BigInt_destroy(&ans1);
     BigInt_destroy(&ans2);
     BigInt_destroy(&num1);
@@ -761,19 +761,19 @@ void subtractionTestSigned() {
     BigInt_init_random_limb(&num2, len2);
     BigInt_init_none(&ans1);
     BigInt_init_none(&ans2);
-    if (BigInt_cmp(&num1, &num2) < 0) {
+    if (BigInt_cmp_unsigned(&num1, &num2) < 0) {
       BigInt_swap(&num1, &num2);
-    } else if (BigInt_cmp(&num1, &num2) == 0) {
+    } else if (BigInt_cmp_unsigned(&num1, &num2) == 0) {
       BigInt_destroy(&ans1);
       BigInt_destroy(&ans2);
       BigInt_destroy(&num1);
       BigInt_destroy(&num2);
       continue;
     }
-    BigInt_subtract(&ans1, &num1, &num2);
-    BigInt_subtract_with_sign(&ans2, &num1, &num2);
+    BigInt_subtract_unsigned(&ans1, &num1, &num2);
+    BigInt_subtract(&ans2, &num1, &num2);
     TEST_CHECK(ans2.sign == 1);
-    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    TEST_CHECK(BigInt_cmp_unsigned(&ans1, &ans2) == 0);
     BigInt_destroy(&ans1);
     BigInt_destroy(&ans2);
     BigInt_destroy(&num1);
@@ -787,9 +787,9 @@ void subtractionTestSigned() {
     BigInt_init_random_limb(&num2, len2);
     BigInt_init_none(&ans1);
     BigInt_init_none(&ans2);
-    if (BigInt_cmp(&num1, &num2) < 0) {
+    if (BigInt_cmp_unsigned(&num1, &num2) < 0) {
       BigInt_swap(&num1, &num2);
-    } else if (BigInt_cmp(&num1, &num2) == 0) {
+    } else if (BigInt_cmp_unsigned(&num1, &num2) == 0) {
       BigInt_destroy(&ans1);
       BigInt_destroy(&ans2);
       BigInt_destroy(&num1);
@@ -797,10 +797,10 @@ void subtractionTestSigned() {
       continue;
     }
     BigInt_set_negative_sign(&num1);
-    BigInt_add(&ans1, &num1, &num2);
-    BigInt_subtract_with_sign(&ans2, &num1, &num2);
+    BigInt_add_unsigned(&ans1, &num1, &num2);
+    BigInt_subtract(&ans2, &num1, &num2);
     TEST_CHECK(ans2.sign == -1);
-    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    TEST_CHECK(BigInt_cmp_unsigned(&ans1, &ans2) == 0);
     BigInt_destroy(&ans1);
     BigInt_destroy(&ans2);
     BigInt_destroy(&num1);
@@ -814,9 +814,9 @@ void subtractionTestSigned() {
     BigInt_init_random_limb(&num2, len2);
     BigInt_init_none(&ans1);
     BigInt_init_none(&ans2);
-    if (BigInt_cmp(&num1, &num2) < 0) {
+    if (BigInt_cmp_unsigned(&num1, &num2) < 0) {
       BigInt_swap(&num1, &num2);
-    } else if (BigInt_cmp(&num1, &num2) == 0) {
+    } else if (BigInt_cmp_unsigned(&num1, &num2) == 0) {
       BigInt_destroy(&ans1);
       BigInt_destroy(&ans2);
       BigInt_destroy(&num1);
@@ -824,10 +824,10 @@ void subtractionTestSigned() {
       continue;
     }
     BigInt_set_negative_sign(&num2);
-    BigInt_add(&ans1, &num1, &num2);
-    BigInt_subtract_with_sign(&ans2, &num1, &num2);
+    BigInt_add_unsigned(&ans1, &num1, &num2);
+    BigInt_subtract(&ans2, &num1, &num2);
     TEST_CHECK(ans2.sign == 1);
-    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    TEST_CHECK(BigInt_cmp_unsigned(&ans1, &ans2) == 0);
     BigInt_destroy(&ans1);
     BigInt_destroy(&ans2);
     BigInt_destroy(&num1);
@@ -841,9 +841,9 @@ void subtractionTestSigned() {
     BigInt_init_random_limb(&num2, len2);
     BigInt_init_none(&ans1);
     BigInt_init_none(&ans2);
-    if (BigInt_cmp(&num1, &num2) < 0) {
+    if (BigInt_cmp_unsigned(&num1, &num2) < 0) {
       BigInt_swap(&num1, &num2);
-    } else if (BigInt_cmp(&num1, &num2) == 0) {
+    } else if (BigInt_cmp_unsigned(&num1, &num2) == 0) {
       BigInt_destroy(&ans1);
       BigInt_destroy(&ans2);
       BigInt_destroy(&num1);
@@ -852,10 +852,10 @@ void subtractionTestSigned() {
     }
     BigInt_set_negative_sign(&num1);
     BigInt_set_negative_sign(&num2);
-    BigInt_subtract(&ans1, &num1, &num2);
-    BigInt_subtract_with_sign(&ans2, &num1, &num2);
+    BigInt_subtract_unsigned(&ans1, &num1, &num2);
+    BigInt_subtract(&ans2, &num1, &num2);
     TEST_CHECK(ans2.sign == -1);
-    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    TEST_CHECK(BigInt_cmp_unsigned(&ans1, &ans2) == 0);
     BigInt_destroy(&ans1);
     BigInt_destroy(&ans2);
     BigInt_destroy(&num1);
@@ -873,19 +873,19 @@ void multiplicationTestSigned() {
     BigInt_init_random_limb(&num2, len2);
     BigInt_init_none(&ans1);
     BigInt_init_none(&ans2);
-    if (BigInt_cmp(&num1, &num2) < 0) {
+    if (BigInt_cmp_unsigned(&num1, &num2) < 0) {
       BigInt_swap(&num1, &num2);
-    } else if (BigInt_cmp(&num1, &num2) == 0) {
+    } else if (BigInt_cmp_unsigned(&num1, &num2) == 0) {
       BigInt_destroy(&ans1);
       BigInt_destroy(&ans2);
       BigInt_destroy(&num1);
       BigInt_destroy(&num2);
       continue;
     }
-    BigInt_multiply(&ans1, &num1, &num2);
-    BigInt_multiply_with_sign(&ans2, &num1, &num2);
+    BigInt_multiply_unsigned(&ans1, &num1, &num2);
+    BigInt_multiply(&ans2, &num1, &num2);
     TEST_CHECK(ans2.sign == 1);
-    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    TEST_CHECK(BigInt_cmp_unsigned(&ans1, &ans2) == 0);
     BigInt_destroy(&ans1);
     BigInt_destroy(&ans2);
     BigInt_destroy(&num1);
@@ -899,9 +899,9 @@ void multiplicationTestSigned() {
     BigInt_init_random_limb(&num2, len2);
     BigInt_init_none(&ans1);
     BigInt_init_none(&ans2);
-    if (BigInt_cmp(&num1, &num2) < 0) {
+    if (BigInt_cmp_unsigned(&num1, &num2) < 0) {
       BigInt_swap(&num1, &num2);
-    } else if (BigInt_cmp(&num1, &num2) == 0) {
+    } else if (BigInt_cmp_unsigned(&num1, &num2) == 0) {
       BigInt_destroy(&ans1);
       BigInt_destroy(&ans2);
       BigInt_destroy(&num1);
@@ -909,10 +909,10 @@ void multiplicationTestSigned() {
       continue;
     }
     BigInt_set_negative_sign(&num1);
-    BigInt_multiply(&ans1, &num1, &num2);
-    BigInt_multiply_with_sign(&ans2, &num1, &num2);
+    BigInt_multiply_unsigned(&ans1, &num1, &num2);
+    BigInt_multiply(&ans2, &num1, &num2);
     TEST_CHECK(ans2.sign == -1);
-    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    TEST_CHECK(BigInt_cmp_unsigned(&ans1, &ans2) == 0);
     BigInt_destroy(&ans1);
     BigInt_destroy(&ans2);
     BigInt_destroy(&num1);
@@ -926,9 +926,9 @@ void multiplicationTestSigned() {
     BigInt_init_random_limb(&num2, len2);
     BigInt_init_none(&ans1);
     BigInt_init_none(&ans2);
-    if (BigInt_cmp(&num1, &num2) < 0) {
+    if (BigInt_cmp_unsigned(&num1, &num2) < 0) {
       BigInt_swap(&num1, &num2);
-    } else if (BigInt_cmp(&num1, &num2) == 0) {
+    } else if (BigInt_cmp_unsigned(&num1, &num2) == 0) {
       BigInt_destroy(&ans1);
       BigInt_destroy(&ans2);
       BigInt_destroy(&num1);
@@ -936,10 +936,10 @@ void multiplicationTestSigned() {
       continue;
     }
     BigInt_set_negative_sign(&num2);
-    BigInt_multiply(&ans1, &num1, &num2);
-    BigInt_multiply_with_sign(&ans2, &num1, &num2);
+    BigInt_multiply_unsigned(&ans1, &num1, &num2);
+    BigInt_multiply(&ans2, &num1, &num2);
     TEST_CHECK(ans2.sign == -1);
-    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    TEST_CHECK(BigInt_cmp_unsigned(&ans1, &ans2) == 0);
     BigInt_destroy(&ans1);
     BigInt_destroy(&ans2);
     BigInt_destroy(&num1);
@@ -953,9 +953,9 @@ void multiplicationTestSigned() {
     BigInt_init_random_limb(&num2, len2);
     BigInt_init_none(&ans1);
     BigInt_init_none(&ans2);
-    if (BigInt_cmp(&num1, &num2) < 0) {
+    if (BigInt_cmp_unsigned(&num1, &num2) < 0) {
       BigInt_swap(&num1, &num2);
-    } else if (BigInt_cmp(&num1, &num2) == 0) {
+    } else if (BigInt_cmp_unsigned(&num1, &num2) == 0) {
       BigInt_destroy(&ans1);
       BigInt_destroy(&ans2);
       BigInt_destroy(&num1);
@@ -964,10 +964,10 @@ void multiplicationTestSigned() {
     }
     BigInt_set_negative_sign(&num1);
     BigInt_set_negative_sign(&num2);
-    BigInt_multiply(&ans1, &num1, &num2);
-    BigInt_multiply_with_sign(&ans2, &num1, &num2);
+    BigInt_multiply_unsigned(&ans1, &num1, &num2);
+    BigInt_multiply(&ans2, &num1, &num2);
     TEST_CHECK(ans2.sign == 1);
-    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    TEST_CHECK(BigInt_cmp_unsigned(&ans1, &ans2) == 0);
     BigInt_destroy(&ans1);
     BigInt_destroy(&ans2);
     BigInt_destroy(&num1);
@@ -985,19 +985,19 @@ void divisionTestSigned() {
     BigInt_init_random_limb(&num2, len2);
     BigInt_init_none(&ans1);
     BigInt_init_none(&ans2);
-    if (BigInt_cmp(&num1, &num2) < 0) {
+    if (BigInt_cmp_unsigned(&num1, &num2) < 0) {
       BigInt_swap(&num1, &num2);
-    } else if (BigInt_cmp(&num1, &num2) == 0) {
+    } else if (BigInt_cmp_unsigned(&num1, &num2) == 0) {
       BigInt_destroy(&ans1);
       BigInt_destroy(&ans2);
       BigInt_destroy(&num1);
       BigInt_destroy(&num2);
       continue;
     }
-    BigInt_divide(&ans1, &num1, &num2);
-    BigInt_divide_with_sign(&ans2, &num1, &num2);
+    BigInt_divide_unsigned(&ans1, &num1, &num2);
+    BigInt_divide(&ans2, &num1, &num2);
     TEST_CHECK(ans2.sign == 1);
-    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    TEST_CHECK(BigInt_cmp_unsigned(&ans1, &ans2) == 0);
     BigInt_destroy(&ans1);
     BigInt_destroy(&ans2);
     BigInt_destroy(&num1);
@@ -1011,9 +1011,9 @@ void divisionTestSigned() {
     BigInt_init_random_limb(&num2, len2);
     BigInt_init_none(&ans1);
     BigInt_init_none(&ans2);
-    if (BigInt_cmp(&num1, &num2) < 0) {
+    if (BigInt_cmp_unsigned(&num1, &num2) < 0) {
       BigInt_swap(&num1, &num2);
-    } else if (BigInt_cmp(&num1, &num2) == 0) {
+    } else if (BigInt_cmp_unsigned(&num1, &num2) == 0) {
       BigInt_destroy(&ans1);
       BigInt_destroy(&ans2);
       BigInt_destroy(&num1);
@@ -1021,10 +1021,10 @@ void divisionTestSigned() {
       continue;
     }
     BigInt_set_negative_sign(&num1);
-    BigInt_divide(&ans1, &num1, &num2);
-    BigInt_divide_with_sign(&ans2, &num1, &num2);
+    BigInt_divide_unsigned(&ans1, &num1, &num2);
+    BigInt_divide(&ans2, &num1, &num2);
     TEST_CHECK(ans2.sign == -1);
-    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    TEST_CHECK(BigInt_cmp_unsigned(&ans1, &ans2) == 0);
     BigInt_destroy(&ans1);
     BigInt_destroy(&ans2);
     BigInt_destroy(&num1);
@@ -1038,9 +1038,9 @@ void divisionTestSigned() {
     BigInt_init_random_limb(&num2, len2);
     BigInt_init_none(&ans1);
     BigInt_init_none(&ans2);
-    if (BigInt_cmp(&num1, &num2) < 0) {
+    if (BigInt_cmp_unsigned(&num1, &num2) < 0) {
       BigInt_swap(&num1, &num2);
-    } else if (BigInt_cmp(&num1, &num2) == 0) {
+    } else if (BigInt_cmp_unsigned(&num1, &num2) == 0) {
       BigInt_destroy(&ans1);
       BigInt_destroy(&ans2);
       BigInt_destroy(&num1);
@@ -1048,10 +1048,10 @@ void divisionTestSigned() {
       continue;
     }
     BigInt_set_negative_sign(&num2);
-    BigInt_divide(&ans1, &num1, &num2);
-    BigInt_divide_with_sign(&ans2, &num1, &num2);
+    BigInt_divide_unsigned(&ans1, &num1, &num2);
+    BigInt_divide(&ans2, &num1, &num2);
     TEST_CHECK(ans2.sign == -1);
-    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    TEST_CHECK(BigInt_cmp_unsigned(&ans1, &ans2) == 0);
     BigInt_destroy(&ans1);
     BigInt_destroy(&ans2);
     BigInt_destroy(&num1);
@@ -1065,9 +1065,9 @@ void divisionTestSigned() {
     BigInt_init_random_limb(&num2, len2);
     BigInt_init_none(&ans1);
     BigInt_init_none(&ans2);
-    if (BigInt_cmp(&num1, &num2) < 0) {
+    if (BigInt_cmp_unsigned(&num1, &num2) < 0) {
       BigInt_swap(&num1, &num2);
-    } else if (BigInt_cmp(&num1, &num2) == 0) {
+    } else if (BigInt_cmp_unsigned(&num1, &num2) == 0) {
       BigInt_destroy(&ans1);
       BigInt_destroy(&ans2);
       BigInt_destroy(&num1);
@@ -1076,10 +1076,10 @@ void divisionTestSigned() {
     }
     BigInt_set_negative_sign(&num1);
     BigInt_set_negative_sign(&num2);
-    BigInt_divide(&ans1, &num1, &num2);
-    BigInt_divide_with_sign(&ans2, &num1, &num2);
+    BigInt_divide_unsigned(&ans1, &num1, &num2);
+    BigInt_divide(&ans2, &num1, &num2);
     TEST_CHECK(ans2.sign == 1);
-    TEST_CHECK(BigInt_cmp(&ans1, &ans2) == 0);
+    TEST_CHECK(BigInt_cmp_unsigned(&ans1, &ans2) == 0);
     BigInt_destroy(&ans1);
     BigInt_destroy(&ans2);
     BigInt_destroy(&num1);
@@ -1098,17 +1098,17 @@ void divisionEqualLimbTest() {
     BigInt_init_random_limb(&num2, len2);
     BigInt_init_none(&ans1);
     BigInt_init_none(&ans2);
-    if (BigInt_cmp(&num1, &num2) < 0) {
+    if (BigInt_cmp_unsigned(&num1, &num2) < 0) {
       BigInt_swap(&num1, &num2);
-    } else if (BigInt_cmp(&num1, &num2) == 0) {
+    } else if (BigInt_cmp_unsigned(&num1, &num2) == 0) {
       BigInt_destroy(&ans1);
       BigInt_destroy(&ans2);
       BigInt_destroy(&num1);
       BigInt_destroy(&num2);
       continue;
     }
-    BigInt_divide(&ans1, &num2, &num1);
-    TEST_CHECK(BigInt_cmp(&ans1, &zero) == 0);
+    BigInt_divide_unsigned(&ans1, &num2, &num1);
+    TEST_CHECK(BigInt_cmp_unsigned(&ans1, &zero) == 0);
     BigInt_destroy(&ans1);
     BigInt_destroy(&ans2);
     BigInt_destroy(&num1);
@@ -1122,18 +1122,17 @@ void divisionEqualLimbTest() {
     BigInt_init_random_limb(&num2, len2);
     BigInt_init_none(&ans1);
     BigInt_init_none(&ans2);
-    if (BigInt_cmp(&num1, &num2) < 0) {
+    if (BigInt_cmp_unsigned(&num1, &num2) < 0) {
       BigInt_swap(&num1, &num2);
-    } else if (BigInt_cmp(&num1, &num2) == 0) {
+    } else if (BigInt_cmp_unsigned(&num1, &num2) == 0) {
       BigInt_destroy(&ans1);
       BigInt_destroy(&ans2);
       BigInt_destroy(&num1);
       BigInt_destroy(&num2);
       continue;
     }
-    BigInt_set_negative_sign(&num1);
-    BigInt_divide(&ans1, &num1, &num2);
-    TEST_CHECK(BigInt_cmp(&ans1, &zero) > 0);
+    BigInt_divide_unsigned(&ans1, &num1, &num2);
+    TEST_CHECK(BigInt_cmp_unsigned(&ans1, &zero) > 0);
     BigInt_destroy(&ans1);
     BigInt_destroy(&ans2);
     BigInt_destroy(&num1);
