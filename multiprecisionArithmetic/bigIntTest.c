@@ -498,7 +498,7 @@ void digitCountTest() {
   srand(time(NULL));
   BigInt_init(&a);
   for (i = 0; i < 100; i++) {
-    count = rand() % 10000;
+    count = rand() % 10000 + 1;
     generateBigIntegerN(buf, count);
     mpa_removeLeadingZeroes(buf);
     count = strlen(buf);
@@ -519,8 +519,8 @@ void randomizedMultiplyKaratsubaNLimbs() {
   char * b_str;
   srand(time(NULL));
   for (i = 0; i < 100; i++) {
-    lenA = rand() % 512;
-    lenB = rand() % 512;
+    lenA = rand() % 512 + 1;
+    lenB = rand() % 512 + 1;
     if (lenA < 64) lenA = 64;
     if (lenB < 64) lenB = 64;
     /* printf("Lens: %d, %d\n", lenA, lenB); */
@@ -550,8 +550,8 @@ void randomizedMultiplyToomCook3NLimbs() {
   char * b_str;
   srand(time(NULL));
   for (i = 0; i < 100; i++) {
-    lenA = rand() % 1024;
-    lenB = rand() % 1024;
+    lenA = rand() % 1024 + 1;
+    lenB = rand() % 1024 + 1;
     if (lenA < 256) lenA = 256;
     if (lenB < 256) lenB = 256;
     /* printf("Lens: %d, %d\n", lenA, lenB); */

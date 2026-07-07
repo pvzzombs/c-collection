@@ -98,13 +98,13 @@ void BigInt_multiply_toomcook3_impl(BigInt * multiplicand, BigInt * multiplier, 
     BigInt_set_from_view(&y_1, multiplier, b, 2 * b - 1);
     BigInt_set_from_view(&y_2, multiplier, 2 * b, l - 1);
     
-    x_0.sign = multiplicand->sign;
+    /* x_0.sign = multiplicand->sign;
     x_1.sign = multiplicand->sign;
     x_2.sign = multiplicand->sign;
     
     y_0.sign = multiplier->sign;
     y_1.sign = multiplier->sign;
-    y_2.sign = multiplier->sign;
+    y_2.sign = multiplier->sign; */
     
     /* x(1) = (x_0 + x_1 + x_2)*/
     BigInt_add_s(&x1, &x1, &x_0);
