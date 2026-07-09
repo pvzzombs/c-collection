@@ -2414,6 +2414,14 @@ void BigInt_Bump_Allocator_free(BigInt_Bump_Allocator * b, int s) {
     b->internalSize = b->internalSize - s;
   }
 }
+void BigInt_Bump_Allocator_print(BigInt_Bump_Allocator * b) {
+  double amount = (double)b->internalSize / (double)b->allocSize * 100.0;
+  int percent = amount;
+  int used = b->internalSize;
+  int full = b->allocSize;
+  printf("Amount used: %d%, capacity: %d, free: %d\n", percent, full, full - used);
+}
+
 int BigInt_karatsuba_alloc_count_helper(int alen, int blen) {
   if (alen < BIGINT_KARATSUBA_THRESHOLD && blen < BIGINT_KARATSUBA_THRESHOLD) {
     return 0;
