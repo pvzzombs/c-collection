@@ -2455,6 +2455,41 @@ int BigInt_karatsuba_alloc_count(BigInt * a, BigInt * b) {
   return a->internalSize + b->internalSize + 1 + BigInt_karatsuba_alloc_count_helper(a->internalSize, b->internalSize);
 }
 
+int BigInt_karatsuba_alloc_count_helper_fast(int len) {
+  int total = 0;
+  while (len >= BIGINT_KARATSUBA_THRESHOLD) {
+    int l = len;
+    int m = l / 2;
+    int low1, low2, high1, high2, z0, z1, z2, sum1, sum2, sum3, temp;
+    
+    low1 = m;
+    low2 = m;
+    high1 = l - m;
+    high2 = l - m;
+    
+    z0 = low1 + low2 + 1;
+    z2 = high1 + high2 + 2 * m + 1;
+    
+    sum1 = BigInt_max_int(low1, high1) + 1;
+    sum2 = BigInt_max_int(low2, high2) + 1;
+    
+    z1 = sum1 + sum2 + m + 1;
+    
+    temp = z1;
+    
+    sum3 = BigInt_max_int(z1, z2) + 1;
+    
+    total += low1 + low2 + high1 + high2 + z0 + z1 + z2 + sum1 + sum2 + sum3 + temp;
+    len = sum1;
+  }
+  return total;
+}
+
+int BigInt_karatsuba_alloc_count_fast(BigInt * a, BigInt * b) {
+  int m = BigInt_max_int(a->internalSize, b->internalSize);
+  return a->internalSize + b->internalSize + 1 + BigInt_karatsuba_alloc_count_helper_fast(m);
+}
+
 void BigInt_init_from_bump_allocator(BigInt * b, int s, BigInt_Bump_Allocator * bmp, int * num) {
   b->internalRepresentation = BigInt_Bump_Allocator_alloc(bmp, s);
   b->allocSize = s;
@@ -2528,7 +2563,7 @@ void BigInt_multiply_karatsuba_unsigned_bump(BigInt * product, BigInt * multipli
   if (multiplicand->internalSize < BIGINT_KARATSUBA_THRESHOLD && multiplier->internalSize < BIGINT_KARATSUBA_THRESHOLD) {
     BigInt_multiply(product, multiplicand, multiplier);
   } else {
-    int allocSize = BigInt_karatsuba_alloc_count(multiplicand, multiplier);
+    int allocSize = BigInt_karatsuba_alloc_count_fast(multiplicand, multiplier);
     BigInt_Bump_Allocator bmp;
     BigInt temp;
     int n = 0;
