@@ -543,6 +543,37 @@ void randomizedMultiplyKaratsubaNLimbs() {
   }
 }
 
+void randomizedMultiplyKaratsubaBumpNLimbs() {
+  BigInt a,b,schoolbook,karatsuba;
+  int i, lenA, lenB;
+  char * a_str;
+  char * b_str;
+  srand(time(NULL));
+  for (i = 0; i < 100; i++) {
+    lenA = rand() % 512 + 1;
+    lenB = rand() % 512 + 1;
+    if (lenA < 64) lenA = 64;
+    if (lenB < 64) lenB = 64;
+    /* printf("Lens: %d, %d\n", lenA, lenB); */
+    BigInt_init_random_limb(&a, lenA);
+    BigInt_init_random_limb(&b, lenB);
+    BigInt_init_zero_limb(&schoolbook, lenA + lenB);
+    BigInt_init_zero_limb(&karatsuba, lenA + lenB);
+    BigInt_multiply_unsigned(&schoolbook, &a, &b);
+    BigInt_multiply_karatsuba_unsigned_bump(&karatsuba, &a, &b);
+    a_str = BigInt_to_string_unsigned(&a);
+    b_str = BigInt_to_string_unsigned(&b);
+    TEST_CHECK(BigInt_cmp_unsigned(&schoolbook, &karatsuba) == 0);
+    TEST_MSG("Mismatch occured! Offending operands: %s, %s", a_str, b_str);
+    free(a_str);
+    free(b_str);
+    BigInt_destroy(&a);
+    BigInt_destroy(&b);
+    BigInt_destroy(&schoolbook);
+    BigInt_destroy(&karatsuba);
+  }
+}
+
 void randomizedMultiplyToomCook3NLimbs() {
   BigInt a,b,schoolbook,toomcook3;
   int i, lenA, lenB;
@@ -1164,6 +1195,7 @@ TEST_LIST = {
   /*{"randomized digit count test 2", digitCountTest2},*/
   {"randomized positive multiplication karatsuba test (2)", randomizedMultiplyKaratsubaNLimbs},
   {"randomized positive multiplication toom-cook 3 test", randomizedMultiplyToomCook3NLimbs},
+  {"randomized positive multiplication karatsuba bump test", randomizedMultiplyKaratsubaBumpNLimbs},
   {"randomized left shift by bit test", left_shift_by_bit_test},
   {"randomized right shift by bit test", right_shift_by_bit_test},
   {NULL, NULL}

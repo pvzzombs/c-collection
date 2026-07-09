@@ -32,14 +32,14 @@ double get_time() {
 
 int main() {
   float start_time, end_time;
-  int iterations_a, iterations_b, iterations_c, i;
+  int iterations_a, iterations_b, iterations_c, iterations_d, i;
   BigInt a, b, c;
   int limb_sizes[] = {8, 16, 32, 64, 128, 256, 512, 1024, 2048};
   int limb_sizes_count = 9;
   
   FILE * f = fopen("limbs.csv", "w");
   
-  fprintf(f, "limb_size,schoolbook,karatsuba,toomcook3\n");
+  fprintf(f, "limb_size,schoolbook,karatsuba,karatsuba_bump,toomcook3\n");
   
   for (i = 0; i < limb_sizes_count; i++) {
     BigInt_init_random_limb(&a, limb_sizes[i]);
@@ -76,12 +76,21 @@ int main() {
       ++iterations_c;
     } while (end_time - start_time < 1.0f);
     
+    start_time = get_time();
+    iterations_d = 0;
+    do {
+      BigInt_multiply_karatsuba_unsigned_bump(&c, &a, &b);
+      end_time = get_time();
+      ++iterations_d;
+    } while (end_time - start_time < 1.0f);
+    
     printf("Limb size: %d\n", limb_sizes[i]);
     printf("School book multiplication: %d ops/sec\n", iterations_a);
     printf("Karatsuba multiplication: %d ops/sec\n", iterations_b);
+    printf("Karatsuba multiplication with Bump: %d ops/sec\n", iterations_d);
     printf("Toom Cook 3 multiplication: %d ops/sec\n", iterations_c);
     
-    fprintf(f, "%d,%d,%d,%d\n", limb_sizes[i], iterations_a, iterations_b, iterations_c);
+    fprintf(f, "%d,%d,%d,%d,%d\n", limb_sizes[i], iterations_a, iterations_b, iterations_d, iterations_c);
     
     BigInt_destroy(&a);
     BigInt_destroy(&b);

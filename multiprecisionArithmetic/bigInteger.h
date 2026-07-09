@@ -225,6 +225,14 @@ struct BigInt_ {
   int sign;
 };
 
+typedef struct BigInt_Bump_Allocator_ BigInt_Bump_Allocator;
+struct BigInt_Bump_Allocator_ {
+  BigInt_limb_t * mem;
+  int internalSize;
+  int allocSize;
+};
+
+
 BigInt_limb_t BigInt_min_int(BigInt_limb_wide_t, BigInt_limb_wide_t);
 BigInt_limb_t BigInt_max_int(BigInt_limb_wide_t, BigInt_limb_wide_t);
 BigInt_limb_t BigInt_atoi_impl(char *);
@@ -2376,6 +2384,168 @@ void BigInt_set_negative_sign(BigInt * b) {
 
 void BigInt_set_positive_sign(BigInt * b) {
   b->sign = 1;
+}
+
+void BigInt_Bump_Allocator_init(BigInt_Bump_Allocator * b, int a) {
+  b->mem = (BigInt_limb_t *) BIGINT_ALLOC(a * sizeof(BigInt_limb_t));
+  b->allocSize = a;
+  b->internalSize = 0;
+}
+
+void BigInt_Bump_Allocator_destroy(BigInt_Bump_Allocator * b) {
+  BIGINT_FREE(b->mem);
+}
+
+BigInt_limb_t * BigInt_Bump_Allocator_alloc(BigInt_Bump_Allocator * b, int s) {
+  if (b->internalSize + s <= b->allocSize) {
+    BigInt_limb_t * ptr = b->mem;
+    b->mem = b->mem + s;
+    b->internalSize = b->internalSize + s;
+    return ptr;
+  }
+  printf("Error!\n");
+  exit(1);
+  return NULL;
+}
+
+void BigInt_Bump_Allocator_free(BigInt_Bump_Allocator * b, int s) {
+  if (b->internalSize - s >= 0) {
+    b->mem = b->mem - s;
+    b->internalSize = b->internalSize - s;
+  }
+}
+int BigInt_karatsuba_alloc_count_helper(int alen, int blen) {
+  if (alen < BIGINT_KARATSUBA_THRESHOLD && blen < BIGINT_KARATSUBA_THRESHOLD) {
+    return 0;
+  } else {
+    int l = BigInt_max_int(alen, blen);
+    int m = l / 2;
+    int low1, low2, high1, high2, z0, z1, z2, sum1, sum2, sum3, temp, k_1, k_2, k_3, maxk, total;
+    
+    low1 = m;
+    low2 = m;
+    high1 = l - m;
+    high2 = l - m;
+    
+    z0 = low1 + low2 + 1;
+    z2 = high1 + high2 + 2 * m + 1;
+    
+    sum1 = BigInt_max_int(low1, high1) + 1;
+    sum2 = BigInt_max_int(low2, high2) + 1;
+    
+    z1 = sum1 + sum2 + m + 1;
+    
+    temp = z1;
+    
+    sum3 = BigInt_max_int(z1, z2) + 1;
+    
+    k_1 = BigInt_karatsuba_alloc_count_helper(low1, low2);
+    k_2 = BigInt_karatsuba_alloc_count_helper(high1, high2);
+    k_3 = BigInt_karatsuba_alloc_count_helper(BigInt_max_int(low1, high1) + 1, sum2);
+    
+    maxk = BigInt_max_int(k_1, k_2);
+    maxk = BigInt_max_int(maxk, k_3);
+    
+    total = low1 + low2 + high1 + high2 + z0 + z1 + z2 + sum1 + sum2 + sum3 + temp + maxk;
+    return total;
+  }
+}
+
+int BigInt_karatsuba_alloc_count(BigInt * a, BigInt * b) {
+  return a->internalSize + b->internalSize + 1 + BigInt_karatsuba_alloc_count_helper(a->internalSize, b->internalSize);
+}
+
+void BigInt_init_from_bump_allocator(BigInt * b, int s, BigInt_Bump_Allocator * bmp, int * num) {
+  b->internalRepresentation = BigInt_Bump_Allocator_alloc(bmp, s);
+  b->allocSize = s;
+  b->internalSize = 1;
+  b->sign = 0;
+  b->internalRepresentation[0] = 0;
+  (*num) += s; 
+}
+
+void BigInt_multiply_karatsuba_impl_bump(BigInt * multiplicand, BigInt * multiplier, BigInt * product, BigInt_Bump_Allocator * bmp) {
+  int num = 0;
+  if (multiplicand->internalSize < BIGINT_KARATSUBA_THRESHOLD && multiplier->internalSize < BIGINT_KARATSUBA_THRESHOLD) {
+    BigInt_multiply_unsigned(product, multiplicand, multiplier);
+  } else {
+    BigInt low1, low2, high1, high2;
+    BigInt z0, z1, z2;
+    BigInt sum1, sum2;
+    BigInt sum3, temp;
+    int l = BigInt_max_int(multiplicand->internalSize, multiplier->internalSize);
+    int m = l / 2;
+    int low1len = m, low2len = m, high1len = l - m, high2len = l - m;
+    int sum1len, sum2len, z1len, z2len;
+
+    BigInt_init_from_bump_allocator(&low1, low1len, bmp, &num);
+    BigInt_init_from_bump_allocator(&low2, low2len, bmp, &num);
+    BigInt_init_from_bump_allocator(&high1, high1len, bmp, &num);
+    BigInt_init_from_bump_allocator(&high2, high2len, bmp, &num);
+    
+    sum1len = BigInt_max_int(low1len, high1len) + 1;
+    sum2len = BigInt_max_int(low2len, high2len) + 1;
+    
+    BigInt_init_from_bump_allocator(&sum1, sum1len, bmp, &num);
+    BigInt_init_from_bump_allocator(&sum2, sum2len, bmp, &num);
+    
+    z1len = sum1len + sum2len + m + 1;
+    z2len = high1len + high2len + 2 * m + 1;
+
+    BigInt_init_from_bump_allocator(&z0, low1len + low2len + 1, bmp, &num);
+    BigInt_init_from_bump_allocator(&z1, z1len, bmp, &num);
+    BigInt_init_from_bump_allocator(&z2, z2len, bmp, &num);
+    
+    BigInt_init_from_bump_allocator(&sum3, BigInt_max_int(z1len, z2len) + 1, bmp, &num);
+    BigInt_init_from_bump_allocator(&temp, z1len, bmp, &num);
+
+
+    BigInt_set_from_view(&low1, multiplicand, 0, m - 1);
+    BigInt_set_from_view(&low2, multiplier, 0, m - 1);
+    BigInt_set_from_view(&high1, multiplicand, m, l - 1);
+    BigInt_set_from_view(&high2, multiplier, m, l - 1);
+
+    BigInt_multiply_karatsuba_impl_bump(&low1, &low2, &z0, bmp);
+    BigInt_multiply_karatsuba_impl_bump(&high1, &high2, &z2, bmp);
+
+    BigInt_add_unsigned(&sum1, &low1, &high1);
+    BigInt_add_unsigned(&sum2, &low2, &high2);
+    
+    BigInt_multiply_karatsuba_impl_bump(&sum1, &sum2, &z1, bmp);
+    BigInt_subtract_unsigned(&temp, &z1, &z0);
+    BigInt_subtract_unsigned(&z1, &temp, &z2);
+
+    BigInt_shift_left(&z2, 2 * m);
+    BigInt_shift_left(&z1, m);
+    BigInt_add_unsigned(&sum3, &z2, &z1);
+    BigInt_add_unsigned(product, &sum3, &z0);
+
+    BigInt_Bump_Allocator_free(bmp, num);
+  }
+}
+
+void BigInt_multiply_karatsuba_unsigned_bump(BigInt * product, BigInt * multiplicand, BigInt * multiplier) {
+  if (multiplicand->internalSize < BIGINT_KARATSUBA_THRESHOLD && multiplier->internalSize < BIGINT_KARATSUBA_THRESHOLD) {
+    BigInt_multiply(product, multiplicand, multiplier);
+  } else {
+    int allocSize = BigInt_karatsuba_alloc_count(multiplicand, multiplier);
+    BigInt_Bump_Allocator bmp;
+    BigInt temp;
+    int n = 0;
+    
+    BigInt_Bump_Allocator_init(&bmp, allocSize);
+    
+    BigInt_init_from_bump_allocator(&temp, multiplicand->internalSize + multiplier->internalSize + 1, &bmp, &n);
+    
+    BigInt_multiply_karatsuba_impl_bump(multiplicand, multiplier, &temp, &bmp);
+    BigInt_remove_leading_zeroes(&temp);
+    
+    BigInt_copy(product, &temp);
+    
+    BigInt_Bump_Allocator_free(&bmp, n);
+    
+    BigInt_Bump_Allocator_destroy(&bmp);
+  }
 }
 
 void BigInt_multiply_auto_unsigned(BigInt * product, BigInt * multiplicand, BigInt * multiplier) {

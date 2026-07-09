@@ -17,7 +17,7 @@ int main() {
 
   BigInt_multiply_unsigned(&schoolbook, &a, &b);
   BigInt_print_internal(&schoolbook);
-  BigInt_multiply_karatsuba_unsigned(&karatsuba, &a, &b);
+  BigInt_multiply_karatsuba_unsigned_bump(&karatsuba, &a, &b);
   BigInt_print_internal(&karatsuba);
   
   if (BigInt_cmp_unsigned(&schoolbook, &karatsuba) == 0) {
