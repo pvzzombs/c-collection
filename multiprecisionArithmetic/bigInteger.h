@@ -46,14 +46,14 @@
 #define BIGINT_BASE 4611686018427387904LL
 #define BIGINT_BASE_MAX_INT 4611686018427387903LL
 #define BIGINT_BASE_STRING "4611686018427387904"
-#define BIGINT_BASE_DIGITS 19LL
+#define BIGINT_BASE_DIGITS 18LL
 #define BIGINT_BASE_10_BIG 1000000000000000000LL
 #define BIGINT_BASE_10_BIG_BIT_LENGTH 60
 #define BIGINT_BASE_BIT_LENGTH 64
 #define BIGINT_BASE_BIT_COUNT 62
 #define BIGINT_BASE_WIDE_BIT_LENGTH 128
-typedef unsigned long long BigInt_limb_t;
-typedef unsigned __int128 BigInt_limb_wide_t;
+typedef long long BigInt_limb_t;
+typedef __int128 BigInt_limb_wide_t;
 
 #else
 
@@ -239,10 +239,10 @@ struct BigInt_Bump_Allocator_ {
   int allocSize;
 };
 
-BigInt_limb_t BigInt_min_int(BigInt_limb_wide_t, BigInt_limb_wide_t);
-BigInt_limb_t BigInt_max_int(BigInt_limb_wide_t, BigInt_limb_wide_t);
+BigInt_limb_wide_t BigInt_min_int(BigInt_limb_wide_t, BigInt_limb_wide_t);
+BigInt_limb_wide_t BigInt_max_int(BigInt_limb_wide_t, BigInt_limb_wide_t);
 BigInt_limb_t BigInt_atoi_impl(char *);
-int BigInt_atoi_impl_with_range(char *, int, int);
+BigInt_limb_t BigInt_atoi_impl_with_range(char *, int, int);
 void BigInt_itoa_impl(BigInt_limb_t, char *);
 void BigInt_zero_all_impl(BigInt_limb_t *, int);
 int BigInt_is_zero_impl(BigInt_limb_t *, int);
@@ -406,12 +406,12 @@ BigInt_limb_wide_t BigInt_divide_int_by_magic_number(BigInt_limb_wide_t num, Big
   return u;
 }
 
-BigInt_limb_t BigInt_min_int(BigInt_limb_wide_t a, BigInt_limb_wide_t b) {
+BigInt_limb_wide_t BigInt_min_int(BigInt_limb_wide_t a, BigInt_limb_wide_t b) {
   if (a < b) return a;
   return b;
 }
 
-BigInt_limb_t BigInt_max_int(BigInt_limb_wide_t a, BigInt_limb_wide_t b) {
+BigInt_limb_wide_t BigInt_max_int(BigInt_limb_wide_t a, BigInt_limb_wide_t b) {
   if (a > b) return a;
   return b;
 }
@@ -426,8 +426,8 @@ BigInt_limb_t BigInt_atoi_impl (char * src) {
   return num;
 }
 
-int BigInt_atoi_impl_with_range (char * src, int l, int r) {
-  int num = 0;
+BigInt_limb_t BigInt_atoi_impl_with_range (char * src, int l, int r) {
+  BigInt_limb_t num = 0;
   int i;
   for (i = l; i <= r; i++) {
     num = num * 10 + (src[i] - '0');
@@ -2210,8 +2210,9 @@ void BigInt_shift_right(BigInt * b, int n) {
 void BigInt_shift_left_bit(BigInt * b, BigInt_limb_wide_t bitcount) {
   int oldLen = b->internalSize;
   int newLen = oldLen + bitcount / (BIGINT_BASE_BIT_COUNT);
-  int i, j, next, pad = 0;
-  int rem = bitcount % (BIGINT_BASE_BIT_COUNT);
+  int i, j;
+  BigInt_limb_t next, pad = 0;
+  BigInt_limb_wide_t rem = bitcount % (BIGINT_BASE_BIT_COUNT);
   BigInt_limb_t * temp;
   if (bitcount < 1) {
     return;
@@ -2262,11 +2263,12 @@ void BigInt_shift_left_bit(BigInt * b, BigInt_limb_wide_t bitcount) {
 }
 
 void BigInt_shift_right_bit(BigInt * b, BigInt_limb_wide_t bitcount) {
-  int start = bitcount / (BIGINT_BASE_BIT_COUNT);
-  int rem = bitcount % (BIGINT_BASE_BIT_COUNT);
+  BigInt_limb_wide_t start = bitcount / (BIGINT_BASE_BIT_COUNT);
+  BigInt_limb_wide_t rem = bitcount % (BIGINT_BASE_BIT_COUNT);
   int oldLen = b->internalSize;
   /* int newLen = oldLen - start; */
-  int i, j, pad = 0, next;
+  int i, j;
+  BigInt_limb_t pad = 0, next;
   if (bitcount < 1) {
     return;
   }
