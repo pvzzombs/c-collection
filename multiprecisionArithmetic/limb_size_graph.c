@@ -79,7 +79,7 @@ int main() {
     start_time = get_time();
     iterations_d = 0;
     do {
-      BigInt_multiply_karatsuba_unsigned_bump(&c, &a, &b);
+      BigInt_multiply_karatsuba_bump_unsigned(&c, &a, &b);
       end_time = get_time();
       ++iterations_d;
     } while (end_time - start_time < 1.0f);

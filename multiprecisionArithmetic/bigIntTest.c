@@ -560,7 +560,7 @@ void randomizedMultiplyKaratsubaBumpNLimbs() {
     BigInt_init_zero_limb(&schoolbook, lenA + lenB);
     BigInt_init_zero_limb(&karatsuba, lenA + lenB);
     BigInt_multiply_unsigned(&schoolbook, &a, &b);
-    BigInt_multiply_karatsuba_unsigned_bump(&karatsuba, &a, &b);
+    BigInt_multiply_karatsuba_bump_unsigned(&karatsuba, &a, &b);
     a_str = BigInt_to_string_unsigned(&a);
     b_str = BigInt_to_string_unsigned(&b);
     TEST_CHECK(BigInt_cmp_unsigned(&schoolbook, &karatsuba) == 0);
