@@ -43,17 +43,17 @@
 
 #if defined(__GNUC__) && defined(BIGINT_USE_FAST_128BIT)
 
-#define BIGINT_BASE 9223372036854775808ULL
-#define BIGINT_BASE_MAX_INT 9223372036854775807ULL
-#define BIGINT_BASE_STRING "9223372036854775808"
-#define BIGINT_BASE_DIGITS 19ULL
-#define BIGINT_BASE_10_BIG 1000000000000000000ULL
-#define BIGINT_BASE_10_BIG_BIT_LENGTH 30
-#define BIGINT_BASE_BIT_LENGTH 63
-#define BIGINT_BASE_WIDE_BIT_LENGTH 63
+#define BIGINT_BASE 4611686018427387904LL
+#define BIGINT_BASE_MAX_INT 4611686018427387903LL
+#define BIGINT_BASE_STRING "4611686018427387904"
+#define BIGINT_BASE_DIGITS 19LL
+#define BIGINT_BASE_10_BIG 1000000000000000000LL
+#define BIGINT_BASE_10_BIG_BIT_LENGTH 60
+#define BIGINT_BASE_BIT_LENGTH 64
+#define BIGINT_BASE_BIT_COUNT 62
+#define BIGINT_BASE_WIDE_BIT_LENGTH 128
 typedef unsigned long long BigInt_limb_t;
 typedef unsigned __int128 BigInt_limb_wide_t;
-
 
 #else
 
@@ -64,6 +64,7 @@ typedef unsigned __int128 BigInt_limb_wide_t;
 #define BIGINT_BASE_10_BIG 1000000000LL
 #define BIGINT_BASE_10_BIG_BIT_LENGTH 30
 #define BIGINT_BASE_BIT_LENGTH 32
+#define BIGINT_BASE_BIT_COUNT 31
 #define BIGINT_BASE_WIDE_BIT_LENGTH 64
 typedef int32_t BigInt_limb_t;
 typedef long long BigInt_limb_wide_t;
@@ -80,6 +81,7 @@ typedef long long BigInt_limb_wide_t;
 #define BIGINT_BASE_10_BIG 1000000000LL
 #define BIGINT_BASE_10_BIG_BIT_LENGTH 30
 #define BIGINT_BASE_BIT_LENGTH 32
+#define BIGINT_BASE_BIT_COUNT 31
 #define BIGINT_BASE_WIDE_BIT_LENGTH 64
 typedef int BigInt_limb_t;
 typedef long long BigInt_limb_wide_t;
@@ -93,6 +95,7 @@ typedef long long BigInt_limb_wide_t;
 #define BIGINT_BASE_10_BIG 1000000000L
 #define BIGINT_BASE_10_BIG_BIT_LENGTH 30
 #define BIGINT_BASE_BIT_LENGTH 32
+#define BIGINT_BASE_BIT_COUNT 31
 #define BIGINT_BASE_WIDE_BIT_LENGTH 64
 typedef int BigInt_limb_t;
 typedef __int64 BigInt_limb_wide_t;
@@ -117,6 +120,7 @@ typedef __int64 BigInt_limb_wide_t;
 #define BIGINT_BASE_10_BIG 1000000000LL
 #define BIGINT_BASE_10_BIG_BIT_LENGTH 30
 #define BIGINT_BASE_BIT_LENGTH 32
+#define BIGINT_BASE_BIT_COUNT 31
 #define BIGINT_BASE_WIDE_BIT_LENGTH 64
 typedef int32_t BigInt_limb_t;
 typedef int64_t BigInt_limb_wide_t;
@@ -129,6 +133,7 @@ typedef int64_t BigInt_limb_wide_t;
 #define BIGINT_BASE_10_BIG 1000000000i64
 #define BIGINT_BASE_10_BIG_BIT_LENGTH 30
 #define BIGINT_BASE_BIT_LENGTH 32
+#define BIGINT_BASE_BIT_COUNT 31
 #define BIGINT_BASE_WIDE_BIT_LENGTH 64
 typedef int BigInt_limb_t;
 typedef __int64 BigInt_limb_wide_t;
@@ -140,6 +145,7 @@ typedef __int64 BigInt_limb_wide_t;
 #define BIGINT_BASE_10_BIG 1000000000LL
 #define BIGINT_BASE_10_BIG_BIT_LENGTH 30
 #define BIGINT_BASE_BIT_LENGTH 32
+#define BIGINT_BASE_BIT_COUNT 31
 #define BIGINT_BASE_WIDE_BIT_LENGTH 64
 typedef int BigInt_limb_t;
 typedef long long BigInt_limb_wide_t;
@@ -160,6 +166,7 @@ typedef long long BigInt_limb_wide_t;
 #define BIGINT_BASE_10_BIG 10000
 #define BIGINT_BASE_10_BIG_BIT_LENGTH 14
 #define BIGINT_BASE_BIT_LENGTH 16
+#define BIGINT_BASE_BIT_COUNT 15
 #define BIGINT_BASE_WIDE_BIT_LENGTH 32
 #if defined(__STDC_VERSION__)
 typedef int BigInt_limb_t;
@@ -248,6 +255,7 @@ void BigInt_init_negative_one(BigInt *);
 void BigInt_init_random_limb(BigInt *, int);
 void BigInt_init_zero_limb(BigInt *, int);
 void BigInt_init_zero_alloc_limb(BigInt *, int);
+void BigInt_init_fill_max(BigInt *, int);
 void BigInt_copy(BigInt *, BigInt *);
 void BigInt_copy_to_no_init(BigInt *, BigInt *, int, int);
 void BigInt_swap(BigInt *, BigInt *);
@@ -576,6 +584,21 @@ void BigInt_init_zero_alloc_limb(BigInt * b, int limb_count) {
   b->internalRepresentation[0] = 0;
 }
 
+void BigInt_init_fill_max(BigInt * b, int limb_count) {
+  int i;
+  if (limb_count < 1) {
+    BigInt_init_none(b);
+    return;
+  }
+  b->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC(limb_count * sizeof(BigInt_limb_t));
+  b->internalSize = limb_count;
+  b->allocSize = limb_count;
+  b->sign = 0;
+  for (i = 0; i < limb_count; i++) {
+    b->internalRepresentation[i] = BIGINT_BASE_MAX_INT;
+  }
+}
+
 void BigInt_copy(BigInt * to, BigInt * from) {
   int i;
   if (to->allocSize < from->internalSize) {
@@ -786,13 +809,13 @@ void BigInt_add_optimize_impl(BigInt_limb_t * addend1, BigInt_limb_t * addend2, 
     BigInt_limb_wide_t b = addend2[i];
     __builtin_saddll_overflow(a, b, &digitSum);
     __builtin_saddll_overflow(digitSum, carry, &digitSum);
-    carry = digitSum >> (BIGINT_BASE_BIT_LENGTH - 1);
+    carry = digitSum >> (BIGINT_BASE_BIT_COUNT);
     digitSum &= BIGINT_BASE_MAX_INT;
 #else
     BigInt_limb_wide_t a = addend1[i];
     BigInt_limb_wide_t b = addend2[i];
     digitSum = a + b + carry;
-    carry = digitSum >> (BIGINT_BASE_BIT_LENGTH - 1);
+    carry = digitSum >> (BIGINT_BASE_BIT_COUNT);
     digitSum &= BIGINT_BASE_MAX_INT;
 #endif
     sum[i] = digitSum;
@@ -801,12 +824,12 @@ void BigInt_add_optimize_impl(BigInt_limb_t * addend1, BigInt_limb_t * addend2, 
 #if defined(BIGINT_ENABLE_GNU_64_OPTIMIZATION)
     BigInt_limb_wide_t num = addend1[i];
     __builtin_saddll_overflow(num, carry, &digitSum);
-    carry = digitSum >> (BIGINT_BASE_BIT_LENGTH - 1);
+    carry = digitSum >> (BIGINT_BASE_BIT_COUNT);
     digitSum &= BIGINT_BASE_MAX_INT;
 #else
     BigInt_limb_wide_t num = addend1[i];
     digitSum = num + carry;
-    carry = digitSum >> (BIGINT_BASE_BIT_LENGTH - 1);
+    carry = digitSum >> (BIGINT_BASE_BIT_COUNT);
     digitSum &= BIGINT_BASE_MAX_INT;
 #endif
     sum[i] = digitSum;
@@ -855,13 +878,13 @@ void BigInt_add_small_impl(BigInt_limb_t * addend1, BigInt_limb_t addend2, BigIn
   BigInt_limb_wide_t Addend2 = addend2;
   __builtin_saddll_overflow(Addend1, Addend2, &digitSum);
   __builtin_saddll_overflow(digitSum, carry, &digitSum);
-  carry = digitSum >> (BIGINT_BASE_BIT_LENGTH - 1);
+  carry = digitSum >> (BIGINT_BASE_BIT_COUNT);
   digitSum &= BIGINT_BASE_MAX_INT;
 #else
   BigInt_limb_wide_t Addend1 = addend1[i];
   BigInt_limb_wide_t Addend2 = addend2;
   digitSum = Addend1 + Addend2 + carry;
-  carry = digitSum >> (BIGINT_BASE_BIT_LENGTH - 1);
+  carry = digitSum >> (BIGINT_BASE_BIT_COUNT);
   digitSum &= BIGINT_BASE_MAX_INT;
 #endif
   sum[i] = digitSum;
@@ -870,12 +893,12 @@ void BigInt_add_small_impl(BigInt_limb_t * addend1, BigInt_limb_t addend2, BigIn
 #if defined(BIGINT_ENABLE_GNU_64_OPTIMIZATION)
     BigInt_limb_wide_t num = addend1[i];
     __builtin_saddll_overflow(num, carry, &digitSum);
-    carry = digitSum >> (BIGINT_BASE_BIT_LENGTH - 1);
+    carry = digitSum >> (BIGINT_BASE_BIT_COUNT);
     digitSum &= BIGINT_BASE_MAX_INT;
 #else
     BigInt_limb_wide_t num = addend1[i];
     digitSum = num + carry;
-    carry = digitSum >> (BIGINT_BASE_BIT_LENGTH - 1);
+    carry = digitSum >> (BIGINT_BASE_BIT_COUNT);
     digitSum &= BIGINT_BASE_MAX_INT;
 #endif
     sum[i] = digitSum;
@@ -1090,18 +1113,18 @@ void BigInt_multiply_optimize_impl(BigInt_limb_t * multiplicand, BigInt_limb_t *
       __builtin_smulll_overflow(m, n, &temp);
       __builtin_saddll_overflow(temp, carryM, &temp);
       productDigit = temp & BIGINT_BASE_MAX_INT;
-      carryM = temp >> (BIGINT_BASE_BIT_LENGTH - 1);
+      carryM = temp >> (BIGINT_BASE_BIT_COUNT);
       __builtin_saddll_overflow(productDigit, carryA, &temp);
       __builtin_saddll_overflow(temp, p, &temp);
       sumDigit = temp & BIGINT_BASE_MAX_INT;
-      carryA = temp >> (BIGINT_BASE_BIT_LENGTH - 1);
+      carryA = temp >> (BIGINT_BASE_BIT_COUNT);
 #else
       temp = m * n + carryM;
       productDigit = temp & BIGINT_BASE_MAX_INT;
-      carryM = temp >> (BIGINT_BASE_BIT_LENGTH - 1);
+      carryM = temp >> (BIGINT_BASE_BIT_COUNT);
       temp = productDigit + carryA + p;
       sumDigit = temp & BIGINT_BASE_MAX_INT;
-      carryA = temp >> (BIGINT_BASE_BIT_LENGTH - 1);
+      carryA = temp >> (BIGINT_BASE_BIT_COUNT);
 #endif
       product[pIndex] = sumDigit;
       pIndex++;
@@ -1112,11 +1135,11 @@ void BigInt_multiply_optimize_impl(BigInt_limb_t * multiplicand, BigInt_limb_t *
 #if defined(BIGINT_ENABLE_GNU_64_OPTIMIZATION)
       __builtin_saddll_overflow(carryM, carryA, &sumDigit);
       __builtin_saddll_overflow(sumDigit, p, &sumDigit);
-      carryA = sumDigit >> (BIGINT_BASE_BIT_LENGTH - 1);
+      carryA = sumDigit >> (BIGINT_BASE_BIT_COUNT);
       sumDigit &= BIGINT_BASE_MAX_INT;
 #else
       sumDigit = carryM + carryA + p;
-      carryA = sumDigit >> (BIGINT_BASE_BIT_LENGTH - 1);
+      carryA = sumDigit >> (BIGINT_BASE_BIT_COUNT);
       sumDigit &= BIGINT_BASE_MAX_INT;
 #endif
       product[pIndex] = sumDigit;
@@ -1166,18 +1189,18 @@ void BigInt_multiply_small_impl(BigInt_limb_t * multiplicand, BigInt_limb_t mult
     __builtin_smulll_overflow(m, n, &temp);
     __builtin_saddll_overflow(temp, carryM, &temp);
     productDigit = temp & BIGINT_BASE_MAX_INT;
-    carryM = temp >> (BIGINT_BASE_BIT_LENGTH - 1);
+    carryM = temp >> (BIGINT_BASE_BIT_COUNT);
     __builtin_saddll_overflow(productDigit, carryA, &temp);
     __builtin_saddll_overflow(temp, p, &temp);
     sumDigit = temp & BIGINT_BASE_MAX_INT;
-    carryA = temp >> (BIGINT_BASE_BIT_LENGTH - 1);
+    carryA = temp >> (BIGINT_BASE_BIT_COUNT);
 #else
     temp = m * n + carryM;
     productDigit = temp & BIGINT_BASE_MAX_INT;
-    carryM = temp >> (BIGINT_BASE_BIT_LENGTH - 1);
+    carryM = temp >> (BIGINT_BASE_BIT_COUNT);
     temp = productDigit + carryA + p;
     sumDigit = temp & BIGINT_BASE_MAX_INT;
-    carryA = temp >> (BIGINT_BASE_BIT_LENGTH - 1);
+    carryA = temp >> (BIGINT_BASE_BIT_COUNT);
 #endif
     product[pIndex] = sumDigit;
     pIndex++;
@@ -1189,11 +1212,11 @@ void BigInt_multiply_small_impl(BigInt_limb_t * multiplicand, BigInt_limb_t mult
 #if defined(BIGINT_ENABLE_GNU_64_OPTIMIZATION)
     __builtin_saddll_overflow(carryM, carryA, &sumDigit);
     __builtin_saddll_overflow(sumDigit, p, &sumDigit);
-    carryA = sumDigit >> (BIGINT_BASE_BIT_LENGTH - 1);
+    carryA = sumDigit >> (BIGINT_BASE_BIT_COUNT);
     sumDigit &= BIGINT_BASE_MAX_INT;
 #else
     sumDigit = carryM + carryA + p;
-    carryA = sumDigit >> (BIGINT_BASE_BIT_LENGTH - 1);
+    carryA = sumDigit >> (BIGINT_BASE_BIT_COUNT);
     sumDigit &= BIGINT_BASE_MAX_INT;
 #endif
     product[pIndex] = sumDigit;
@@ -1230,7 +1253,6 @@ void BigInt_multiply(BigInt * product, BigInt * multiplicand, BigInt * multiplie
     product->internalSize = multiplicand->internalSize + multiplier->internalSize;
   } else {
     BIGINT_FREE(product->internalRepresentation);
-    product->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((multiplicand->internalSize + multiplier->internalSize) * sizeof(BigInt_limb_t));
     product->internalRepresentation = BigInt_alloc_helper(&(product->allocSize), multiplicand->internalSize + multiplier->internalSize);
     product->internalSize = multiplicand->internalSize + multiplier->internalSize;
   }
@@ -1969,8 +1991,6 @@ int BigInt_count_digits_base_10(BigInt * b) {
 
   count_digits = msl_count + ((out1.internalSize - 1) * BIGINT_BASE_DIGITS);
 
-  
-
   BigInt_destroy(&base);
   BigInt_destroy(&temp);
   BigInt_destroy(&out2);
@@ -2189,9 +2209,9 @@ void BigInt_shift_right(BigInt * b, int n) {
 
 void BigInt_shift_left_bit(BigInt * b, BigInt_limb_wide_t bitcount) {
   int oldLen = b->internalSize;
-  int newLen = oldLen + bitcount / (BIGINT_BASE_BIT_LENGTH - 1);
+  int newLen = oldLen + bitcount / (BIGINT_BASE_BIT_COUNT);
   int i, j, next, pad = 0;
-  int rem = bitcount % (BIGINT_BASE_BIT_LENGTH - 1);
+  int rem = bitcount % (BIGINT_BASE_BIT_COUNT);
   BigInt_limb_t * temp;
   if (bitcount < 1) {
     return;
@@ -2213,13 +2233,13 @@ void BigInt_shift_left_bit(BigInt * b, BigInt_limb_wide_t bitcount) {
     pad = pad << 1;
     pad = pad | 1;
   }
-  pad = pad << ((BIGINT_BASE_BIT_LENGTH - 1) - rem);
+  pad = pad << ((BIGINT_BASE_BIT_COUNT) - rem);
   /* printf("%d\n", pad); */
   i = newLen - 1;
   j = oldLen - 1;
   if (rem) {
     next = b->internalRepresentation[j] & pad;
-    next = next >> ((BIGINT_BASE_BIT_LENGTH - 1) - rem);
+    next = next >> ((BIGINT_BASE_BIT_COUNT) - rem);
     b->internalRepresentation[i] = next;
     i--;
   }
@@ -2228,7 +2248,7 @@ void BigInt_shift_left_bit(BigInt * b, BigInt_limb_wide_t bitcount) {
     if (j != 0) {
       next = b->internalRepresentation[j - 1] & pad;
     }
-    next = next >> ((BIGINT_BASE_BIT_LENGTH - 1) - rem);
+    next = next >> ((BIGINT_BASE_BIT_COUNT) - rem);
     /* printf("Next %d\n",next); */
     b->internalRepresentation[j] = (b->internalRepresentation[j] << rem) & BIGINT_BASE_MAX_INT;
     b->internalRepresentation[j] = b->internalRepresentation[j] | next;
@@ -2242,8 +2262,8 @@ void BigInt_shift_left_bit(BigInt * b, BigInt_limb_wide_t bitcount) {
 }
 
 void BigInt_shift_right_bit(BigInt * b, BigInt_limb_wide_t bitcount) {
-  int start = bitcount / (BIGINT_BASE_BIT_LENGTH - 1);
-  int rem = bitcount % (BIGINT_BASE_BIT_LENGTH - 1);
+  int start = bitcount / (BIGINT_BASE_BIT_COUNT);
+  int rem = bitcount % (BIGINT_BASE_BIT_COUNT);
   int oldLen = b->internalSize;
   /* int newLen = oldLen - start; */
   int i, j, pad = 0, next;
@@ -2261,7 +2281,7 @@ void BigInt_shift_right_bit(BigInt * b, BigInt_limb_wide_t bitcount) {
     if (j != oldLen - 1) {
       next = b->internalRepresentation[j + 1] & pad;
     }
-    next = next << ((BIGINT_BASE_BIT_LENGTH - 1) - rem);
+    next = next << ((BIGINT_BASE_BIT_COUNT) - rem);
     b->internalRepresentation[j] = b->internalRepresentation[j] >> rem;
     b->internalRepresentation[j] = b->internalRepresentation[j] | next;
     b->internalRepresentation[i] = b->internalRepresentation[j];

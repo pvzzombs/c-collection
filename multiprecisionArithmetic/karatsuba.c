@@ -6,8 +6,8 @@
 int main() {
   BigInt a, b, schoolbook, karatsuba;
 
-  BigInt_init_random_limb(&a, 86);
-  BigInt_init_random_limb(&b, 86);
+  BigInt_init_fill_max(&a, 86);
+  BigInt_init_fill_max(&b, 86);
   BigInt_init(&schoolbook);
   BigInt_init(&karatsuba);
   printf("A is: ");
