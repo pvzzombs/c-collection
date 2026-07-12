@@ -321,8 +321,8 @@ int BigInt_to_int(BigInt *);
 void BigInt_print_internal(BigInt *);
 void BigInt_shift_left(BigInt *, int);
 void BigInt_shift_right(BigInt *, int);
-void BigInt_shift_left_bit(BigInt *, BigInt_limb_wide_t);
-void BigInt_shift_right_bit(BigInt *, BigInt_limb_wide_t);
+void BigInt_shift_left_bit(BigInt *, BigInt_limb_t);
+void BigInt_shift_right_bit(BigInt *, BigInt_limb_t);
 void BigInt_add_leading_zeroes(BigInt *, int);
 void BigInt_multiply_karatsuba_impl(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_karatsuba_unsigned(BigInt *, BigInt *, BigInt *);
@@ -2257,12 +2257,12 @@ void BigInt_shift_right(BigInt * b, int n) {
   BigInt_remove_leading_zeroes(b);
 }
 
-void BigInt_shift_left_bit(BigInt * b, BigInt_limb_wide_t bitcount) {
+void BigInt_shift_left_bit(BigInt * b, BigInt_limb_t bitcount) {
   int oldLen = b->internalSize;
   int newLen = oldLen + bitcount / (BIGINT_BASE_BIT_COUNT);
   int i, j;
   BigInt_limb_t next, pad = 0;
-  BigInt_limb_wide_t rem = bitcount % (BIGINT_BASE_BIT_COUNT);
+  BigInt_limb_t rem = bitcount % (BIGINT_BASE_BIT_COUNT);
   BigInt_limb_t * temp;
   if (bitcount < 1) {
     return;
@@ -2312,9 +2312,9 @@ void BigInt_shift_left_bit(BigInt * b, BigInt_limb_wide_t bitcount) {
   BigInt_remove_leading_zeroes(b);
 }
 
-void BigInt_shift_right_bit(BigInt * b, BigInt_limb_wide_t bitcount) {
-  BigInt_limb_wide_t start = bitcount / (BIGINT_BASE_BIT_COUNT);
-  BigInt_limb_wide_t rem = bitcount % (BIGINT_BASE_BIT_COUNT);
+void BigInt_shift_right_bit(BigInt * b, BigInt_limb_t bitcount) {
+  BigInt_limb_t start = bitcount / (BIGINT_BASE_BIT_COUNT);
+  BigInt_limb_t rem = bitcount % (BIGINT_BASE_BIT_COUNT);
   int oldLen = b->internalSize;
   /* int newLen = oldLen - start; */
   int i, j;
