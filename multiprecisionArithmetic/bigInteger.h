@@ -608,8 +608,7 @@ void BigInt_copy(BigInt * to, BigInt * from) {
   int i;
   if (to->allocSize < from->internalSize) {
     BIGINT_FREE(to->internalRepresentation);
-    to->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC(sizeof(BigInt_limb_t) * from->internalSize);
-    to->allocSize = from->internalSize;
+    to->internalRepresentation = BigInt_alloc_helper(&(to->allocSize), from->internalSize);
   }
   for (i = 0; i < from->internalSize; i++) {
     to->internalRepresentation[i] = from->internalRepresentation[i];
@@ -620,14 +619,15 @@ void BigInt_copy(BigInt * to, BigInt * from) {
 
 void BigInt_copy_to_no_init(BigInt * dest, BigInt * src, int allowance, int useAllowance) {
   int i;
-  dest->allocSize = src->internalSize + allowance;
+  int allocSize = src->internalSize + allowance;
+  dest->allocSize = 0;
   if (useAllowance) {
-    dest->internalSize = src->internalSize + allowance;
+    dest->internalSize = allocSize;
   } else {
     dest->internalSize = src->internalSize;
   }
   dest->sign = src->sign;
-  dest->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC(dest->allocSize * sizeof(BigInt_limb_t));
+  dest->internalRepresentation = BigInt_alloc_helper(&(dest->allocSize), allocSize);
   for (i = 0; i < dest->allocSize; i++) {
     dest->internalRepresentation[i] = 0;
   }
