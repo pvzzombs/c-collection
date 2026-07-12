@@ -2785,6 +2785,21 @@ void BigInt_multiply_auto_s(BigInt * out, BigInt * a, BigInt * b) {
   BigInt_destroy(&temp);
 }
 
+void BigInt_power(BigInt * result, BigInt * b, BigInt_limb_t exponent) {
+  BigInt basetemp;
+  BigInt_init_none(&basetemp);
+  BigInt_copy(&basetemp, b);
+  BigInt_set_from_int(result, 1);
+  while (exponent > 0) {
+    if (exponent & 1) {
+      BigInt_multiply_u(result, result, &basetemp);
+    }
+    BigInt_multiply_u(&basetemp, &basetemp, &basetemp);
+    exponent = exponent >> 1;
+  }
+  BigInt_destroy(&basetemp);
+}
+
 #endif
 
 #ifdef __cplusplus
