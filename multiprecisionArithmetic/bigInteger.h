@@ -338,6 +338,8 @@ void BigInt_multiply_auto_unsigned(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_auto(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_auto_u(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_auto_s(BigInt *, BigInt *, BigInt *);
+void BigInt_power_unsigned(BigInt *, BigInt *, BigInt_limb_t);
+void BigInt_power(BigInt *, BigInt *, BigInt_limb_t);
 
 void BigInt_init_from_bump_allocator(BigInt *, int, BigInt_Bump_Allocator *, int *);
 void BigInt_copy_to_no_init_bump(BigInt *, BigInt *, int, int, BigInt_Bump_Allocator *, int *);
@@ -2785,7 +2787,7 @@ void BigInt_multiply_auto_s(BigInt * out, BigInt * a, BigInt * b) {
   BigInt_destroy(&temp);
 }
 
-void BigInt_power(BigInt * result, BigInt * b, BigInt_limb_t exponent) {
+void BigInt_power_unsigned(BigInt * result, BigInt * b, BigInt_limb_t exponent) {
   BigInt basetemp;
   BigInt_init_none(&basetemp);
   BigInt_copy(&basetemp, b);
@@ -2795,6 +2797,21 @@ void BigInt_power(BigInt * result, BigInt * b, BigInt_limb_t exponent) {
       BigInt_multiply_u(result, result, &basetemp);
     }
     BigInt_multiply_u(&basetemp, &basetemp, &basetemp);
+    exponent = exponent >> 1;
+  }
+  BigInt_destroy(&basetemp);
+}
+
+void BigInt_power(BigInt * result, BigInt * b, BigInt_limb_t exponent) {
+  BigInt basetemp;
+  BigInt_init_none(&basetemp);
+  BigInt_copy(&basetemp, b);
+  BigInt_set_from_int(result, 1);
+  while (exponent > 0) {
+    if (exponent & 1) {
+      BigInt_multiply_s(result, result, &basetemp);
+    }
+    BigInt_multiply_s(&basetemp, &basetemp, &basetemp);
     exponent = exponent >> 1;
   }
   BigInt_destroy(&basetemp);

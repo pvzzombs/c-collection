@@ -4,16 +4,16 @@
 
 int main() {
   BigInt a, result;
-  int exp = 10;
+  int exp = 4;
   
-  BigInt_init_from_int(&a, BIGINT_BASE_MAX_INT);
+  BigInt_init_from_int(&a, -3);
   BigInt_init_none(&result);
   
   BigInt_power(&result, &a, exp);
   
   BigInt_print_internal(&result);
   
-  BigInt_print_u(&result);
+  BigInt_print(&result);
   
   printf("\n");
   
