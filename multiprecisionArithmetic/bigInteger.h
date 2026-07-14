@@ -340,6 +340,8 @@ void BigInt_multiply_auto_u(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_auto_s(BigInt *, BigInt *, BigInt *);
 void BigInt_power_unsigned(BigInt *, BigInt *, BigInt_limb_t);
 void BigInt_power(BigInt *, BigInt *, BigInt_limb_t);
+char * BigInt_to_base_string_unsigned(BigInt *, BigInt_limb_t);
+void BigInt_set_from_base_string_unsigned(BigInt *, char *, BigInt_limb_t);
 
 void BigInt_init_from_bump_allocator(BigInt *, int, BigInt_Bump_Allocator *, int *);
 void BigInt_copy_to_no_init_bump(BigInt *, BigInt *, int, int, BigInt_Bump_Allocator *, int *);
@@ -2552,7 +2554,7 @@ void BigInt_Bump_Allocator_print(BigInt_Bump_Allocator * b) {
   int percent = amount;
   int used = b->internalSize;
   int full = b->allocSize;
-  printf("Amount used: %d%, capacity: %d, free: %d\n", percent, full, full - used);
+  printf("Amount used: %d%%, capacity: %d, free: %d\n", percent, full, full - used);
 }
 
 int BigInt_karatsuba_alloc_count_helper(int alen, int blen) {
@@ -2815,6 +2817,138 @@ void BigInt_power(BigInt * result, BigInt * b, BigInt_limb_t exponent) {
     exponent = exponent >> 1;
   }
   BigInt_destroy(&basetemp);
+}
+
+int BigInt_get_bits_of_limb(BigInt_limb_t num) {
+  int bits = 0;
+  while(num > 0) {
+    num = num >> 1;
+    bits++;
+  }
+  return bits;
+}
+
+void BigInt_base_add(BigInt * sum, BigInt * addend1, BigInt * addend2, BigInt_limb_t base) {
+  if (BigInt_cmp_unsigned(addend1, addend2) < 0) {
+    BigInt * temp = addend1;
+    addend1 = addend2;
+    addend2 = temp;
+  }
+  if (sum->allocSize > addend1->internalSize) {
+    sum->internalSize = addend1->internalSize + 1;
+    sum->internalRepresentation[addend1->internalSize] = 0;
+  } else {
+    BIGINT_FREE(sum->internalRepresentation);
+    sum->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((addend1->internalSize + 1) * sizeof(BigInt_limb_t));
+    sum->internalRepresentation[addend1->internalSize] = 0;
+    sum->internalSize = addend1->internalSize + 1;
+    sum->allocSize = addend1->internalSize + 1;
+  }
+  
+  BigInt_add_any_base_impl(addend1->internalRepresentation, addend2->internalRepresentation, sum->internalRepresentation, addend1->internalSize, addend2->internalSize, sum->internalSize, base, BigInt_get_bits_of_limb(base));
+  BigInt_remove_leading_zeroes(sum);
+}
+
+void BigInt_base_multiply(BigInt * product, BigInt * multiplicand, BigInt * multiplier, BigInt_limb_t base) {
+  int i;
+  if (BigInt_cmp_unsigned(multiplicand, multiplier) < 0) {
+    BigInt * temp = multiplicand;
+    multiplicand = multiplier;
+    multiplier = temp;
+  }
+  if (product->allocSize >= multiplicand->internalSize + multiplier->internalSize) {
+    product->internalSize = multiplicand->internalSize + multiplier->internalSize;
+  } else {
+    BIGINT_FREE(product->internalRepresentation);
+    product->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC((multiplicand->internalSize + multiplier->internalSize) * sizeof(BigInt_limb_t));
+    product->internalSize = multiplicand->internalSize + multiplier->internalSize;
+    product->allocSize = multiplicand->internalSize + multiplier->internalSize;
+  }
+  for (i = 0; i < product->internalSize; i++) {
+    product->internalRepresentation[i] = 0;
+  }
+  BigInt_multiply_any_base_impl(multiplicand->internalRepresentation, multiplier->internalRepresentation, product->internalRepresentation, multiplicand->internalSize, multiplier->internalSize, product->internalSize, base);
+  BigInt_remove_leading_zeroes(product);
+}
+
+char * BigInt_to_base_string_unsigned(BigInt * b, BigInt_limb_t limb_base) {
+  int i;
+  BigInt out1, out2, base, temp;
+  char * str_out;
+  char map[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  BigInt_init(&out1);
+  BigInt_init(&out2);
+  BigInt_init(&base);
+  BigInt_init(&temp);
+
+  BigInt_set_from_limb(&base, BIGINT_BASE, limb_base);
+
+  for (i = 0; i < b->internalSize; i++) {
+    BigInt_base_multiply(&out2, &out1, &base, limb_base);
+    BigInt_set_from_limb(&temp, b->internalRepresentation[b->internalSize - 1 - i], limb_base);
+    BigInt_base_add(&out1, &out2, &temp, limb_base);
+  }
+
+  str_out = (char *)BIGINT_ALLOC((out1.internalSize + 1) * sizeof(char));
+
+  for (i = 0; i < out1.internalSize; i++) {
+    str_out[i] = map[out1.internalRepresentation[out1.internalSize - 1 - i]];
+  }
+
+  str_out[out1.internalSize] = 0;
+
+  BigInt_destroy(&base);
+  BigInt_destroy(&temp);
+  BigInt_destroy(&out2);
+  BigInt_destroy(&out1);
+
+  return str_out;
+}
+
+int BigInt_to_int_from_char(char c) {
+  if (c >= '0' && c <= '9') {
+    return c - '0';
+  }
+  if (c >= 'a' && c <= 'z') {
+    return c - 'a' + 10;
+  }
+  if (c >= 'A' && c <= 'Z') {
+    return c - 'A' + 10;
+  }
+  return 0;
+}
+
+void BigInt_set_from_base_string_impl(BigInt * z, char * str, BigInt_limb_t base) {
+  BigInt temp, b;
+  int len = strlen(str);
+  int i;
+  BigInt_init(&temp);
+  BigInt_init_none(&b);
+  
+  BigInt_set_from_limb(&b, base, BIGINT_BASE);
+  
+  for (i = 0; i < len; i++) {
+    /*
+     * z = temp * 10;
+     * temp = z + str[i]
+     * z = temp;
+     * */
+    BigInt_multiply_small_unsigned(z, &temp, base);
+    BigInt_add_small_unsigned(&temp, z, BigInt_to_int_from_char(str[i]));
+    BigInt_copy(z, &temp);
+  }
+  BigInt_destroy(&temp);
+  BigInt_destroy(&b);
+}
+
+void BigInt_set_from_base_string_unsigned(BigInt * b, char * str, BigInt_limb_t base) {
+  BigInt temp;
+  BigInt_init(&temp);
+
+  BigInt_set_from_base_string_impl(&temp, str, base);
+
+  BigInt_copy(b, &temp);
+  BigInt_destroy(&temp);
 }
 
 #endif

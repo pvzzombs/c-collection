@@ -1203,6 +1203,30 @@ void divisionEqualLimbTest() {
   BigInt_destroy(&zero);
 }
 
+void testConversion() {
+  BigInt a, b;
+  char * s;
+  int i, base;
+  for (base = 2; base <= 36; base++) {
+    for (i = 0; i < 50; i++) {
+      int len = rand() % 50 + 1;
+      BigInt_init_random_limb(&a, len);
+      BigInt_init_none(&b);
+      
+      s = BigInt_to_base_string_unsigned(&a, base);
+      
+      BigInt_set_from_base_string_unsigned(&b, s, base);
+      
+      TEST_CHECK(BigInt_cmp_unsigned(&a, &b) == 0);
+      
+      free(s);
+      
+      BigInt_destroy(&a);
+      BigInt_destroy(&b);
+    }
+  }
+}
+
 TEST_LIST = {
   {"addition", additionTest},
   {"subtraction", subtractionTest},
@@ -1230,5 +1254,6 @@ TEST_LIST = {
   {"randomized positive multiplication karatsuba bump max fill test", randomizedMultiplyKaratsubaBumpNLimbsMaxFill},
   {"randomized left shift by bit test", left_shift_by_bit_test},
   {"randomized right shift by bit test", right_shift_by_bit_test},
+  {"randomized base conversion test", testConversion},
   {NULL, NULL}
 };
