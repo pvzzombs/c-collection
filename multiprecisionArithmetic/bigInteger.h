@@ -2918,37 +2918,26 @@ int BigInt_to_int_from_char(char c) {
   return 0;
 }
 
-void BigInt_set_from_base_string_impl(BigInt * z, char * str, BigInt_limb_t base) {
+void BigInt_set_from_base_string_unsigned(BigInt * z, char * str, BigInt_limb_t base) {
   BigInt temp, b;
   int len = strlen(str);
   int i;
   BigInt_init(&temp);
   BigInt_init_none(&b);
   
-  BigInt_set_from_limb(&b, base, BIGINT_BASE);
-  
   for (i = 0; i < len; i++) {
     /*
-     * z = temp * 10;
-     * temp = z + str[i]
-     * z = temp;
+     * b = temp * base;
+     * temp = b + str[i]
      * */
-    BigInt_multiply_small_unsigned(z, &temp, base);
-    BigInt_add_small_unsigned(&temp, z, BigInt_to_int_from_char(str[i]));
-    BigInt_copy(z, &temp);
+    BigInt_multiply_small_unsigned(&b, &temp, base);
+    BigInt_add_small_unsigned(&temp, &b, BigInt_to_int_from_char(str[i]));
   }
+
+  BigInt_copy(z, &temp);
+
   BigInt_destroy(&temp);
   BigInt_destroy(&b);
-}
-
-void BigInt_set_from_base_string_unsigned(BigInt * b, char * str, BigInt_limb_t base) {
-  BigInt temp;
-  BigInt_init(&temp);
-
-  BigInt_set_from_base_string_impl(&temp, str, base);
-
-  BigInt_copy(b, &temp);
-  BigInt_destroy(&temp);
 }
 
 #endif
