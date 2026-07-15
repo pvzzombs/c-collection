@@ -342,6 +342,8 @@ void BigInt_power_unsigned(BigInt *, BigInt *, BigInt_limb_t);
 void BigInt_power(BigInt *, BigInt *, BigInt_limb_t);
 char * BigInt_to_base_string_unsigned(BigInt *, BigInt_limb_t);
 void BigInt_set_from_base_string_unsigned(BigInt *, char *, BigInt_limb_t);
+char * BigInt_to_base_string(BigInt *, BigInt_limb_t);
+void BigInt_set_from_base_string(BigInt *, char *, BigInt_limb_t);
 
 void BigInt_init_from_bump_allocator(BigInt *, int, BigInt_Bump_Allocator *, int *);
 void BigInt_copy_to_no_init_bump(BigInt *, BigInt *, int, int, BigInt_Bump_Allocator *, int *);
@@ -2905,6 +2907,49 @@ char * BigInt_to_base_string_unsigned(BigInt * b, BigInt_limb_t limb_base) {
   return str_out;
 }
 
+char * BigInt_to_base_string(BigInt * b, BigInt_limb_t limb_base) {
+  int i, hasSign = 0;
+  BigInt out1, out2, base, temp;
+  char * str_out;
+  char map[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  BigInt_init(&out1);
+  BigInt_init(&out2);
+  BigInt_init(&base);
+  BigInt_init(&temp);
+  
+  if (b->sign == -1) {
+    hasSign = 1;
+  }
+
+  BigInt_set_from_limb(&base, BIGINT_BASE, limb_base);
+
+  for (i = 0; i < b->internalSize; i++) {
+    BigInt_base_multiply(&out2, &out1, &base, limb_base);
+    BigInt_set_from_limb(&temp, b->internalRepresentation[b->internalSize - 1 - i], limb_base);
+    BigInt_base_add(&out1, &out2, &temp, limb_base);
+  }
+
+  str_out = (char *)BIGINT_ALLOC((out1.internalSize + 1 + hasSign) * sizeof(char));
+  
+  if (hasSign) {
+    str_out[0] = '-';
+    printf("Yoe!\n");
+  }
+
+  for (i = 0; i < out1.internalSize + hasSign; i++) {
+    str_out[i + hasSign] = map[out1.internalRepresentation[out1.internalSize - 1 - i]];
+  }
+
+  str_out[out1.internalSize + hasSign] = 0;
+
+  BigInt_destroy(&base);
+  BigInt_destroy(&temp);
+  BigInt_destroy(&out2);
+  BigInt_destroy(&out1);
+
+  return str_out;
+}
+
 int BigInt_to_int_from_char(char c) {
   if (c >= '0' && c <= '9') {
     return c - '0';
@@ -2935,6 +2980,32 @@ void BigInt_set_from_base_string_unsigned(BigInt * z, char * str, BigInt_limb_t 
   }
 
   BigInt_copy(z, &temp);
+
+  BigInt_destroy(&temp);
+  BigInt_destroy(&b);
+}
+
+void BigInt_set_from_base_string(BigInt * z, char * str, BigInt_limb_t base) {
+  BigInt temp, b;
+  int len = strlen(str);
+  int i, start = 0;
+  BigInt_init(&temp);
+  BigInt_init_none(&b);
+  
+  if (str[0] == '-') {
+    start = 1;
+  }
+  
+  for (i = start; i < len; i++) {
+    BigInt_multiply_small_unsigned(&b, &temp, base);
+    BigInt_add_small_unsigned(&temp, &b, BigInt_to_int_from_char(str[i]));
+  }
+
+  BigInt_copy(z, &temp);
+  
+  if (start) {
+    z->sign = -1;
+  }
 
   BigInt_destroy(&temp);
   BigInt_destroy(&b);
