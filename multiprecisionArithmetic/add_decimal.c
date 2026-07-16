@@ -5,8 +5,8 @@ int main() {
   BigDec sum, a, b;
   
   BigDec_init(&sum);
-  BigDec_init(&a);
-  BigDec_init(&b);
+  BigDec_init_from_string(&a, "1234.5678");
+  BigDec_init_from_string(&b, "123.4599");
   
   BigDec_add(&sum, &a, &b);
   
