@@ -7,7 +7,7 @@ int main() {
   char * s;
   
   BigInt_init_from_int(&a, 123456789);
-  // BigInt_set_negative_sign(&a);
+  /* BigInt_set_negative_sign(&a); */
   BigInt_init_none(&b);
   
   BigInt_print_internal(&a);

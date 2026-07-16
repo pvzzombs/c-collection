@@ -2933,7 +2933,6 @@ char * BigInt_to_base_string(BigInt * b, BigInt_limb_t limb_base) {
   
   if (hasSign) {
     str_out[0] = '-';
-    printf("Yoe!\n");
   }
 
   for (i = 0; i < out1.internalSize + hasSign; i++) {
@@ -3003,8 +3002,12 @@ void BigInt_set_from_base_string(BigInt * z, char * str, BigInt_limb_t base) {
 
   BigInt_copy(z, &temp);
   
-  if (start) {
+  if (BigInt_is_zero_impl(z->internalRepresentation, z->internalSize)) {
+    z->sign = 0;
+  } else if (start) {
     z->sign = -1;
+  } else {
+    z->sign = 1;
   }
 
   BigInt_destroy(&temp);
