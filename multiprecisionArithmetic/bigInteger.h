@@ -340,6 +340,8 @@ void BigInt_multiply_auto_u(BigInt *, BigInt *, BigInt *);
 void BigInt_multiply_auto_s(BigInt *, BigInt *, BigInt *);
 void BigInt_power_unsigned(BigInt *, BigInt *, BigInt_limb_t);
 void BigInt_power(BigInt *, BigInt *, BigInt_limb_t);
+void BigInt_base_add(BigInt * sum, BigInt *, BigInt *, BigInt_limb_t);
+void BigInt_base_multiply(BigInt *, BigInt *, BigInt *, BigInt_limb_t);
 char * BigInt_to_base_string_unsigned(BigInt *, BigInt_limb_t);
 void BigInt_set_from_base_string_unsigned(BigInt *, char *, BigInt_limb_t);
 char * BigInt_to_base_string(BigInt *, BigInt_limb_t);

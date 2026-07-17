@@ -3,12 +3,22 @@
 
 int main() {
   BigDec sum, a, b;
+  char * s;
   
   BigDec_init(&sum);
-  BigDec_init_from_string(&a, "1234.5678");
-  BigDec_init_from_string(&b, "123.4599");
+  BigDec_init(&a);
+  BigDec_init(&b);
   
-  BigDec_add(&sum, &a, &b);
+  BigDec_set_from_string(&a, "1");
+  BigDec_set_from_string(&b, "3");
+  
+  BigDec_divide(&sum, &a, &b, 20);
+  
+  s = BigDec_to_string(&sum);
+  
+  printf("%s\n", s);
+  
+  free(s);
   
   BigDec_destroy(&sum);
   BigDec_destroy(&a);

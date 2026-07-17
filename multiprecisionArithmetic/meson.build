@@ -5,6 +5,7 @@ executable('divide', 'divide.c')
 
 executable('test_', 'test.c')
 executable('bigIntTest', ['bigIntTest.c', '../others/snprintf.c'])
+executable('bigDecTest', ['bigDecTest.c', '../others/snprintf.c'])
 
 executable('demo', 'demo.c')
 executable('performance', 'performance.c')
