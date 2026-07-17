@@ -1,0 +1,30 @@
+name: Multiprecision Big Decimal Library Ubuntu Test CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Meson
+        run: pip3 install meson
+
+      - name: Install Ninja
+        run: pip3 install ninja
+
+      - name: Prepare
+        run: meson setup build
+
+      - name: Compile
+        run: ninja -C build
+
+      - name: Run
+        run: ./build/multiprecisionArithmetic/bigDecTest
