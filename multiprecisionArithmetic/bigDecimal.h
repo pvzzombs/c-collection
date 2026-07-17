@@ -21,6 +21,7 @@ void BigDec_init(BigDec * b);
 void BigDec_init_from_string(BigDec *, char *);
 void BigDec_set_from_string(BigDec *, char *);
 void BigDec_destroy(BigDec * b);
+void BigDec_reduce_scale_and_round(BigDec * b, int);
 void BigDec_reduce_scale(BigDec *);
 char * BigDec_to_string(BigDec *);
 void BigDec_increase_scale(BigDec *, int);
@@ -154,18 +155,77 @@ void BigDec_reduce_scale(BigDec * b) {
     b->value->sign = 0;
     b->value->internalSize = 1;
     b->scale = 0;
-    return ;
+  } else {
+    BigInt_set_from_int(&base, 10);
+    BigInt_power(&temp, &base, removed);
+    BigInt_divide_s(b->value, b->value, &temp);
   }
-  
-  BigInt_set_from_int(&base, 10);
-  
-  BigInt_power(&temp, &base, removed);
-  
-  BigInt_divide_s(b->value, b->value, &temp);
   
   /* BigInt_print(b->value);
   
   printf("\n"); */
+  
+  BigInt_destroy(&base);
+  BigInt_destroy(&temp);
+  BigInt_destroy(&out2);
+  BigInt_destroy(&out1);
+}
+
+void BigDec_reduce_scale_and_round(BigDec * b, int scale) {
+  int i, removed = 0;
+  BigInt out1, out2, base, temp;
+  BigInt_init(&out1);
+  BigInt_init(&out2);
+  BigInt_init(&base);
+  BigInt_init(&temp);
+  
+  BigInt_remove_leading_zeroes(b->value);
+
+  BigInt_set_from_limb(&base, BIGINT_BASE, 10);
+
+  for (i = 0; i < b->value->internalSize; i++) {
+    BigInt_base_multiply(&out2, &out1, &base, 10);
+    BigInt_set_from_limb(&temp, b->value->internalRepresentation[b->value->internalSize - 1 - i], 10);
+    BigInt_base_add(&out1, &out2, &temp, 10);
+  }
+  
+  i = 0;
+  while(i < out1.internalSize && out1.internalRepresentation[i] == 0 && b->scale > 0) {
+    i++;
+    removed++;
+    b->scale = b->scale - 1;
+  }
+  
+  if (i >= out1.internalSize) {
+    b->value->internalRepresentation[0] = 0;
+    b->value->sign = 0;
+    b->value->internalSize = 1;
+    b->scale = 0;
+  } else {
+    BigInt_set_from_int(&base, 10);
+    BigInt_power(&temp, &base, removed);
+    BigInt_divide_s(b->value, b->value, &temp);
+    /*  Rounding is still under testing
+    
+    printf("Scale is %d, size is %d\n",scale, out1.internalSize - i + 1); */
+    
+    if (scale <= (out1.internalSize - i + 1) && b->scale > 0) {
+      if (out1.internalRepresentation[i] >= 5) {
+        int s = b->value->sign;
+        BigInt_set_from_int(&temp, 10);
+        BigInt_divide_s(b->value, b->value, &temp);
+        b->scale--;
+        BigInt_set_from_int(&temp, 1);
+        b->value->sign = 1;
+        BigInt_add_s(b->value, b->value, &temp);
+        b->value->sign = s;
+      } else {
+        BigInt_set_from_int(&temp, 10);
+        BigInt_divide_s(b->value, b->value, &temp);
+        b->scale--;
+      }
+    }
+  }
   
   BigInt_destroy(&base);
   BigInt_destroy(&temp);
@@ -244,6 +304,11 @@ char * BigDec_to_string(BigDec * b) {
 
 void BigDec_increase_scale(BigDec * b, int scale) {
   BigInt b10, temp;
+  
+  if (scale < 1) {
+    return;
+  }
+  
   BigInt_init(&temp);
   BigInt_init_from_int(&b10, 10);
   
@@ -254,52 +319,95 @@ void BigDec_increase_scale(BigDec * b, int scale) {
   /* BigInt_print(b->value);
   
   printf("\n"); */
+  b->scale = b->scale + scale;
   
   BigInt_destroy(&temp);
   BigInt_destroy(&b10);
 }
 
 int BigDec_cmp(BigDec * a, BigDec * b) {
-  int max_scale, result;
+  int max_scale, result, sc1, sc2;
   
   max_scale = BigInt_max_int(a->scale, b->scale);
   
-  BigDec_increase_scale(a, max_scale - a->scale);
-  BigDec_increase_scale(b, max_scale - b->scale);
+  sc1 = max_scale - a->scale;
+  sc2 = max_scale - b->scale;
+  
+  if (sc1 > 0) {
+    BigDec_increase_scale(a, sc1);
+  }
+  
+  if (sc2 > 0) {
+    BigDec_increase_scale(b, sc2);
+  }
   
   result = BigInt_cmp(a->value, b->value);
   
-  BigDec_reduce_scale(a);
-  BigDec_reduce_scale(b);
+  if (sc1 > 0) {
+    BigDec_reduce_scale(a);
+  }
   
+  if (sc2 > 0) {
+    BigDec_reduce_scale(b);
+  }
   return result;
 }
 
 void BigDec_add(BigDec * sum, BigDec * addend1, BigDec * addend2) {
   int max_scale = BigInt_max_int(addend1->scale, addend2->scale);
+  int sc1, sc2;
   
-  BigDec_increase_scale(addend1, max_scale - addend1->scale);
-  BigDec_increase_scale(addend2, max_scale - addend2->scale);
+  sc1 = max_scale - addend1->scale;
+  sc2 = max_scale - addend2->scale;
+  
+  if (sc1 > 0) {
+    BigDec_increase_scale(addend1, sc1);
+  }
+  
+  if (sc2 > 0) {
+    BigDec_increase_scale(addend2, sc2);
+  }
   
   BigInt_add_s(sum->value, addend1->value, addend2->value);
   sum->scale = max_scale;
   
-  BigDec_reduce_scale(addend1);
-  BigDec_reduce_scale(addend2);
+  if (sc1 > 0) {
+    BigDec_reduce_scale(addend1);
+  }
+  
+  if (sc2 > 0) {
+    BigDec_reduce_scale(addend2);
+  }
+  
   BigDec_reduce_scale(sum);
 }
 
 void BigDec_subtract(BigDec * diff, BigDec * minuend, BigDec * subtrahend) {
   int max_scale = BigInt_max_int(minuend->scale, subtrahend->scale);
+  int sc1, sc2;
   
-  BigDec_increase_scale(minuend, max_scale - minuend->scale);
-  BigDec_increase_scale(subtrahend, max_scale - subtrahend->scale);
+  sc1 = max_scale - minuend->scale;
+  sc2 = max_scale - subtrahend->scale;
+  
+  if (sc1) {
+    BigDec_increase_scale(minuend, sc1);
+  }
+  
+  if (sc2) {
+    BigDec_increase_scale(subtrahend, sc2);
+  }
   
   BigInt_subtract_s(diff->value, minuend->value, subtrahend->value);
   diff->scale = max_scale;
   
-  BigDec_reduce_scale(minuend);
-  BigDec_reduce_scale(subtrahend);
+  if (sc1) {
+    BigDec_reduce_scale(minuend);
+  }
+  
+  if (sc2) {
+    BigDec_reduce_scale(subtrahend);
+  }
+  
   BigDec_reduce_scale(diff);
 }
 
@@ -316,7 +424,9 @@ void BigDec_divide(BigDec * quotient, BigDec * dividend, BigDec * divisor, int p
   int scale = dividend->scale - divisor->scale;
   
   if (scale < 0) {
-    prec = (scale * -1) + prec;
+    prec = (scale * -1) + prec + 1;
+  } else {
+    prec = prec + 1;
   }
   
   scale = scale + prec;
@@ -327,7 +437,7 @@ void BigDec_divide(BigDec * quotient, BigDec * dividend, BigDec * divisor, int p
   quotient->scale = scale;
   
   BigDec_reduce_scale(dividend);
-  BigDec_reduce_scale(quotient);
+  BigDec_reduce_scale_and_round(quotient, scale);
   
 }
 

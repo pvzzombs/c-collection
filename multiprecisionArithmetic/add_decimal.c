@@ -9,12 +9,24 @@ int main() {
   BigDec_init(&a);
   BigDec_init(&b);
   
-  BigDec_set_from_string(&a, "1");
-  BigDec_set_from_string(&b, "3");
+  BigDec_set_from_string(&a, "0.999");
+  BigDec_set_from_string(&b, "1");
   
-  BigDec_divide(&sum, &a, &b, 20);
+  BigDec_divide(&sum, &a, &b, 10);
   
   s = BigDec_to_string(&sum);
+  
+  printf("%s\n", s);
+  
+  free(s);
+  
+  s = BigDec_to_string(&a);
+  
+  printf("%s\n", s);
+  
+  free(s);
+  
+  s = BigDec_to_string(&b);
   
   printf("%s\n", s);
   

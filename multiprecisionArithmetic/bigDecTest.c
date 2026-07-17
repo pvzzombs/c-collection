@@ -45,7 +45,7 @@ void additionTest() {
     s1 = BigDec_to_string(&r);
 
     TEST_CHECK(BigDec_cmp(&r, &c) == 0);
-    TEST_MSG("Expected: %s, Result: %s, %s, %s", s1, result[i], num1[i],  num2[i]);
+    TEST_MSG("Result: %s, Expected: %s, %s, %s", s1, result[i], num1[i],  num2[i]);
     
     free(s1);
     
@@ -97,7 +97,7 @@ void subtractionTest() {
     s1 = BigDec_to_string(&r);
 
     TEST_CHECK(BigDec_cmp(&r, &c) == 0);
-    TEST_MSG("Expected: %s, Result: %s, %s, %s", s1, result[i], num1[i],  num2[i]);
+    TEST_MSG("Result: %s, Expected: %s, %s, %s", s1, result[i], num1[i],  num2[i]);
     
     free(s1);
     
@@ -149,7 +149,7 @@ void multiplicationTest() {
     s1 = BigDec_to_string(&r);
 
     TEST_CHECK(BigDec_cmp(&r, &c) == 0);
-    TEST_MSG("Expected: %s, Result: %s, %s, %s", s1, result[i], num1[i],  num2[i]);
+    TEST_MSG("Result: %s, Expected: %s, %s, %s", s1, result[i], num1[i],  num2[i]);
     
     free(s1);
     
@@ -201,7 +201,59 @@ void divisionTest() {
     s1 = BigDec_to_string(&r);
 
     TEST_CHECK(BigDec_cmp(&r, &c) == 0);
-    TEST_MSG("Expected: %s, Result: %s, %s, %s", s1, result[i], num1[i],  num2[i]);
+    TEST_MSG("Result: %s, Expected: %s, %s, %s", s1, result[i], num1[i],  num2[i]);
+    
+    free(s1);
+    
+    BigDec_destroy(&r);
+    BigDec_destroy(&a);
+    BigDec_destroy(&b);
+    BigDec_destroy(&c);
+  }
+}
+
+void divisionRepeatedDecimalTest() {
+  char * num1[] = {
+    "1",
+    "2",
+    "1",
+    "1",
+    "10"
+  };
+
+  char * num2[] = {
+    "3",
+    "3",
+    "6",
+    "7",
+    "9"
+  };
+
+  char * result[] = {
+    "0.3333333333",
+    "0.6666666667",
+    "0.1666666667",
+    "0.1428571429",
+    "1.1111111111"
+  };
+
+  int i;
+  BigDec a, b, c, r;
+  char * s1;
+
+  for (i = 0; i < 5; i++) {
+    
+    BigDec_init_from_string(&a, num1[i]);
+    BigDec_init_from_string(&b, num2[i]);
+    BigDec_init_from_string(&c, result[i]);
+    BigDec_init(&r);
+    
+    BigDec_divide(&r, &a, &b, 10);
+    
+    s1 = BigDec_to_string(&r);
+
+    TEST_CHECK(BigDec_cmp(&r, &c) == 0);
+    TEST_MSG("Result: %s, Expected: %s, %s, %s", s1, result[i], num1[i],  num2[i]);
     
     free(s1);
     
@@ -217,5 +269,6 @@ TEST_LIST = {
   {"subtraction", subtractionTest},
   {"multiplication", multiplicationTest},
   {"division", divisionTest},
+  {"division repeating decimals", divisionRepeatedDecimalTest},
   {NULL, NULL}
 };
