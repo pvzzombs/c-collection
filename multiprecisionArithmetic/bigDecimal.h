@@ -20,6 +20,7 @@ typedef struct BigDec_ BigDec;
 void BigDec_init(BigDec * b);
 void BigDec_init_from_string(BigDec *, char *);
 void BigDec_set_from_string(BigDec *, char *);
+void BigDec_copy(BigDec *, BigDec *);
 void BigDec_destroy(BigDec * b);
 void BigDec_reduce_scale_and_round(BigDec * b, int);
 void BigDec_reduce_scale(BigDec *);
@@ -119,6 +120,11 @@ void BigDec_init_from_string(BigDec * b, char * s) {
   BIGDEC_FREE(new_s);
 }
 
+void BigDec_copy(BigDec * dest, BigDec * src) {
+  dest->scale = src->scale;
+  BigInt_copy(dest->value, src->value);
+}
+
 void BigDec_destroy(BigDec * b) {
   BigInt_destroy(b->value);
   BIGDEC_FREE(b->value);
@@ -132,8 +138,6 @@ void BigDec_reduce_scale(BigDec * b) {
   BigInt_init(&out2);
   BigInt_init(&base);
   BigInt_init(&temp);
-  
-  BigInt_remove_leading_zeroes(b->value);
 
   BigInt_set_from_limb(&base, BIGINT_BASE, 10);
 
@@ -178,8 +182,6 @@ void BigDec_reduce_scale_and_round(BigDec * b, int prec) {
   BigInt_init(&out2);
   BigInt_init(&base);
   BigInt_init(&temp);
-  
-  BigInt_remove_leading_zeroes(b->value);
 
   BigInt_set_from_limb(&base, BIGINT_BASE, 10);
 
@@ -328,28 +330,32 @@ void BigDec_increase_scale(BigDec * b, int scale) {
 int BigDec_cmp(BigDec * a, BigDec * b) {
   int max_scale, result, sc1, sc2;
   
+  BigDec operand1, operand2;
+  
+  BigDec_init(&operand1);
+  BigDec_init(&operand2);
+  
+  BigDec_copy(&operand1, a);
+  BigDec_copy(&operand2, b);
+  
   max_scale = BigInt_max_int(a->scale, b->scale);
   
   sc1 = max_scale - a->scale;
   sc2 = max_scale - b->scale;
   
   if (sc1 > 0) {
-    BigDec_increase_scale(a, sc1);
+    BigDec_increase_scale(&operand1, sc1);
   }
   
   if (sc2 > 0) {
-    BigDec_increase_scale(b, sc2);
+    BigDec_increase_scale(&operand2, sc2);
   }
   
-  result = BigInt_cmp(a->value, b->value);
+  result = BigInt_cmp(operand1.value, operand2.value);
   
-  if (sc1 > 0) {
-    BigDec_reduce_scale(a);
-  }
+  BigDec_destroy(&operand1);
+  BigDec_destroy(&operand2);
   
-  if (sc2 > 0) {
-    BigDec_reduce_scale(b);
-  }
   return result;
 }
 
@@ -357,27 +363,30 @@ void BigDec_add(BigDec * sum, BigDec * addend1, BigDec * addend2) {
   int max_scale = BigInt_max_int(addend1->scale, addend2->scale);
   int sc1, sc2;
   
+  BigDec operand1, operand2;
+  
+  BigDec_init(&operand1);
+  BigDec_init(&operand2);
+  
+  BigDec_copy(&operand1, addend1);
+  BigDec_copy(&operand2, addend2);
+  
   sc1 = max_scale - addend1->scale;
   sc2 = max_scale - addend2->scale;
   
   if (sc1 > 0) {
-    BigDec_increase_scale(addend1, sc1);
+    BigDec_increase_scale(&operand1, sc1);
   }
   
   if (sc2 > 0) {
-    BigDec_increase_scale(addend2, sc2);
+    BigDec_increase_scale(&operand2, sc2);
   }
   
-  BigInt_add_s(sum->value, addend1->value, addend2->value);
+  BigInt_add_s(sum->value, operand1.value, operand2.value);
   sum->scale = max_scale;
   
-  if (sc1 > 0) {
-    BigDec_reduce_scale(addend1);
-  }
-  
-  if (sc2 > 0) {
-    BigDec_reduce_scale(addend2);
-  }
+  BigDec_destroy(&operand1);
+  BigDec_destroy(&operand2);
   
   BigDec_reduce_scale(sum);
 }
@@ -386,27 +395,30 @@ void BigDec_subtract(BigDec * diff, BigDec * minuend, BigDec * subtrahend) {
   int max_scale = BigInt_max_int(minuend->scale, subtrahend->scale);
   int sc1, sc2;
   
+  BigDec operand1, operand2;
+  
+  BigDec_init(&operand1);
+  BigDec_init(&operand2);
+  
+  BigDec_copy(&operand1, minuend);
+  BigDec_copy(&operand2, subtrahend);
+  
   sc1 = max_scale - minuend->scale;
   sc2 = max_scale - subtrahend->scale;
   
-  if (sc1) {
-    BigDec_increase_scale(minuend, sc1);
+  if (sc1 > 0) {
+    BigDec_increase_scale(&operand1, sc1);
   }
   
-  if (sc2) {
-    BigDec_increase_scale(subtrahend, sc2);
+  if (sc2 > 0) {
+    BigDec_increase_scale(&operand2, sc2);
   }
   
-  BigInt_subtract_s(diff->value, minuend->value, subtrahend->value);
+  BigInt_subtract_s(diff->value, operand1.value, operand2.value);
   diff->scale = max_scale;
   
-  if (sc1) {
-    BigDec_reduce_scale(minuend);
-  }
-  
-  if (sc2) {
-    BigDec_reduce_scale(subtrahend);
-  }
+  BigDec_destroy(&operand1);
+  BigDec_destroy(&operand2);
   
   BigDec_reduce_scale(diff);
 }
@@ -424,6 +436,12 @@ void BigDec_divide(BigDec * quotient, BigDec * dividend, BigDec * divisor, int p
   int scale = dividend->scale - divisor->scale;
   int newPrec;
   
+  BigDec operand1;
+  
+  BigDec_init(&operand1);
+  
+  BigDec_copy(&operand1, dividend);
+  
   if (scale < 0) {
     newPrec = (scale * -1) + prec + 1;
   } else {
@@ -432,14 +450,14 @@ void BigDec_divide(BigDec * quotient, BigDec * dividend, BigDec * divisor, int p
   
   scale = scale + newPrec;
   
-  BigDec_increase_scale(dividend, newPrec);
+  BigDec_increase_scale(&operand1, newPrec);
   
-  BigInt_divide_s(quotient->value, dividend->value, divisor->value);
+  BigInt_divide_s(quotient->value, operand1.value, divisor->value);
   quotient->scale = scale;
   
-  BigDec_reduce_scale(dividend);
   BigDec_reduce_scale_and_round(quotient, prec);
   
+  BigDec_destroy(&operand1);
 }
 
 #endif
