@@ -171,7 +171,7 @@ void BigDec_reduce_scale(BigDec * b) {
   BigInt_destroy(&out1);
 }
 
-void BigDec_reduce_scale_and_round(BigDec * b, int scale) {
+void BigDec_reduce_scale_and_round(BigDec * b, int prec) {
   int i, removed = 0;
   BigInt out1, out2, base, temp;
   BigInt_init(&out1);
@@ -205,11 +205,11 @@ void BigDec_reduce_scale_and_round(BigDec * b, int scale) {
     BigInt_set_from_int(&base, 10);
     BigInt_power(&temp, &base, removed);
     BigInt_divide_s(b->value, b->value, &temp);
-    /*  Rounding is still under testing
+    /*  Rounding is still under testing */
     
-    printf("Scale is %d, size is %d\n",scale, out1.internalSize - i + 1); */
+    /* printf("Prec is %d, scale is %d\n",prec, b->scale); */
     
-    if (scale <= (out1.internalSize - i + 1) && b->scale > 0) {
+    if (b->scale > 0 && b->scale > prec) {
       if (out1.internalRepresentation[i] >= 5) {
         int s = b->value->sign;
         BigInt_set_from_int(&temp, 10);
@@ -422,22 +422,23 @@ void BigDec_multiply(BigDec * product, BigDec * multiplicand, BigDec * multiplie
 
 void BigDec_divide(BigDec * quotient, BigDec * dividend, BigDec * divisor, int prec) {
   int scale = dividend->scale - divisor->scale;
+  int newPrec;
   
   if (scale < 0) {
-    prec = (scale * -1) + prec + 1;
+    newPrec = (scale * -1) + prec + 1;
   } else {
-    prec = prec + 1;
+    newPrec = prec + 1;
   }
   
-  scale = scale + prec;
+  scale = scale + newPrec;
   
-  BigDec_increase_scale(dividend, prec);
+  BigDec_increase_scale(dividend, newPrec);
   
   BigInt_divide_s(quotient->value, dividend->value, divisor->value);
   quotient->scale = scale;
   
   BigDec_reduce_scale(dividend);
-  BigDec_reduce_scale_and_round(quotient, scale);
+  BigDec_reduce_scale_and_round(quotient, prec);
   
 }
 

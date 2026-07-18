@@ -9,10 +9,10 @@ int main() {
   BigDec_init(&a);
   BigDec_init(&b);
   
-  BigDec_set_from_string(&a, "0.999");
-  BigDec_set_from_string(&b, "1");
+  BigDec_set_from_string(&a, "1");
+  BigDec_set_from_string(&b, "2");
   
-  BigDec_divide(&sum, &a, &b, 10);
+  BigDec_divide(&sum, &a, &b, 20);
   
   s = BigDec_to_string(&sum);
   
