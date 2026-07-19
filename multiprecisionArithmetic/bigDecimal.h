@@ -5,6 +5,8 @@
 #define BIGDEC_FREE(x) free(x)
 #endif
 
+#define BIGDEC_SQRT_THRESHOLD 100
+
 #include "bigInteger.h"
 
 #ifdef __cplusplus
@@ -31,6 +33,7 @@ void BigDec_add(BigDec *, BigDec *, BigDec *);
 void BigDec_subtract(BigDec *, BigDec *, BigDec *);
 void BigDec_multiply(BigDec *, BigDec *, BigDec *);
 void BigDec_divide(BigDec *, BigDec *, BigDec *, int);
+void BigDec_sqrt(BigDec *, BigDec *, int);
 
 #if defined(BIGDEC_IMPL) || defined(MPA_IMPL)
 
@@ -458,6 +461,44 @@ void BigDec_divide(BigDec * quotient, BigDec * dividend, BigDec * divisor, int p
   BigDec_reduce_scale_and_round(quotient, prec);
   
   BigDec_destroy(&operand1);
+}
+
+void BigDec_sqrt(BigDec * dest, BigDec * src, int prec) {
+  BigDec s;
+  BigDec two;
+  BigDec x;
+  
+  BigDec temp;
+  
+  int i = 0;
+  
+  BigDec_init(&s);
+  BigDec_init_from_string(&two, "2");
+  BigDec_init(&x);
+  BigDec_init(&temp);
+  
+  BigDec_copy(&s, src);
+  BigDec_divide(&x, &s, &two, prec);
+  
+  while (i < BIGDEC_SQRT_THRESHOLD) {
+    BigDec_divide(&temp, &s, &x, prec);
+    BigDec_add(&temp, &temp, &x);
+    BigDec_divide(&temp, &temp, &two, prec);
+    
+    if (BigDec_cmp(&x, &temp) == 0) {
+      break;
+    }
+    
+    BigDec_copy(&x, &temp);
+    i++;
+  }
+  
+  BigDec_copy(dest, &x);
+  
+  BigDec_destroy(&s);
+  BigDec_destroy(&two);
+  BigDec_destroy(&x);
+  BigDec_destroy(&temp);
 }
 
 #endif
