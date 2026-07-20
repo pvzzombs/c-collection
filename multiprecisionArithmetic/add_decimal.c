@@ -9,10 +9,10 @@ int main() {
   BigDec_init(&a);
   BigDec_init(&b);
   
-  BigDec_set_from_string(&a, "2");
-  BigDec_set_from_string(&b, "3");
+  BigDec_set_from_string(&a, "8.88888");
+  BigDec_set_from_string(&b, "9.99999");
   
-  BigDec_divide(&sum, &a, &b, 10);
+  BigDec_multiply_prec(&sum, &a, &b, 9);
   
   s = BigDec_to_string(&sum);
   
@@ -32,13 +32,13 @@ int main() {
   
   free(s);
   
-  BigDec_sqrt(&sum, &a, 100);
+  /* BigDec_sqrt(&sum, &a, 100);
   
   s = BigDec_to_string(&sum);
   
   printf("%s\n", s);
   
-  free(s);
+  free(s); */
   
   BigDec_destroy(&sum);
   BigDec_destroy(&a);

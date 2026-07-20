@@ -25,6 +25,7 @@ void BigDec_set_from_string(BigDec *, char *);
 void BigDec_copy(BigDec *, BigDec *);
 void BigDec_destroy(BigDec * b);
 void BigDec_reduce_scale_and_round(BigDec * b, int);
+void BigDec_reduce_scale_and_cut(BigDec * b, int);
 void BigDec_reduce_scale(BigDec *);
 char * BigDec_to_string(BigDec *);
 void BigDec_increase_scale(BigDec *, int);
@@ -32,6 +33,7 @@ int BigDec_cmp(BigDec *, BigDec *);
 void BigDec_add(BigDec *, BigDec *, BigDec *);
 void BigDec_subtract(BigDec *, BigDec *, BigDec *);
 void BigDec_multiply(BigDec *, BigDec *, BigDec *);
+void BigDec_multiply_prec(BigDec *, BigDec *, BigDec *, int);
 void BigDec_divide(BigDec *, BigDec *, BigDec *, int);
 void BigDec_sqrt(BigDec *, BigDec *, int);
 
@@ -238,6 +240,74 @@ void BigDec_reduce_scale_and_round(BigDec * b, int prec) {
   BigInt_destroy(&out1);
 }
 
+void BigDec_reduce_scale_and_cut(BigDec * b, int prec) {
+  int i, removed = 0;
+  BigInt out1, out2, base, temp;
+  BigInt_init(&out1);
+  BigInt_init(&out2);
+  BigInt_init(&base);
+  BigInt_init(&temp);
+
+  BigInt_set_from_limb(&base, BIGINT_BASE, 10);
+
+  for (i = 0; i < b->value->internalSize; i++) {
+    BigInt_base_multiply(&out2, &out1, &base, 10);
+    BigInt_set_from_limb(&temp, b->value->internalRepresentation[b->value->internalSize - 1 - i], 10);
+    BigInt_base_add(&out1, &out2, &temp, 10);
+  }
+  
+  i = 0;
+  while(i < out1.internalSize && out1.internalRepresentation[i] == 0 && b->scale > 0) {
+    i++;
+    removed++;
+    b->scale = b->scale - 1;
+  }
+  
+  if (i >= out1.internalSize) {
+    b->value->internalRepresentation[0] = 0;
+    b->value->sign = 0;
+    b->value->internalSize = 1;
+    b->scale = 0;
+  } else {
+    BigInt_set_from_int(&base, 10);
+    BigInt_power(&temp, &base, removed);
+    BigInt_divide_s(b->value, b->value, &temp);
+    /*  Rounding is still under testing */
+    
+    /* printf("Prec is %d, scale is %d\n",prec, b->scale); */
+    
+    if (b->scale > 0 && b->scale > prec) {
+      removed = b->scale - prec - 1;
+      i += removed;
+      BigInt_power(&temp, &base, removed);
+      BigInt_divide_s(b->value, b->value, &temp);
+      b->scale = b->scale - removed;
+      if (out1.internalRepresentation[i] >= 5) {
+        int s = b->value->sign;
+        BigInt_set_from_int(&temp, 10);
+        BigInt_divide_s(b->value, b->value, &temp);
+        b->scale--;
+        BigInt_set_from_int(&temp, 1);
+        b->value->sign = 1;
+        BigInt_add_s(b->value, b->value, &temp);
+        b->value->sign = s;
+        i++;
+      } else {
+        BigInt_set_from_int(&temp, 10);
+        BigInt_divide_s(b->value, b->value, &temp);
+        b->scale--;
+      }
+      
+      /* printf("Scale is %d\n", b->scale); */
+    }
+  }
+  
+  BigInt_destroy(&base);
+  BigInt_destroy(&temp);
+  BigInt_destroy(&out2);
+  BigInt_destroy(&out1);
+}
+
 char * BigDec_to_string(BigDec * b) {
   int i, j, isNegative = 0, hasDot = 0, scale = b->scale;
   int allocChar;
@@ -433,6 +503,15 @@ void BigDec_multiply(BigDec * product, BigDec * multiplicand, BigDec * multiplie
   product->scale = scale;
   
   BigDec_reduce_scale(product);
+}
+
+void BigDec_multiply_prec(BigDec * product, BigDec * multiplicand, BigDec * multiplier, int prec) {
+  int scale = multiplicand->scale + multiplier->scale;
+  
+  BigInt_multiply_s(product->value, multiplicand->value, multiplier->value);
+  product->scale = scale;
+  
+  BigDec_reduce_scale_and_cut(product, prec);
 }
 
 void BigDec_divide(BigDec * quotient, BigDec * dividend, BigDec * divisor, int prec) {
