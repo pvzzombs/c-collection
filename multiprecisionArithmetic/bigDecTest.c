@@ -40,7 +40,7 @@ void additionTest() {
     BigDec_init_from_string(&c, result[i]);
     BigDec_init(&r);
     
-    BigDec_add(&r, &a, &b);
+    BigDec_add(&r, &a, &b, 10);
     
     s1 = BigDec_to_string(&r);
 
@@ -92,7 +92,7 @@ void subtractionTest() {
     BigDec_init_from_string(&c, result[i]);
     BigDec_init(&r);
     
-    BigDec_subtract(&r, &a, &b);
+    BigDec_subtract(&r, &a, &b, 10);
     
     s1 = BigDec_to_string(&r);
 
@@ -144,7 +144,7 @@ void multiplicationTest() {
     BigDec_init_from_string(&c, result[i]);
     BigDec_init(&r);
     
-    BigDec_multiply(&r, &a, &b);
+    BigDec_multiply(&r, &a, &b, 10);
     
     s1 = BigDec_to_string(&r);
 

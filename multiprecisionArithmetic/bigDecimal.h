@@ -29,10 +29,11 @@ void BigDec_reduce_scale_and_cut(BigDec * b, int);
 void BigDec_reduce_scale(BigDec *);
 char * BigDec_to_string(BigDec *);
 void BigDec_increase_scale(BigDec *, int);
+void BigDec_decrease_scale_and_round(BigDec *, int);
 int BigDec_cmp(BigDec *, BigDec *);
-void BigDec_add(BigDec *, BigDec *, BigDec *);
-void BigDec_subtract(BigDec *, BigDec *, BigDec *);
-void BigDec_multiply(BigDec *, BigDec *, BigDec *);
+void BigDec_add(BigDec *, BigDec *, BigDec *, int);
+void BigDec_subtract(BigDec *, BigDec *, BigDec *, int);
+void BigDec_multiply(BigDec *, BigDec *, BigDec *, int);
 void BigDec_multiply_prec(BigDec *, BigDec *, BigDec *, int);
 void BigDec_divide(BigDec *, BigDec *, BigDec *, int);
 void BigDec_sqrt(BigDec *, BigDec *, int);
@@ -309,34 +310,41 @@ void BigDec_reduce_scale_and_cut(BigDec * b, int prec) {
 }
 
 char * BigDec_to_string(BigDec * b) {
-  int i, j, isNegative = 0, hasDot = 0, scale = b->scale;
+  BigDec c;
+  int i, j, isNegative = 0, hasDot = 0, scale;
   int allocChar;
   char * str;
   BigInt out1, out2, base, temp;
+  
+  BigDec_init(&c);
+  
   BigInt_init(&out1);
   BigInt_init(&out2);
   BigInt_init(&base);
   BigInt_init(&temp);
   
-  BigInt_remove_leading_zeroes(b->value);
+  BigDec_copy(&c, b);
+  BigDec_reduce_scale(&c);
+  
+  scale = c.scale;
 
   BigInt_set_from_limb(&base, BIGINT_BASE, 10);
 
-  for (i = 0; i < b->value->internalSize; i++) {
+  for (i = 0; i < c.value->internalSize; i++) {
     BigInt_base_multiply(&out2, &out1, &base, 10);
-    BigInt_set_from_limb(&temp, b->value->internalRepresentation[b->value->internalSize - 1 - i], 10);
+    BigInt_set_from_limb(&temp, c.value->internalRepresentation[c.value->internalSize - 1 - i], 10);
     BigInt_base_add(&out1, &out2, &temp, 10);
   }
   
-  if (b->scale > 0) {
+  if (c.scale > 0) {
     hasDot = 1;
   }
   
-  if (b->value->sign == -1) {
+  if (c.value->sign == -1) {
     isNegative = 1;
   }
   
-  allocChar = BigInt_max_int(out1.internalSize, b->scale + 1) + isNegative + hasDot + 1;
+  allocChar = BigInt_max_int(out1.internalSize, c.scale + 1) + isNegative + hasDot + 1;
   
   /* printf("alloc: %d\n", allocChar); */
   
@@ -374,6 +382,8 @@ char * BigDec_to_string(BigDec * b) {
   BigInt_destroy(&out2);
   BigInt_destroy(&out1);
   
+  BigDec_destroy(&c);
+  
   return str;
 }
 
@@ -398,6 +408,61 @@ void BigDec_increase_scale(BigDec * b, int scale) {
   
   BigInt_destroy(&temp);
   BigInt_destroy(&b10);
+}
+
+void BigDec_decrease_scale_and_round(BigDec * b, int prec) {
+  BigInt b10, temp;
+  BigInt temp2, n;
+  int p;
+  
+  if (prec < 0) {
+    return;
+  }
+  
+  if (b->scale > prec) {
+    p = b->scale - prec - 1;
+    BigInt_init(&temp);
+    BigInt_init_from_int(&b10, 10);
+    BigInt_init(&temp2);
+    BigInt_init(&n);
+    
+    BigInt_power(&temp, &b10, p);
+    
+    BigInt_divide_s(b->value, b->value, &temp);
+    
+    b->scale = b->scale - p;
+    
+    BigInt_copy(&temp2, b->value);
+    
+    BigInt_set_from_int(&n, 10);
+    
+    BigInt_divide_s(&temp2, &temp2, &n);
+    BigInt_multiply_s(&temp2, &temp2, &n);
+    
+    BigInt_subtract_s(&temp, b->value, &temp2);
+    BigInt_set_from_int(&n, 5);
+    
+    if (BigInt_cmp(&temp, &n) >= 0) {
+      BigInt_set_from_int(&n, 10);
+      BigInt_divide_s(b->value, b->value, &n);
+      BigInt_set_from_int(&n, 1);
+      BigInt_add_s(b->value, b->value, &n);
+      b->scale--;
+    } else {
+      BigInt_set_from_int(&n, 10);
+      BigInt_divide_s(b->value, b->value, &n);
+      b->scale--;
+    }
+    
+    BigInt_destroy(&temp);
+    BigInt_destroy(&temp2);
+    BigInt_destroy(&b10);
+    BigInt_destroy(&n);
+  }
+  
+  /* BigInt_print(b->value);
+  
+  printf("\n"); */
 }
 
 int BigDec_cmp(BigDec * a, BigDec * b) {
@@ -432,7 +497,7 @@ int BigDec_cmp(BigDec * a, BigDec * b) {
   return result;
 }
 
-void BigDec_add(BigDec * sum, BigDec * addend1, BigDec * addend2) {
+void BigDec_add(BigDec * sum, BigDec * addend1, BigDec * addend2, int prec) {
   int max_scale = BigInt_max_int(addend1->scale, addend2->scale);
   int sc1, sc2;
   
@@ -461,10 +526,10 @@ void BigDec_add(BigDec * sum, BigDec * addend1, BigDec * addend2) {
   BigDec_destroy(&operand1);
   BigDec_destroy(&operand2);
   
-  BigDec_reduce_scale(sum);
+  BigDec_decrease_scale_and_round(sum, prec);
 }
 
-void BigDec_subtract(BigDec * diff, BigDec * minuend, BigDec * subtrahend) {
+void BigDec_subtract(BigDec * diff, BigDec * minuend, BigDec * subtrahend, int prec) {
   int max_scale = BigInt_max_int(minuend->scale, subtrahend->scale);
   int sc1, sc2;
   
@@ -493,16 +558,16 @@ void BigDec_subtract(BigDec * diff, BigDec * minuend, BigDec * subtrahend) {
   BigDec_destroy(&operand1);
   BigDec_destroy(&operand2);
   
-  BigDec_reduce_scale(diff);
+  BigDec_decrease_scale_and_round(diff, prec);
 }
 
-void BigDec_multiply(BigDec * product, BigDec * multiplicand, BigDec * multiplier) {
+void BigDec_multiply(BigDec * product, BigDec * multiplicand, BigDec * multiplier, int prec) {
   int scale = multiplicand->scale + multiplier->scale;
   
   BigInt_multiply_s(product->value, multiplicand->value, multiplier->value);
   product->scale = scale;
   
-  BigDec_reduce_scale(product);
+  BigDec_decrease_scale_and_round(product, prec);
 }
 
 void BigDec_multiply_prec(BigDec * product, BigDec * multiplicand, BigDec * multiplier, int prec) {
@@ -537,7 +602,7 @@ void BigDec_divide(BigDec * quotient, BigDec * dividend, BigDec * divisor, int p
   BigInt_divide_s(quotient->value, operand1.value, divisor->value);
   quotient->scale = scale;
   
-  BigDec_reduce_scale_and_round(quotient, prec);
+  BigDec_decrease_scale_and_round(quotient, prec);
   
   BigDec_destroy(&operand1);
 }
@@ -561,7 +626,7 @@ void BigDec_sqrt(BigDec * dest, BigDec * src, int prec) {
   
   while (i < BIGDEC_SQRT_THRESHOLD) {
     BigDec_divide(&temp, &s, &x, prec);
-    BigDec_add(&temp, &temp, &x);
+    BigDec_add(&temp, &temp, &x, prec);
     BigDec_divide(&temp, &temp, &two, prec);
     
     if (BigDec_cmp(&x, &temp) == 0) {
