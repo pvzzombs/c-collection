@@ -917,7 +917,7 @@ void BigDec_ln_atanh(BigDec * dest, BigDec * src, int prec) {
     twos_count++;
   } */
   twos_count = BigDec_sqrt_with_bound(&z, &z, &bound, new_prec);
-  printf("two's count: %d\n", twos_count);
+  /* printf("two's count: %d\n", twos_count); */
   
   BigDec_subtract(&num, &z, &one, new_prec);
   BigDec_add(&denom, &z, &one, new_prec);
@@ -939,7 +939,7 @@ void BigDec_ln_atanh(BigDec * dest, BigDec * src, int prec) {
     j++;
     
     if (BigDec_cmp(&temp, &sum) == 0) {
-      printf("Ln atanh iter: %d\n", j);
+      /* printf("Ln atanh iter: %d\n", j); */
       break;
     }
   }
