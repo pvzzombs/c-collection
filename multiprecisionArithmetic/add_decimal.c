@@ -9,10 +9,10 @@ int main() {
   BigDec_init(&a);
   BigDec_init(&b);
   
-  BigDec_set_from_string(&a, "0.55555");
-  BigDec_set_from_string(&b, "0.44445");
+  BigDec_set_from_string(&a, "12");
+  BigDec_set_from_string(&b, "1234.44445");
   
-  BigDec_add(&sum, &a, &b, 2);
+  BigDec_power_int(&sum, &a, 10, 5);
   
   s = BigDec_to_string(&sum);
   
@@ -26,19 +26,31 @@ int main() {
   
   free(s);
   
+  BigDec_truncate(&b, &b);
+  
   s = BigDec_to_string(&b);
   
-  printf("%s\n", s);
+  printf("Truncate: %s\n", s);
   
   free(s);
   
-  BigDec_sqrt(&sum, &a, 100);
+  BigDec_e_taylor(&sum, &a, 1000);
   
   s = BigDec_to_string(&sum);
   
   printf("%s\n", s);
   
   free(s);
+  
+  BigDec_e(&a, &a, 1000);
+  
+  s = BigDec_to_string(&a);
+  
+  printf("Power int is %s\n", s);
+  
+  free(s);
+  
+  
   
   BigDec_destroy(&sum);
   BigDec_destroy(&a);

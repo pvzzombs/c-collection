@@ -6,6 +6,11 @@
 #endif
 
 #define BIGDEC_SQRT_THRESHOLD 100
+#define BIGDEC_E_TAYLOR_THRESHOLD 1000
+#define BIGDEC_E_TAYLOR_THRESHOLD_STRING "1000"
+#define BIGDEC_E_BROTHERS_THRESHOLD 1000
+#define BIGDEC_E_BROTHERS_THRESHOLD_STRING "1000"
+#define BIGDEC_GUARD_THRESHOLD 10
 
 #include "bigInteger.h"
 
@@ -465,6 +470,27 @@ void BigDec_decrease_scale_and_round(BigDec * b, int prec) {
   printf("\n"); */
 }
 
+void BigDec_truncate(BigDec * dest, BigDec * src) {
+  BigInt b10, temp;
+  BigDec c;
+    
+  BigInt_init(&temp);
+  BigInt_init_from_int(&b10, 10);
+  BigDec_init(&c);
+  
+  BigDec_copy(&c, src);
+  
+  BigInt_power(&temp, &b10, c.scale);
+  BigInt_divide_s(c.value, c.value, &temp);
+  c.scale = 0;
+  
+  BigDec_copy(dest, &c);
+  
+  BigDec_destroy(&c);
+  BigInt_destroy(&temp);
+  BigInt_destroy(&b10);
+}
+
 int BigDec_cmp(BigDec * a, BigDec * b) {
   int max_scale, result, sc1, sc2;
   
@@ -564,7 +590,7 @@ void BigDec_subtract(BigDec * diff, BigDec * minuend, BigDec * subtrahend, int p
 void BigDec_multiply(BigDec * product, BigDec * multiplicand, BigDec * multiplier, int prec) {
   int scale = multiplicand->scale + multiplier->scale;
   
-  BigInt_multiply_s(product->value, multiplicand->value, multiplier->value);
+  BigInt_multiply_auto_s(product->value, multiplicand->value, multiplier->value);
   product->scale = scale;
   
   BigDec_decrease_scale_and_round(product, prec);
@@ -607,6 +633,22 @@ void BigDec_divide(BigDec * quotient, BigDec * dividend, BigDec * divisor, int p
   BigDec_destroy(&operand1);
 }
 
+void BigDec_power_int(BigDec * result, BigDec * base, int exponent, int prec) {
+  BigDec basetemp;
+  BigDec_init(&basetemp);
+  BigDec_copy(&basetemp, base);
+  BigInt_set_from_int(result->value, 1);
+  result->scale = 0;
+  while (exponent > 0) {
+    if (exponent & 1) {
+      BigDec_multiply(result, result, &basetemp, prec);
+    }
+    BigDec_multiply(&basetemp, &basetemp, &basetemp, prec);
+    exponent = exponent >> 1;
+  }
+  BigDec_destroy(&basetemp);
+}
+
 void BigDec_sqrt(BigDec * dest, BigDec * src, int prec) {
   BigDec s;
   BigDec two;
@@ -643,6 +685,109 @@ void BigDec_sqrt(BigDec * dest, BigDec * src, int prec) {
   BigDec_destroy(&two);
   BigDec_destroy(&x);
   BigDec_destroy(&temp);
+}
+
+void BigDec_e_taylor(BigDec * dest, BigDec * x, int prec) {
+  BigDec sum, term, n, oldSum, th, one;
+  int new_prec = prec + BIGDEC_GUARD_THRESHOLD;
+  
+  BigDec_init_from_string(&sum, "1");
+  BigDec_init_from_string(&term, "1");
+  BigDec_init_from_string(&n, "1");
+  BigDec_init(&oldSum);
+  BigDec_init_from_string(&one, "1");
+  BigDec_init_from_string(&th, BIGDEC_E_TAYLOR_THRESHOLD_STRING);
+  
+  
+  while (BigDec_cmp(&n, &th) < 0) {
+    BigDec_copy(&oldSum, &sum);
+    BigDec_multiply(&term, &term, x, new_prec);
+    BigDec_divide(&term, &term, &n, new_prec);
+    BigDec_add(&sum, &sum, &term, new_prec);
+    BigDec_add(&n, &n, &one, new_prec);
+    
+    if (BigDec_cmp(&sum, &oldSum) == 0) {
+      printf("Iterations: %d\n", n.value->internalRepresentation[0]);
+      break;
+    }
+  }
+  
+  BigDec_decrease_scale_and_round(&sum, prec);
+  BigDec_copy(dest, &sum);
+  
+  BigDec_destroy(&sum);
+  BigDec_destroy(&term);
+  BigDec_destroy(&n);
+  BigDec_destroy(&oldSum);
+  BigDec_destroy(&th);
+  BigDec_destroy(&one);
+}
+
+void BigDec_e_brothers(BigDec * dest, int prec) {
+  BigDec num, denom, terms, term, one, i, th, c;
+  int new_prec = prec + BIGDEC_GUARD_THRESHOLD;
+  
+  BigDec_init_from_string(&num, "2");
+  BigDec_init_from_string(&denom, "1");
+  BigDec_init_from_string(&terms, "2");
+  BigDec_init(&term);
+  BigDec_init_from_string(&one, "1");
+  BigDec_init(&i);
+  BigDec_init_from_string(&th, BIGDEC_E_BROTHERS_THRESHOLD_STRING);
+  BigDec_init(&c);
+  int o = 0;
+  
+  while (BigDec_cmp(&i, &th) < 0) {
+    BigDec_copy(&c, &terms);
+    BigDec_multiply(&denom, &denom, &num, new_prec);
+    BigDec_add(&num, &num, &one, new_prec);
+    BigDec_multiply(&denom, &denom, &num, new_prec);
+    BigDec_add(&num, &num, &one, new_prec);
+    BigDec_divide(&term, &num, &denom, new_prec);
+    BigDec_add(&terms, &terms, &term, new_prec);
+    o++;
+    
+    if (BigDec_cmp(&c, &terms) == 0) {
+      printf("Iterations: %d\n", o);
+      break;
+    }
+  }
+  
+  BigDec_decrease_scale_and_round(&terms, prec);
+  BigDec_copy(dest, &terms);
+  
+  BigDec_destroy(&num);  
+  BigDec_destroy(&denom);
+  BigDec_destroy(&terms);
+  BigDec_destroy(&term);
+  BigDec_destroy(&one);
+  BigDec_destroy(&i);
+  BigDec_destroy(&th);
+  BigDec_destroy(&c);
+}
+
+void BigDec_e(BigDec * dest, BigDec * src, int prec) {
+  int new_prec = prec + BIGDEC_GUARD_THRESHOLD;
+  BigDec intpart, decimalpart, e_int, e_dec;
+  
+  BigDec_init(&intpart);
+  BigDec_init(&decimalpart);
+  BigDec_init(&e_int);
+  BigDec_init(&e_dec);
+  
+  BigDec_truncate(&intpart, src);
+  BigDec_subtract(&decimalpart, src, &intpart, new_prec);
+  
+  BigDec_e_taylor(&e_dec, &decimalpart, new_prec);
+  BigDec_e_brothers(&e_int, new_prec);
+  BigDec_power_int(&e_int, &e_int, intpart.value->internalRepresentation[0], new_prec);
+  BigDec_multiply(dest, &e_int, &e_dec, new_prec);
+  BigDec_decrease_scale_and_round(dest, prec);
+  
+  BigDec_destroy(&intpart);
+  BigDec_destroy(&decimalpart);
+  BigDec_destroy(&e_int);
+  BigDec_destroy(&e_dec);
 }
 
 #endif
