@@ -45,7 +45,8 @@ void BigDec_multiply_prec(BigDec *, BigDec *, BigDec *, int);
 void BigDec_divide(BigDec *, BigDec *, BigDec *, int);
 void BigDec_power_int(BigDec *, BigDec *, int, int);
 void BigDec_sqrt(BigDec *, BigDec *, int);
-void BigDec_e(BigDec *, BigDec *, int);
+void BigDec_e_taylor_and_brothers(BigDec *, BigDec *, int);
+void BigDec_ln_atanh(BigDec *, BigDec *, int);
 
 #if defined(BIGDEC_IMPL) || defined(MPA_IMPL)
 
@@ -455,7 +456,11 @@ void BigDec_decrease_scale_and_round(BigDec * b, int prec) {
       BigInt_set_from_int(&n, 10);
       BigInt_divide_s(b->value, b->value, &n);
       BigInt_set_from_int(&n, 1);
-      BigInt_add_s(b->value, b->value, &n);
+      if (b->value->sign > 0) {
+        BigInt_add_s(b->value, b->value, &n);
+      } else if (b->value->sign < 0) {
+        BigInt_subtract_s(b->value, b->value, &n);
+      }
       b->scale--;
     } else {
       BigInt_set_from_int(&n, 10);
@@ -690,6 +695,50 @@ void BigDec_sqrt(BigDec * dest, BigDec * src, int prec) {
   BigDec_destroy(&x);
   BigDec_destroy(&temp);
 }
+int BigDec_sqrt_with_bound(BigDec * dest, BigDec * src, BigDec * bound, int prec) {
+  BigDec s;
+  BigDec two;
+  BigDec x;
+  
+  BigDec temp;
+  
+  int i = 0;
+  int iter = 0;
+  
+  BigDec_init(&s);
+  BigDec_init_from_string(&two, "2");
+  BigDec_init(&x);
+  BigDec_init(&temp);
+  
+  BigDec_copy(&s, src);
+  BigDec_divide(&x, &s, &two, prec);
+  
+  while (i < BIGDEC_SQRT_THRESHOLD) {
+    BigDec_divide(&temp, &s, &x, prec);
+    BigDec_add(&temp, &temp, &x, prec);
+    BigDec_divide(&temp, &temp, &two, prec);
+    
+    if (BigDec_cmp(&x, &temp) == 0) {
+      BigDec_copy(&s, &temp);
+      iter++;
+      if (BigDec_cmp(&s, bound) <= 0) {
+        break;
+      }
+    }
+    
+    BigDec_copy(&x, &temp);
+    i++;
+  }
+  
+  BigDec_copy(dest, &x);
+  
+  BigDec_destroy(&s);
+  BigDec_destroy(&two);
+  BigDec_destroy(&x);
+  BigDec_destroy(&temp);
+  
+  return iter;
+}
 
 void BigDec_e_taylor(BigDec * dest, BigDec * x, int prec) {
   BigDec sum, term, n, oldSum, th, one;
@@ -770,7 +819,7 @@ void BigDec_e_brothers(BigDec * dest, int prec) {
   BigDec_destroy(&c);
 }
 
-void BigDec_e(BigDec * dest, BigDec * src, int prec) {
+void BigDec_e_taylor_and_brothers(BigDec * dest, BigDec * src, int prec) {
   int new_prec = prec + BIGDEC_GUARD_THRESHOLD;
   BigDec intpart, decimalpart, e_int, e_dec, one;
   
@@ -817,7 +866,7 @@ void BigDec_ln_slow(BigDec * dest, BigDec * src, int prec) {
   
   while(BigDec_cmp(&i, &th) < 0) {
     BigDec_copy(&old, &yn);
-    BigDec_e(&e_yn, &yn, new_prec);
+    BigDec_e_taylor_and_brothers(&e_yn, &yn, new_prec);
     BigDec_subtract(&diff, &x, &e_yn, new_prec);
     BigDec_divide(&diff, &diff, &e_yn, new_prec);
     BigDec_add(&diff, &diff, &yn, new_prec);
@@ -848,7 +897,7 @@ void BigDec_ln_slow(BigDec * dest, BigDec * src, int prec) {
 }
 
 void BigDec_ln_atanh(BigDec * dest, BigDec * src, int prec) {
-  BigDec z, one, two, new_z, num, denom, i, th, sum, temp, bound;
+  BigDec z, one, two, new_z, num, denom, sum, temp, bound;
   int twos_count = 0, new_prec = prec + BIGDEC_GUARD_THRESHOLD, j = 0;
   
   BigDec_init(&z);
@@ -857,22 +906,18 @@ void BigDec_ln_atanh(BigDec * dest, BigDec * src, int prec) {
   BigDec_init_from_string(&two, "2");
   BigDec_init(&num);
   BigDec_init(&denom);
-  BigDec_init(&i);
-  BigDec_init_from_string(&th, BIGDEC_LN_THRESHOLD_STRING);
   BigDec_init(&sum);
   BigDec_init(&temp);
-  BigDec_init_from_string(&bound, "1.1");
+  BigDec_init_from_string(&bound, "1.05");
   
   BigDec_copy(&z, src);
   
-  while(BigDec_cmp(&z, &bound) > 0) {
-    /* char * s; */
+  /* while(BigDec_cmp(&z, &bound) > 0) {
     BigDec_sqrt(&z, &z, new_prec);
-    /* s = BigDec_to_string(&z);
-    printf("z is %s\n", s);
-    free(s); */
     twos_count++;
-  }
+  } */
+  twos_count = BigDec_sqrt_with_bound(&z, &z, &bound, new_prec);
+  printf("two's count: %d\n", twos_count);
   
   BigDec_subtract(&num, &z, &one, new_prec);
   BigDec_add(&denom, &z, &one, new_prec);
@@ -883,7 +928,7 @@ void BigDec_ln_atanh(BigDec * dest, BigDec * src, int prec) {
   denom.scale = 0;
   BigDec_copy(&sum, &new_z);
   
-  while (BigDec_cmp(&i, &th) < 0) {
+  while (j < BIGDEC_LN_THRESHOLD) {
     BigDec_copy(&temp, &sum);
     BigDec_multiply(&num, &num, &new_z, new_prec);
     BigDec_multiply(&num, &num, &new_z, new_prec);
@@ -897,8 +942,6 @@ void BigDec_ln_atanh(BigDec * dest, BigDec * src, int prec) {
       printf("Ln atanh iter: %d\n", j);
       break;
     }
-    
-    BigDec_add(&i, &i, &one, new_prec);
   }
   
   BigDec_multiply(&sum, &sum, &two, new_prec);
@@ -914,8 +957,6 @@ void BigDec_ln_atanh(BigDec * dest, BigDec * src, int prec) {
   BigDec_destroy(&two);
   BigDec_destroy(&num);
   BigDec_destroy(&denom);
-  BigDec_destroy(&i);
-  BigDec_destroy(&th);
   BigDec_destroy(&sum);
   BigDec_destroy(&temp);
   BigDec_destroy(&bound);

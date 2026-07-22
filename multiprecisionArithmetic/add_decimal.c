@@ -9,7 +9,7 @@ int main() {
   BigDec_init(&a);
   BigDec_init(&b);
   
-  BigDec_set_from_string(&a, "99");
+  BigDec_set_from_string(&a, "50");
   BigDec_set_from_string(&b, "1234.44445");
   
   BigDec_power_int(&sum, &a, 10, 5);
@@ -42,7 +42,7 @@ int main() {
   
   free(s);
   
-  BigDec_e(&sum, &a, 100);
+  BigDec_e_taylor_and_brothers(&sum, &a, 100);
   
   s = BigDec_to_string(&sum);
   
