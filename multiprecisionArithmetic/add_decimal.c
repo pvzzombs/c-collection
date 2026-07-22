@@ -9,7 +9,7 @@ int main() {
   BigDec_init(&a);
   BigDec_init(&b);
   
-  BigDec_set_from_string(&a, "12");
+  BigDec_set_from_string(&a, "99");
   BigDec_set_from_string(&b, "1234.44445");
   
   BigDec_power_int(&sum, &a, 10, 5);
@@ -42,15 +42,21 @@ int main() {
   
   free(s);
   
-  BigDec_e(&a, &a, 1000);
+  BigDec_e(&sum, &a, 100);
   
-  s = BigDec_to_string(&a);
+  s = BigDec_to_string(&sum);
   
-  printf("Power int is %s\n", s);
+  printf("E is %s\n", s);
   
   free(s);
   
+  BigDec_ln_atanh(&sum, &a, 1000);
   
+  s = BigDec_to_string(&sum);
+  
+  printf("ln is %s\n", s);
+  
+  free(s);
   
   BigDec_destroy(&sum);
   BigDec_destroy(&a);
