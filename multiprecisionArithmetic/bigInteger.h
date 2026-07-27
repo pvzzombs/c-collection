@@ -291,6 +291,8 @@ void BigInt_divide_unsigned(BigInt *, BigInt *, BigInt *);
 void BigInt_divide_no_copy_unsigned(BigInt *, BigInt *, BigInt *);
 void BigInt_divide(BigInt *, BigInt *, BigInt *);
 void BigInt_divide_no_copy(BigInt *, BigInt *, BigInt *);
+void BigInt_divmod_unsigned(BigInt *, BigInt *, BigInt *, BigInt *);
+void BigInt_divmod(BigInt *, BigInt *, BigInt *, BigInt *);
 void BigInt_set_from_string_with_small(BigInt *, char *);
 void BigInt_set_from_string_impl(BigInt *, char *);
 void BigInt_set_from_string_unsigned(BigInt *, char *);
@@ -483,7 +485,7 @@ void BigInt_zero_all_impl(BigInt_limb_t * dest, int len) {
 BigInt_limb_t * BigInt_alloc_helper(int * old_alloc_size, int required_size) {
   int newSize;
 #if defined(BIGINT_ALLOC_STRATEGY_GROW)
-  if (*old_alloc_size == 0) {
+  if (*old_alloc_size < 1) {
     newSize = required_size;
   } else if (*old_alloc_size < BIGINT_ALLOC_GROW_THRESHOLD) {
     newSize = (*old_alloc_size) * 2;
@@ -1388,6 +1390,49 @@ void BigInt_divide_optimize_bump_impl(BigInt_limb_t * dividend, BigInt_limb_t * 
   }
 }
 
+void BigInt_divide_with_remainder_optimize_bump_impl(BigInt_limb_t * dividend, BigInt_limb_t * divisor, BigInt_limb_t * quotient, BigInt_limb_t * remainder, int dividendLen, int divisorLen, int quotientLen, BigInt_Bump_Allocator * bmp) {
+  int remainderLen = divisorLen + 1;
+  int i, j;
+  BigInt_limb_wide_t qDigit1, qDigit2, dvsrDigit, qhat, base = BIGINT_BASE;
+  BigInt_limb_t * tempHolder;
+  BigInt_limb_t * qDigit;
+  
+  tempHolder = BigInt_Bump_Allocator_alloc(bmp, remainderLen);
+  qDigit = BigInt_Bump_Allocator_alloc(bmp, 1);
+
+  for (i = 0; i < remainderLen; i++) {
+    remainder[remainderLen - i - 1] = dividend[dividendLen - i - 1];
+  }
+
+  for (i = 0; i < quotientLen; i++) {
+    remainder[0] = dividend[quotientLen - i - 1];
+    qDigit1 = remainder[remainderLen - 1];
+    qDigit2 = remainder[remainderLen - 2];
+    dvsrDigit = divisor[divisorLen - 1];
+    qhat = (qDigit1 * base + qDigit2) / dvsrDigit;
+    qhat = BigInt_min_int(qhat, BIGINT_BASE_MAX_INT);
+
+    qDigit[0] = qhat;
+    for (j = 0; j < remainderLen; j++) {
+      tempHolder[j] = 0;
+    }
+    BigInt_multiply_optimize_impl(divisor, qDigit, tempHolder, divisorLen, 1, remainderLen);
+    while(BigInt_internal_cmp(remainder, tempHolder, remainderLen, remainderLen) < 0) {
+      qDigit[0]--;
+      /* for (j = 0; j < remainderLen; j++) {
+        tempHolder[j] = 0;
+      }
+      BigInt_multiply_optimize_impl(divisor, qDigit, tempHolder, divisorLen, 1, remainderLen); */
+      BigInt_subtract_optimize_impl(tempHolder, divisor, tempHolder, remainderLen, divisorLen, remainderLen);
+    }
+    BigInt_subtract_optimize_impl(remainder, tempHolder, remainder, remainderLen, remainderLen, remainderLen);
+    quotient[quotientLen - i - 1] = qDigit[0];
+    if (i != quotientLen - 1) {
+      BigInt_internal_shift_towards_front_by_one(remainder, remainderLen);
+    }
+  }
+}
+
 void BigInt_divide_unsigned(BigInt * quotient, BigInt * dividend1, BigInt * divisor) {
   int i, s = 0;
   BigInt_limb_t * d;
@@ -1444,6 +1489,103 @@ void BigInt_divide_unsigned(BigInt * quotient, BigInt * dividend1, BigInt * divi
   BigInt_divide_optimize_bump_impl(newDividend, newDivisor, quotient->internalRepresentation, dividend2.internalSize, divisor->internalSize, quotient->internalSize, &bmp);
   BigInt_remove_leading_zeroes(quotient);
   
+  BigInt_Bump_Allocator_destroy(&bmp);
+}
+
+void BigInt_divide_int_impl(BigInt_limb_t * dividend, BigInt_limb_t divisor, BigInt_limb_t * quotient, int dividendLen) {
+  int i;
+  BigInt_limb_wide_t r = 0, tempq;
+  BigInt_limb_t q;
+  
+  for (i = dividendLen - 1; i >= 0; i--) {
+    r = r * BIGINT_BASE + dividend[i];
+    tempq = r / divisor;
+    q = tempq;
+    quotient[i] = q;
+    tempq *= divisor;
+    r = r - tempq;
+  }
+}
+
+void BigInt_divmod_unsigned(BigInt * quotient, BigInt * remainder, BigInt * dividend1, BigInt * divisor) {
+  int i, s = 0;
+  BigInt_limb_t * d;
+  BigInt_limb_t * newDividend;
+  BigInt_limb_t * newDivisor;
+  BigInt_limb_t * rem;
+  BigInt_limb_wide_t div;
+  BigInt dividend2;
+  
+  BigInt_Bump_Allocator bmp;
+  
+  if (BigInt_cmp_len(dividend1, divisor) < 0 || BigInt_is_zero_impl(divisor->internalRepresentation, divisor->internalSize)) {
+    if (quotient->allocSize >= 1) {
+      quotient->internalRepresentation[0] = 0;
+      quotient->internalSize = 1;
+    } else {
+      BIGINT_FREE(quotient->internalRepresentation);
+      quotient->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
+      quotient->internalRepresentation[0] = 0;
+      quotient->internalSize = 1;
+      quotient->allocSize = 1;
+    }
+    if (remainder != NULL) {
+      BigInt_copy(remainder, dividend1);
+    }
+    return;
+  }
+  
+  BigInt_Bump_Allocator_init(&bmp, 1 
+    + dividend1->internalSize + 1 
+    + dividend1->internalSize + 1 
+    + divisor->internalSize 
+    + divisor->internalSize + 1
+    + divisor->internalSize + 1
+    + 1);
+
+  d = BigInt_Bump_Allocator_alloc(&bmp, 1); s += 1;
+  newDividend = NULL;
+  newDivisor = NULL;
+
+  BigInt_copy_to_no_init_bump(&dividend2, dividend1, 1, 1, &bmp, &s);
+
+  div = BIGINT_BASE;
+  div /= divisor->internalRepresentation[divisor->internalSize - 1] + 1;
+  d[0] = div;
+  newDividend = BigInt_Bump_Allocator_alloc(&bmp, dividend2.internalSize); s += dividend2.internalSize;
+  newDivisor = BigInt_Bump_Allocator_alloc(&bmp, divisor->internalSize); s += divisor->internalSize;
+  rem = BigInt_Bump_Allocator_alloc(&bmp, divisor->internalSize + 1); s += divisor->internalSize + 1;
+  
+  for (i = 0; i < dividend2.internalSize; i++) {
+    newDividend[i] = 0;
+  }
+  for (i = 0; i < divisor->internalSize; i++) {
+    newDivisor[i] = 0;
+  }
+  
+  if (quotient->allocSize >= dividend2.internalSize - divisor->internalSize) {
+    quotient->internalSize = dividend2.internalSize - divisor->internalSize;
+  } else {
+    BIGINT_FREE(quotient->internalRepresentation);
+    quotient->internalRepresentation = BigInt_alloc_helper(&(quotient->allocSize), dividend2.internalSize - divisor->internalSize);
+    quotient->internalSize = dividend2.internalSize - divisor->internalSize;
+  }
+  BigInt_multiply_optimize_impl(dividend2.internalRepresentation, d, newDividend, dividend2.internalSize - 1, 1, dividend2.internalSize);
+  BigInt_multiply_optimize_impl(divisor->internalRepresentation, d, newDivisor, divisor->internalSize, 1, divisor->internalSize);
+  BigInt_divide_with_remainder_optimize_bump_impl(newDividend, newDivisor, quotient->internalRepresentation, rem, dividend2.internalSize, divisor->internalSize, quotient->internalSize, &bmp);
+  BigInt_remove_leading_zeroes(quotient);
+  
+  if (remainder != NULL) {
+    if (remainder->allocSize >= divisor->internalSize + 1) {
+      remainder->internalSize = divisor->internalSize + 1;
+    } else {
+      BIGINT_FREE(remainder->internalRepresentation);
+      remainder->internalRepresentation = BigInt_alloc_helper(&(remainder->allocSize), divisor->internalSize + 1);
+      remainder->internalSize = divisor->internalSize + 1;
+    }
+    BigInt_divide_int_impl(rem, d[0], remainder->internalRepresentation, divisor->internalSize + 1);
+    BigInt_remove_leading_zeroes(remainder);
+  }
   BigInt_Bump_Allocator_destroy(&bmp);
 }
 
@@ -1534,7 +1676,7 @@ void BigInt_divide(BigInt * quotient, BigInt * dividend1, BigInt * divisor) {
   }
 
   quotient->sign = dividend2.sign * divisor->sign;
-  if (BigInt_cmp_unsigned(&dividend2, divisor) < 0 || BigInt_is_zero_impl(divisor->internalRepresentation, divisor->internalSize)) {
+  if (BigInt_cmp_unsigned(dividend1, divisor) < 0 || BigInt_is_zero_impl(divisor->internalRepresentation, divisor->internalSize)) {
     if (quotient->allocSize >= 1) {
       quotient->internalRepresentation[0] = 0;
       quotient->internalSize = 1;
@@ -1557,6 +1699,88 @@ void BigInt_divide(BigInt * quotient, BigInt * dividend1, BigInt * divisor) {
     BigInt_multiply_optimize_impl(divisor->internalRepresentation, d, newDivisor, divisor->internalSize, 1, divisor->internalSize);
     BigInt_divide_optimize_bump_impl(newDividend, newDivisor, quotient->internalRepresentation, dividend2.internalSize, divisor->internalSize, quotient->internalSize, &bmp);
     BigInt_remove_leading_zeroes(quotient);
+  }
+  
+  BigInt_Bump_Allocator_destroy(&bmp);
+}
+
+void BigInt_divmod(BigInt * quotient, BigInt * remainder, BigInt * dividend1, BigInt * divisor) {
+  int i, s = 0;
+  BigInt_limb_t * d;
+  BigInt_limb_t * newDividend;
+  BigInt_limb_t * newDivisor;
+  BigInt_limb_t * rem;
+  BigInt_limb_wide_t div;
+  BigInt dividend2;
+  
+  BigInt_Bump_Allocator bmp;
+  
+  BigInt_Bump_Allocator_init(&bmp, 1 
+    + dividend1->internalSize + 1 
+    + dividend1->internalSize + 1 
+    + divisor->internalSize 
+    + divisor->internalSize + 1 
+    + divisor->internalSize + 1 
+    + 1);
+
+  d = BigInt_Bump_Allocator_alloc(&bmp, 1); s += 1;
+  newDividend = NULL;
+  newDivisor = NULL;
+
+  BigInt_copy_to_no_init_bump(&dividend2, dividend1, 1, 1, &bmp, &s);
+
+  div = BIGINT_BASE;
+  div /= divisor->internalRepresentation[divisor->internalSize - 1] + 1;
+  d[0] = div;
+  newDividend = BigInt_Bump_Allocator_alloc(&bmp, dividend2.internalSize); s += dividend2.internalSize;
+  newDivisor = BigInt_Bump_Allocator_alloc(&bmp, divisor->internalSize); s += divisor->internalSize;
+  rem = BigInt_Bump_Allocator_alloc(&bmp, divisor->internalSize + 1); s += divisor->internalSize + 1;
+  for (i = 0; i < dividend2.internalSize; i++) {
+    newDividend[i] = 0;
+  }
+  for (i = 0; i < divisor->internalSize; i++) {
+    newDivisor[i] = 0;
+  }
+
+  quotient->sign = dividend2.sign * divisor->sign;
+  if (BigInt_cmp_unsigned(dividend1, divisor) < 0 || BigInt_is_zero_impl(divisor->internalRepresentation, divisor->internalSize)) {
+    if (quotient->allocSize >= 1) {
+      quotient->internalRepresentation[0] = 0;
+      quotient->internalSize = 1;
+    } else {
+      BIGINT_FREE(quotient->internalRepresentation);
+      quotient->internalRepresentation = (BigInt_limb_t *)BIGINT_ALLOC(1 * sizeof(BigInt_limb_t));
+      quotient->internalRepresentation[0] = 0;
+      quotient->internalSize = 1;
+      quotient->allocSize = 1;
+    }
+    if (remainder != NULL) {
+      BigInt_copy(remainder, dividend1);
+    }
+  } else {
+    if (quotient->allocSize >= dividend2.internalSize - divisor->internalSize) {
+      quotient->internalSize = dividend2.internalSize - divisor->internalSize;
+    } else {
+      BIGINT_FREE(quotient->internalRepresentation);
+      quotient->internalRepresentation = BigInt_alloc_helper(&(quotient->allocSize), dividend2.internalSize - divisor->internalSize);
+      quotient->internalSize = dividend2.internalSize - divisor->internalSize;
+    }
+    BigInt_multiply_optimize_impl(dividend2.internalRepresentation, d, newDividend, dividend2.internalSize - 1, 1, dividend2.internalSize);
+    BigInt_multiply_optimize_impl(divisor->internalRepresentation, d, newDivisor, divisor->internalSize, 1, divisor->internalSize);
+    BigInt_divide_with_remainder_optimize_bump_impl(newDividend, newDivisor, quotient->internalRepresentation, rem, dividend2.internalSize, divisor->internalSize, quotient->internalSize, &bmp);
+    BigInt_remove_leading_zeroes(quotient);
+    
+    if (remainder != NULL) {
+      if (remainder->allocSize >= divisor->internalSize + 1) {
+        remainder->internalSize = divisor->internalSize + 1;
+      } else {
+        BIGINT_FREE(remainder->internalRepresentation);
+        remainder->internalRepresentation = BigInt_alloc_helper(&(remainder->allocSize), divisor->internalSize + 1);
+        remainder->internalSize = divisor->internalSize + 1;
+      }
+      BigInt_divide_int_impl(rem, d[0], remainder->internalRepresentation, divisor->internalSize + 1);
+      BigInt_remove_leading_zeroes(remainder);
+    }
   }
   
   BigInt_Bump_Allocator_destroy(&bmp);

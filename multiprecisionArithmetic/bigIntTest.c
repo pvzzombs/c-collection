@@ -471,6 +471,107 @@ void randomizedDivide100by50() {
   BigInt_destroy(&c);
 }
 
+void randomizedDivMod() {
+  char num1[1024];
+  char num2[1024];
+  char num3[1024];
+  char * s;
+  char * target;
+  int i;
+  BigInt a,b,c,r, tempr;
+  srand(time(NULL));
+  BigInt_init(&a);
+  BigInt_init(&b);
+  BigInt_init(&c);
+  BigInt_init(&r);
+  BigInt_init(&tempr);
+  for (i = 0; i < 100; i++) {
+    generateBigInteger(num1);
+    generateBigInteger(num2);
+    mpa_removeLeadingZeroes(num1);
+    mpa_removeLeadingZeroes(num2);
+    if (mpa_bigIntCmp(num1, num2) < 0) {
+      continue;
+    }
+    target = mpa_divide(num1, num2);
+    BigInt_set_from_string_unsigned(&a, num1);
+    BigInt_set_from_string_unsigned(&b, num2);
+    BigInt_divmod_unsigned(&c, &r, &a, &b);
+    s = BigInt_to_string_unsigned(&c);
+    TEST_CHECK(strcmp(target, s) == 0);
+    TEST_MSG("Len is %d %d", strlen(target), strlen(s));
+    TEST_MSG("Expected: %s, Output: %s, Numbers: %s / %s", target, s, num1, num2);
+    
+    BigInt_multiply_u(&tempr, &c, &b);
+    BigInt_subtract_u(&tempr, &a, &tempr);
+    
+    TEST_CHECK(BigInt_cmp_unsigned(&tempr, &r) == 0);
+    
+    free(target);
+    free(s);
+  }
+  BigInt_destroy(&a);
+  BigInt_destroy(&b);
+  BigInt_destroy(&c);
+  BigInt_destroy(&r);
+  BigInt_destroy(&tempr);
+}
+
+void randomizedDivMod50() {
+  char num1[1024];
+  char num2[1024];
+  char num3[1024];
+  char * s;
+  char * target;
+  char * rn;
+  char * rt;
+  int i;
+  BigInt a,b,c,r, tempr;
+  srand(time(NULL));
+  BigInt_init(&a);
+  BigInt_init(&b);
+  BigInt_init(&c);
+  BigInt_init(&r);
+  BigInt_init(&tempr);
+  for (i = 0; i < 100; i++) {
+    generateBigIntegerN(num1, 100);
+    generateBigIntegerN(num2, 50);
+    mpa_removeLeadingZeroes(num1);
+    mpa_removeLeadingZeroes(num2);
+    if (mpa_bigIntCmp(num1, num2) < 0) {
+      continue;
+    }
+    target = mpa_divide(num1, num2);
+    BigInt_set_from_string_unsigned(&a, num1);
+    BigInt_set_from_string_unsigned(&b, num2);
+    BigInt_divmod_unsigned(&c, &r, &a, &b);
+    s = BigInt_to_string_unsigned(&c);
+    TEST_CHECK(strcmp(target, s) == 0);
+    TEST_MSG("Len is %d %d", strlen(target), strlen(s));
+    TEST_MSG("Expected: %s, Output: %s, Numbers: %s / %s", target, s, num1, num2);
+    
+    BigInt_multiply_u(&tempr, &c, &b);
+    BigInt_subtract_u(&tempr, &a, &tempr);
+    
+    rt = BigInt_to_string_unsigned(&tempr);
+    rn = BigInt_to_string_unsigned(&r);
+    TEST_CHECK(BigInt_cmp_unsigned(&tempr, &r) == 0);
+    TEST_MSG("Expected: %s, Output: %s", rt, rn);
+    /* BigInt_print_internal(&tempr);
+    BigInt_print_internal(&r); */
+    
+    free(target);
+    free(s);
+    free(rt);
+    free(rn);
+  }
+  BigInt_destroy(&a);
+  BigInt_destroy(&b);
+  BigInt_destroy(&c);
+  BigInt_destroy(&r);
+  BigInt_destroy(&tempr);
+}
+
 void specificDigitCountTest() {
   char num1[] = "1070066266382758936764980584457396885083683896632151665013235203375314520604694040621889147582489792657804694888177591957484336466672569959512996030461262748092482186144069433051234774442750273781753087579391666192149259186759553966422837148943113074699503439547001985432609723067290192870526447243726117715821825548491120525013201478612965931381792235559657452039506137551467837543229119602129934048260706175397706847068202895486902666185435124521900369480641357447470911707619766945691070098024393439617474103736912503231365532164773697023167755051595173518460579954919410967778373229665796581646513903488154256310184224190259846088000110186255550245493937113651657039447629584714548523425950428582425306083544435428212611008992863795048006894330309773217834864543113205765659868456288616808718693835297350643986297640660000723562917905207051164077614812491885830945940566688339109350944456576357666151619317753792891661581327159616877487983821820492520348473874384736771934512787029218636250627816";
   int count = strlen(num1);
@@ -1238,7 +1339,9 @@ TEST_LIST = {
   {"randomized positive multiplication test", randomizedMultiply},
   {"randomized positive multiplication karatsuba test", randomizedMultiplyKaratsuba},
   {"randomized positive division test", randomizedDivide},
+  {"randomized positive divmod test", randomizedDivMod},
   {"randomized positive division test max(100) digits by max(50) digits", randomizedDivide100by50},
+  {"randomized positive divmod test 100 by 50", randomizedDivMod50},
   {"randomized signed addition test", additionTestSigned},
   {"randomized signed subtraction test", subtractionTestSigned},
   {"randomized signed multiplication test", multiplicationTestSigned},
