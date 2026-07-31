@@ -1,0 +1,1 @@
+executable('hashtable', 'hashtable.c')
