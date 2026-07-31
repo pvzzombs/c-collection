@@ -6,6 +6,7 @@ extern "C" {
 
 #define HASHTABLE_TYPE_STRING 1
 #define HASHTABLE_TYPE_INT 2
+#define HASHTABLE_TYPE_CUSTOM 3
 #define HASHTABLE_TYPE_NONE 0
 
 typedef struct HashTable_Entry_List_ HashTable_Entry_List;
@@ -15,6 +16,7 @@ struct HashTable_Entry_List_ {
   int type;
   char * strVal;
   int numVal;
+  void * customVal;
   
   HashTable_Entry_List * next;
 };
@@ -67,6 +69,7 @@ void HashTable_entry_list_init(HashTable_Entry_List * hel) {
   hel->strKey = NULL;
   hel->strVal = NULL;
   hel->type = HASHTABLE_TYPE_NONE;
+  hel->customVal = NULL;
 }
 
 void HashTable_entry_init(HashTable_Entry * he) {
@@ -101,8 +104,8 @@ int HashTable_entry_contains_int(HashTable_Entry * he, int key) {
 }
 
 void HashTable_entry_add_str(HashTable_Entry * he, char * str, int type, void * val) {
-  char * key = malloc(sizeof(char) * (strlen(str) + 1));
   if (HashTable_entry_contains_str(he, str) == -1) {
+    char * key = malloc(sizeof(char) * (strlen(str) + 1));
     HashTable_Entry_List * newNode = malloc(sizeof(HashTable_Entry_List));
     strcpy(key, str);
     HashTable_entry_list_init(newNode);
@@ -122,6 +125,8 @@ void HashTable_entry_add_str(HashTable_Entry * he, char * str, int type, void * 
       strcpy(newNode->strVal, (char *)val);
     } else if (type == HASHTABLE_TYPE_INT) {
       newNode->numVal = *((int *)val);
+    } else if (type == HASHTABLE_TYPE_CUSTOM) {
+      newNode->customVal = val;
     }
   } else {
     HashTable_entry_update_str(he, str, type, val);
@@ -170,11 +175,14 @@ void HashTable_entry_update_str(HashTable_Entry * he, char * str, int type, void
   if (current != NULL) {
     if (type == HASHTABLE_TYPE_STRING) {
       char * s = (char *) val;
+      free(current->strVal);
       current->strVal = malloc(sizeof(char) * (strlen(s) + 1));
       strcpy(current->strVal, s);
     } else if (type == HASHTABLE_TYPE_INT) {
       int * num = (int *) val;
       current->numVal = *num;
+    } else if (type == HASHTABLE_TYPE_CUSTOM) {
+      current->customVal = val;
     }
   }
 }
@@ -194,6 +202,8 @@ void * HashTable_entry_find_str(HashTable_Entry * he, char * str, int type) {
       return (void *) current->strVal;
     } else if (type == HASHTABLE_TYPE_INT) {
       return (void *) &(current->numVal);
+    } else if (type == HASHTABLE_TYPE_CUSTOM) {
+      return current->customVal;
     }
     return NULL;
   }
@@ -215,6 +225,14 @@ void HashTable_entry_add_int(HashTable_Entry * he, int num, int type, void * val
       newNode->next = he->head;
       he->head = newNode;
       he->len++;
+    }
+    if (type == HASHTABLE_TYPE_STRING) {
+      newNode->strVal = malloc(sizeof(char) * (strlen((char*)val) + 1));
+      strcpy(newNode->strVal, (char *)val);
+    } else if (type == HASHTABLE_TYPE_INT) {
+      newNode->numVal = *((int *)val);
+    } else if (type == HASHTABLE_TYPE_CUSTOM) {
+      newNode->customVal = val;
     }
   } else {
     HashTable_entry_update_int(he, num, type, val);
@@ -263,11 +281,14 @@ void HashTable_entry_update_int(HashTable_Entry * he, int key, int type, void * 
   if (current != NULL) {
     if (type == HASHTABLE_TYPE_STRING) {
       char * s = (char *) val;
+      free(current->strVal);
       current->strVal = malloc(sizeof(char) * (strlen(s) + 1));
       strcpy(current->strVal, s);
     } else if (type == HASHTABLE_TYPE_INT) {
       int * num = (int *) val;
       current->numVal = *num;
+    } else if (type == HASHTABLE_TYPE_CUSTOM) {
+      current->customVal = val;
     }
   }
 }
@@ -287,6 +308,8 @@ void * HashTable_entry_find_int(HashTable_Entry * he, int key, int type) {
       return (void *) current->strVal;
     } else if (type == HASHTABLE_TYPE_INT) {
       return (void *) &(current->numVal);
+    } else if (type == HASHTABLE_TYPE_CUSTOM) {
+      return current->customVal;
     }
     return NULL;
   }
@@ -298,20 +321,20 @@ void HashTable_entry_destroy(HashTable_Entry * he) {
   HashTable_Entry_List * current = he->head;
   
   while (current != NULL) {
-    if (parent != NULL && parent->type == HASHTABLE_TYPE_STRING) {
-      free(parent->strKey);
-    }
     if (parent != NULL) {
+      if (parent->type == HASHTABLE_TYPE_STRING) {
+        free(parent->strKey);
+      }
       free(parent->strVal);
     }
     free(parent);
     parent = current;
     current = current->next;
   }
-  if (parent != NULL && parent->type == HASHTABLE_TYPE_STRING) {
-      free(parent->strKey);
-  }
   if (parent != NULL) {
+    if (parent->type == HASHTABLE_TYPE_STRING) {
+      free(parent->strKey);
+    }
     free(parent->strVal);
   }
   free(parent);
