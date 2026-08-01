@@ -655,16 +655,33 @@ void HashTable_copy_to_char_array(char * str, void * k, int len) {
 }
 
 void HashTable_string_init(HashTable_String_type * str, char * src) {
+  if (strlen(src) < 1) {
+    str->data = NULL;
+    str->allocSize = 0;
+    str->length = 0;
+    return;
+  }
   str->data = malloc(strlen(src));
   str->allocSize = strlen(src);
   str->length = strlen(src);
   memcpy(str->data, src, strlen(src));
 }
 
+void * HashTable_string_init_to_ptr(char * src) {
+  HashTable_String_type * str = malloc(sizeof(HashTable_String_type));
+  HashTable_string_init(str, src);
+  return str;
+}
+
 void HashTable_string_destroy(HashTable_String_type * str) {
   free(str->data);
   str->allocSize = 0;
   str->length = 0;
+}
+
+void HashTable_string_destroy_from_ptr(HashTable_String_type * str) {
+  HashTable_string_destroy(str);
+  free(str);
 }
 
 void HashTable_string_copy_from_ptr(HashTable_String_type * str, char * src) {
@@ -680,25 +697,73 @@ void HashTable_string_copy_from_ptr(HashTable_String_type * str, char * src) {
 
 void HashTable_string_append_from_ptr(HashTable_String_type * str, char * src) {
   int len = strlen(src);
-  int i;
   int j;
-  unsigned char * temp = str->data;
-  int shouldFreeTemp = 0;
   if (len + str->length > str->allocSize) {
+    unsigned char * temp = str->data;
     str->data = malloc(len + str->length);
     str->allocSize = len + str->length;
-    shouldFreeTemp = 1;
-  }
-  for (i = 0; i < str->length; i++) {
-    str->data[i] = temp[i];
-  }
-  for(j = 0; j < len; j++) {
-    str->data[i + j] = src[j];
-  }
-  str->length = len + str->length;
-  if (shouldFreeTemp) {
+    memcpy(str->data, temp, str->length);
     free(temp);
   }
+  for(j = 0; j < len; j++) {
+    str->data[str->length + j] = src[j];
+  }
+  str->length = len + str->length;
+}
+
+void HashTable_string_append(HashTable_String_type * dest, HashTable_String_type * src) {
+  int len = src->length;
+  int j;
+  if (len + dest->length > dest->allocSize) {
+    unsigned char * temp = dest->data;
+    dest->data = malloc(len + dest->length);
+    dest->allocSize = len + dest->length;
+    memcpy(dest->data, temp, dest->length);
+    free(temp);
+  }
+  for(j = 0; j < len; j++) {
+    dest->data[dest->length + j] = src->data[j];
+  }
+  dest->length = len + dest->length;
+}
+
+void HashTable_string_append_from_int(HashTable_String_type * str, int num) {
+  char numbuf[16];
+  int len, l, r;
+  int isNegative = 0;
+  if (num < 0) {
+    isNegative = 1;
+    num = num * -1;
+  }
+  if (num == 0) {
+    numbuf[0] = '0';
+    numbuf[1] = 0;
+    len = 1;
+  } else {
+    int i = 0;
+    while (num != 0) {
+      numbuf[i] = num % 10 + '0';
+      num = num / 10;
+      i++;
+    }
+    if (isNegative) {
+      numbuf[i] = '-';
+      i++;
+    }
+    len = i;
+    numbuf[i] = 0;
+  }
+  l = 0;
+  r = len  - 1;
+  while (l < r) {
+    char temp;
+    temp = numbuf[l];
+    numbuf[l] = numbuf[r];
+    numbuf[r] = temp;
+    l++;
+    r--;
+  }
+  HashTable_string_append_from_ptr(str, numbuf);
 }
 
 void HashTable_string_print(HashTable_String_type * str) {
@@ -706,6 +771,18 @@ void HashTable_string_print(HashTable_String_type * str) {
   for (i = 0; i < str->length; i++) {
     printf("%c", (char)str->data[i]);
   }
+}
+
+void HashTable_string_to_char_buf(char * buf, int buflen, HashTable_String_type * str) {
+  int len = str->length + 1;
+  int i;
+  if (len > buflen) {
+    len = buflen;
+  }
+  for (i = 0; i < len - 1; i++) {
+    buf[i] = (char)(str->data[i]);
+  }
+  buf[len - 1] = 0;
 }
 
 #endif

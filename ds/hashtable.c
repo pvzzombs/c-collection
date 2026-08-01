@@ -6,23 +6,13 @@
 
 void del(void * s) {
   HashTable_String_type * p_str = (HashTable_String_type *) s;
-  HashTable_string_destroy(p_str);
-  free(p_str);
+  HashTable_string_destroy_from_ptr(p_str);
 }
 
 int main() {
   HashTable t;
-  char a[] = "Wow!";
-  int * r_only;
-  char * str;
-  int x = 12, y = 10;
-  HashTable_init(&t, 10);
   char tempStr[128];
-  
-  BigInt b1, b2;
-  BigInt * bptr;
-  
-  
+  HashTable_init(&t, 128);
   
   /* BigInt_init_from_int(&b1, 12345);
   BigInt_init_two(&b2); */
@@ -64,19 +54,13 @@ int main() {
   BigInt_destroy(&b1);
   BigInt_destroy(&b2); */
   
-  HashTable_String_type * str1 = malloc(sizeof(HashTable_String_type));
-  HashTable_String_type * str2 = malloc(sizeof(HashTable_String_type));
+  HashTable_insert(&t, "1", 1, HashTable_string_init_to_ptr("Hello"), del);
+  HashTable_insert(&t, "2", 1, HashTable_string_init_to_ptr(" World! "), del);
   
-  HashTable_string_init(str1, "Hello ");
-  HashTable_string_init(str2, "World");
-  
-  HashTable_string_append_from_ptr(str1, "World!\n");
-  
-  HashTable_string_print(str1);
-  
-  HashTable_insert(&t, "1", 1, str1, del);
-  HashTable_insert(&t, "1", 1, str2, del);
-  
+  HashTable_string_append((HashTable_String_type*) HashTable_get(&t, "1", 1), (HashTable_String_type*) HashTable_get(&t, "2", 1));
+  HashTable_string_to_char_buf(tempStr, 6, (HashTable_String_type*) HashTable_get(&t, "1", 1));
+  printf("%s\n", tempStr);
+  HashTable_string_append_from_int((HashTable_String_type*) HashTable_get(&t, "1", 1), -1234);
   HashTable_string_print((HashTable_String_type*) HashTable_get(&t, "1", 1));
   
   HashTable_destroy(&t, del);
