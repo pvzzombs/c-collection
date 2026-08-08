@@ -151,6 +151,8 @@ int main(int argc, char ** argv) {
   }
   
   linenoiseHistorySetMaxLen(20);
+  
+  printf("Leave blank then press enter to quit or exit.\n");
 
   while (1) {
     WordArray selections;
