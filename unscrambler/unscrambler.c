@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#if !defined(_WIN32)
 #include "../others/linenoise.h"
+#endif
 
 typedef struct Word_ Word;
 struct Word_ {
@@ -149,26 +152,35 @@ int main(int argc, char ** argv) {
   } else {
     printf("Dictionary file (%s) NOT FOUND!!!\n", dictionary_name);
   }
-  
+
+#if !defined(_WIN32)
   linenoiseHistorySetMaxLen(20);
+#endif
   
   printf("Leave blank then press enter to quit or exit.\n");
 
   while (1) {
     WordArray selections;
     Word toBeUnscrambled;
+
+#if !defined(_WIN32)
     char * buffer;
+#endif
 
     WordArray_init(&selections);
     
+#if !defined(_WIN32)
     buffer = linenoise("Enter letters: ");
-
-    /* printf("Enter letters: ");
+#else
+    printf("Enter letters: ");
     fgets(buffer, 128, stdin);
-    removeLineChar(buffer); */
+    removeLineChar(buffer);
+#endif
     
     if (strcmp(buffer, "") == 0) {
+#if !defined(_WIN32)
       linenoiseFree(buffer);
+#endif
       WordArray_destroy(&selections);
       break;
     }
@@ -180,8 +192,10 @@ int main(int argc, char ** argv) {
     
     WordArray_print(&selections);
     
+#if !defined(_WIN32)
     linenoiseHistoryAdd(buffer);
     linenoiseFree(buffer);
+#endif
     
     Word_destroy(&toBeUnscrambled);
     WordArray_destroy(&selections);
