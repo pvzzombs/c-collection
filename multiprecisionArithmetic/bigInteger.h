@@ -1780,6 +1780,9 @@ void BigInt_divmod(BigInt * quotient, BigInt * remainder, BigInt * dividend1, Bi
       }
       BigInt_divide_int_impl(rem, d[0], remainder->internalRepresentation, divisor->internalSize + 1);
       BigInt_remove_leading_zeroes(remainder);
+      if (BigInt_is_zero_impl(remainder->internalRepresentation, remainder->internalSize) == 0) {
+        remainder->sign = dividend1->sign;
+      }
     }
   }
   
