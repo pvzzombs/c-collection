@@ -386,49 +386,6 @@ void BigInt_reverse_digits_impl(char * arr, int len) {
   }
 }
 
-BigInt_limb_wide_t BigInt_generate_shift_number(BigInt_limb_wide_t num, BigInt_limb_wide_t bitlen) {
-  BigInt_limb_wide_t c = 1;
-  BigInt_limb_wide_t s = 0;
-  if (num == BIGINT_BASE) { return 0; }
-  c = c << bitlen;
-  while (num < c) {
-    num = num << 1;
-    s++;
-  }
-  return s;
-}
-
-BigInt_limb_wide_t BigInt_generate_magic_nunber(BigInt_limb_wide_t num, BigInt_limb_wide_t b) {
-  BigInt_limb_wide_t u = b;
-  BigInt_limb_wide_t v = num;
-  BigInt_limb_wide_t r = u / v;
-  if (num == BIGINT_BASE) {
-    return 1;
-  }
-  return r;
-}
-
-BigInt_limb_wide_t BigInt_divide_int_by_magic_number(BigInt_limb_wide_t num, BigInt_limb_wide_t v, BigInt_limb_wide_t magic, BigInt_limb_wide_t bitlen, BigInt_limb_wide_t *rem) {
-  BigInt_limb_wide_t u = num, r;
-  if (v == BIGINT_BASE) {
-    *rem = u & BIGINT_BASE_MAX_INT;
-    return u >> (BIGINT_BASE_BIT_LENGTH - 1);
-  }
-  u = u * magic;
-  u = u >> (bitlen);
-  r = num - u * v;
-  while (r < 0) {
-    u--;
-    r += v;
-  }
-  while (r >= v) {
-    u++;
-    r -= v;
-  }
-  *rem = r;
-  return u;
-}
-
 BigInt_limb_wide_t BigInt_min_int(BigInt_limb_wide_t a, BigInt_limb_wide_t b) {
   if (a < b) return a;
   return b;
@@ -438,7 +395,6 @@ BigInt_limb_wide_t BigInt_max_int(BigInt_limb_wide_t a, BigInt_limb_wide_t b) {
   if (a > b) return a;
   return b;
 }
-
 
 BigInt_limb_t BigInt_atoi_impl (char * src) {
   BigInt_limb_t num = 0;
@@ -890,19 +846,6 @@ void BigInt_add_unsigned(BigInt * sum, BigInt * addend1, BigInt * addend2) {
   
   BigInt_add_optimize_impl(addend1->internalRepresentation, addend2->internalRepresentation, sum->internalRepresentation, addend1->internalSize, addend2->internalSize, sum->internalSize);
   BigInt_remove_leading_zeroes(sum);
-}
-
-void BigInt_add_less_checks(BigInt * sum, BigInt * addend1, BigInt * addend2) {
-  int t = BigInt_max_int(addend1->internalSize, addend2->internalSize) + 1;
-  if (BigInt_cmp_len(addend1, addend2) < 0) {
-    BigInt * temp = addend1;
-    addend1 = addend2;
-    addend2 = temp;
-  }
-  sum->internalSize = t;
-  BigInt_add_optimize_impl(addend1->internalRepresentation, addend2->internalRepresentation, sum->internalRepresentation, addend1->internalSize, addend2->internalSize, t);
-  BigInt_remove_leading_zeroes(sum);
-  
 }
 
 void BigInt_add_int_impl(BigInt_limb_t * addend1, BigInt_limb_t addend2, BigInt_limb_t * sum, int addend1Len, int sumLen) {
