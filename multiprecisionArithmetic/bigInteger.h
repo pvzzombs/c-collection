@@ -226,7 +226,7 @@ extern "C" {
 typedef struct BigInt_ BigInt;
 struct BigInt_ {
   BigInt_limb_t * internalRepresentation;
-  BigInt * reference;
+  /* BigInt * reference; */
   int internalSize;
   int allocSize;
   int sign;
