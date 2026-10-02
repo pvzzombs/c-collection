@@ -16,6 +16,7 @@
 #define BIGINT_ALLOC_STRATEGY_GROW
 #endif
 
+#ifndef BIGINT_MANUAL_DETECT_BIT
 #if defined(__STDC_VERSION__)
 #include <stdint.h>
 #if INTPTR_MAX == INT64_MAX
@@ -32,6 +33,7 @@
 #define BIGINT_USE_32_BIT
 #else
 #define BIGINT_USE_16_BIT
+#endif
 #endif
 #endif
 
