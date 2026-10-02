@@ -30,7 +30,7 @@ int main() {
       BigInt_copy(&b, &temp);
       index++;
       s = BigInt_to_string(&a);
-      fprintf(file, s);
+      fprintf(file, "%s", s);
       fprintf(file, "\n");
       free(s);
     }
