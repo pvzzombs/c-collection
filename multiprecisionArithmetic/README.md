@@ -22,6 +22,8 @@ Ensure to use maximum compiler optimization!
 - [ ] Maximize Optimization for Visual Studio 2015 C Optimizing Compiler 19.00 (x86) **(In Progress)**
 - [x] Support GCC 11.2.0 (x64)
 - [ ] Maximize Optimization for GCC 11.2.0 (x64) **(In Progress)**
+- [x] Support GCC 16.2.0 (x64)
+- [ ] Maximize Optimization for GCC 16.2.0 (x64) **(In Progress)**
 - [ ] Support Other Compiler and Different Versions **(In Progress)**
 
 ## The Challenge
