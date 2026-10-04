@@ -2711,11 +2711,19 @@ void BigInt_multiply_karatsuba_assign_u(BigInt * a, BigInt * b) {
 }
 
 void BigInt_set_negative_sign(BigInt * b) {
-  b->sign = -1;
+  if (!BigInt_is_zero_impl(b->internalRepresentation, b->internalSize)) {
+    b->sign = -1;
+    return;
+  }
+  b->sign = 0;
 }
 
 void BigInt_set_positive_sign(BigInt * b) {
-  b->sign = 1;
+  if (!BigInt_is_zero_impl(b->internalRepresentation, b->internalSize)) {
+    b->sign = 1;
+    return;
+  }
+  b->sign = 0;
 }
 
 void BigInt_Bump_Allocator_init(BigInt_Bump_Allocator * b, int a) {
